@@ -139,6 +139,8 @@ export async function getInsights() {
       { name: "Sources panel opened", value: of("sources_opened").length },
       { name: "Share links created", value: of("share_created").length },
       { name: "PDF exports", value: of("export_pdf").length },
+      { name: "Excel downloads", value: of("excel_download").length },
+      { name: "Tools panel opened", value: of("tools_opened").length },
       { name: "Watchlist adds", value: of("watchlist_add").length },
       { name: "Alerts created", value: of("alert_created").length },
       { name: "Alerts triggered", value: of("alert_triggered").length },

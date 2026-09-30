@@ -1,7 +1,7 @@
 # Stock AI — AI-Powered Equity Research Platform
 
 A full-stack conversational equity-research assistant. Ask about any listed company and an
-agentic LLM pulls live market data through **15 market tools** (43 metrics), then streams its
+agentic LLM pulls live market data through **22 research tools** (43 metrics), then streams its
 answer back as **generative UI** — interactive price charts, financial-statement bar charts,
 comparison tables, analyst-consensus visuals and a DCF model with a sensitivity grid.
 
@@ -23,6 +23,9 @@ NextAuth.js (device-fingerprint auth) · Recharts · Tailwind CSS 4 · Yahoo Fin
 | **Share & export** | Public read-only link per chat (`/s/<id>`, noindex, revocable; private watchlist/alert output hidden). Export any chat to PDF via the print dialog. |
 | **Accounts** | Fingerprint login stays the default. Optional Google/GitHub sign-in links a device's history to a real account and syncs it across devices. |
 | **Guardrails** | A fast classifier blocks off-topic requests (coding, essays, recipes, jailbreaks) before the main model runs; strict scope + advice rules in the system prompt; server-side history (clients can't forge messages); input length cap; per-user/IP rate limits and daily $ budgets. |
+| **Analysis models** | Risk & return vs Nifty/S&P (CAGR, volatility, Sharpe, Sortino, beta, alpha, drawdown), correlation matrix, comparable-company valuation, DuPont ROE, financial health (Piotroski F-score + Altman Z), SIP backtest with XIRR, technical indicators (SMA, RSI, MACD). |
+| **Excel downloads** | Every result card downloads as Excel; DCF, comps, SIP, risk, correlation and DuPont download as **live models** (blue inputs, formula cells). The header's Excel button exports a whole chat as one workbook. Built client-side with ExcelJS, loaded on demand. |
+| **Tools catalog** | "Tools" button lists every capability by category with Excel badges and one-click example questions. |
 | **Product analytics** | `/insights` dashboard: North Star (Weekly Active Researchers), activation funnel, returning users, helpful rate, cost per answer, latency, guard block rate, tool/model/mode mix, top tickers. First-party events; raw questions are never stored in analytics. |
 | **Answer feedback** | 👍/👎 on every answer, with a reason on 👎; shown by answer style on the dashboard. |
 | **Trust & transparency** | "Based on N live data calls" under each answer expands to the exact data calls, source and freshness; quote cards show "as of" time and market state. |
@@ -93,6 +96,9 @@ src/
   app/api/watchlist, alerts    watchlist + price-alert CRUD; alerts/check polled by the app; cron/alerts for Vercel Cron
   app/api/account              who am I, sign-in providers, questions left today
   lib/tools.ts                 AI tools: 15 market tools + 6 watchlist/alert tools
+  lib/analysis-tools.ts        7 quant models (risk, correlation, comps, DuPont, health score, SIP, technicals)
+  lib/excel.ts                 Excel model builder (formulas, inputs styled blue)
+  lib/tool-catalog.ts          the user-facing Tools catalog
   lib/guard.ts                 scope classifier + refusal copy
   lib/limits.ts                rate limits and daily budgets
   lib/finance.ts               Yahoo Finance data layer + 43-metric catalog

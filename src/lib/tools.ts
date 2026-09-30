@@ -2,6 +2,7 @@ import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
 import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, toDate, yf } from "./finance";
+import { analysisTools } from "./analysis-tools";
 import { ALERTS_MAX_ACTIVE, createAlert, deleteAlerts, listAlerts } from "./alerts";
 import { WATCHLIST_MAX, addToWatchlist, getWatchlist, removeFromWatchlist } from "./watchlist";
 
@@ -490,5 +491,5 @@ export function userTools(userId: string) {
 }
 
 export function makeTools(userId: string) {
-  return { ...marketTools, ...userTools(userId) };
+  return { ...marketTools, ...analysisTools, ...userTools(userId) };
 }

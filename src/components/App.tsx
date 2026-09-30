@@ -1,12 +1,13 @@
 "use client";
 import type { UIMessage } from "ai";
 import {
-  Bell, BellRing, Check, ChevronDown, Copy, FileDown, Fingerprint, GraduationCap, Link2, LineChart, Menu, MessageSquare, Plus, Share2, ShieldAlert, Sparkles, Star, Trash2, TrendingUp, X,
+  Bell, BellRing, Check, ChevronDown, Copy, FileDown, FileSpreadsheet, Fingerprint, Wrench, GraduationCap, Link2, LineChart, Menu, MessageSquare, Plus, Share2, ShieldAlert, Sparkles, Star, Trash2, TrendingUp, X,
 } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionsContext } from "./actions";
 import { Chat } from "./Chat";
+import { ToolsCatalog } from "./ToolsCatalog";
 import type { Rating } from "./Messages";
 import { getFingerprint } from "@/lib/fingerprint";
 import { fmt, pct, upDown } from "@/lib/format";
@@ -81,6 +82,11 @@ function Workspace() {
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [prompt, setPrompt] = useState<{ text: string; nonce: number } | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const msgsRef = useRef<UIMessage[]>([]);
+  const onMessages = useCallback((m: UIMessage[]) => {
+    msgsRef.current = m;
+  }, []);
 
   const toast = useCallback((text: string) => {
     const id = newId();
@@ -191,6 +197,25 @@ function Workspace() {
   const exportPdf = () => {
     trackClient("export_pdf", {}, chatId);
     window.print();
+  };
+
+  const openTools = useCallback(() => {
+    setToolsOpen(true);
+    trackClient("tools_opened");
+  }, []);
+
+  /** Every successful (non-private) tool result in this chat → one workbook. */
+  const exportExcel = async () => {
+    const parts = msgsRef.current.flatMap((m) =>
+      (m.parts as { type: string; state?: string; output?: unknown }[])
+        .filter((p) => p.type.startsWith("tool-") && p.state === "output-available" && p.output && typeof p.output === "object" && !("error" in (p.output as object)))
+        .map((p) => ({ toolName: p.type.slice(5), data: p.output }))
+        .filter((p) => !["searchTicker", "getWatchlist", "addToWatchlist", "removeFromWatchlist", "createPriceAlert", "listPriceAlerts", "deletePriceAlerts"].includes(p.toolName)),
+    );
+    if (!parts.length) return toast("Nothing to export yet: this chat has no data results.");
+    trackClient("excel_download", { scope: "chat", sheets: parts.length }, chatId);
+    const { downloadChatExcel } = await import("@/lib/excel");
+    await downloadChatExcel(parts, title);
   };
 
   const accept = () => {
@@ -315,8 +340,14 @@ function Workspace() {
             </button>
             <div className="hidden min-w-0 flex-1 truncate text-sm text-zinc-500 md:block">{title}</div>
             <div className="flex items-center gap-1.5">
+              <button onClick={openTools} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900" title="See every tool and analysis Stock AI can run">
+                <Wrench className="h-4 w-4" /> <span className="hidden sm:inline">Tools</span>
+              </button>
               {hasMessages && (
                 <>
+                  <button onClick={exportExcel} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900" title="Download every analysis in this chat as one Excel workbook (models keep live formulas)">
+                    <FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">Excel</span>
+                  </button>
                   <SharePopover chatId={chatId} shareId={shareId} onChange={setShareId} toast={toast} />
                   <button onClick={exportPdf} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900" title="Export as PDF (choose “Save as PDF” in the print dialog)">
                     <FileDown className="h-4 w-4" /> <span className="hidden sm:inline">PDF</span>
@@ -345,6 +376,8 @@ function Workspace() {
                 initialRatings={initialRatings}
                 model={model}
                 mode={mode}
+                onMessages={onMessages}
+                onOpenTools={openTools}
                 prompt={prompt}
                 onFinished={() => {
                   history.replaceState(null, "", `?c=${chatId}`);
@@ -357,6 +390,7 @@ function Workspace() {
           </div>
         </main>
         {!consented && <Disclaimer onAccept={accept} />}
+        <ToolsCatalog open={toolsOpen} onClose={() => setToolsOpen(false)} onTry={(p) => { setToolsOpen(false); ask(p); }} />
         <div className="no-print pointer-events-none fixed bottom-20 right-4 z-50 flex max-w-sm flex-col gap-2">
           {toasts.map((t) => (
             <div key={t.id} className="pointer-events-auto rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 shadow-xl">{t.text}</div>

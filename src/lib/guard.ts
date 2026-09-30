@@ -24,11 +24,14 @@ in_scope — anything a stock-market research assistant should answer:
 - macroeconomics as it relates to markets (rates, inflation, RBI/Fed policy, GDP)
 - investing & personal-finance concepts and education ("what is P/E", "how do SIPs work", "explain beta", tax on capital gains)
 - portfolio questions, risk, diversification, "should I buy X" (the assistant will answer with balanced analysis)
-- using this app: watchlist, price alerts, sharing, what the assistant can do
+- analysis models: DCF, comparable-company valuation, SIP backtests, risk/return, correlation, DuPont, financial-health scores, technical indicators
+- building, exporting or downloading these stock analyses as Excel/spreadsheet models
+- using this app: watchlist, price alerts, sharing, Excel downloads, what the assistant can do
 - greetings, thanks, small talk, and short follow-ups that only make sense in context ("and TCS?", "why?", "make it 5 years")
 
 out_of_scope — the user wants something unrelated to markets/investing, e.g.:
 - writing, debugging or explaining code in ANY language — even finance-flavoured code ("python script for a DCF", "SQL for stock prices", "build me a trading bot")
+- generic spreadsheet help unrelated to researching a stock ("fix my VLOOKUP", "make an Excel budget for my wedding")
 - essays, poems, stories, jokes, emails, cover letters, translations, general homework, trivia, recipes, travel, health, legal, relationship advice
 - general knowledge or current events not about markets/companies
 

@@ -1,9 +1,14 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ComponentType } from "react";
+import { FileSpreadsheet, Loader2 } from "lucide-react";
+import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";
 import { AnalystView, CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
 import { AlertsView, IndicesView, MoversView, NewsView, OwnershipView, ProfileView, SearchView, WatchlistView } from "./lists";
+import { CompsView, CorrelationView, DupontView, HealthView, RiskReturnView, SipView, TechnicalsView } from "./analysis-views";
+import { EXCEL_MODEL_TOOLS } from "@/lib/tool-catalog";
+import { PRIVATE_TOOLS } from "@/lib/tool-names";
+import { trackClient } from "@/lib/track-client";
 
 type ViewProps = { data: any; onPick?: (s: string) => void };
 
@@ -23,6 +28,13 @@ const REGISTRY: Record<string, { label: (input: any) => string; View: ComponentT
   runDcfValuation: { label: (i) => `Running DCF model for ${i?.symbol ?? ""}`, View: DcfView },
   getIndianMarketMovers: { label: (i) => `Scanning Nifty 50 for ${String(i?.screen ?? "movers").replace(/_/g, " ")}`, View: MoversView },
   getMarketOverview: { label: (i) => `Loading ${i?.region === "US" ? "US" : i?.region === "GLOBAL" ? "global" : "Indian"} market overview`, View: IndicesView },
+  getRiskReturn: { label: (i) => `Measuring risk & return for ${i?.symbol ?? ""}`, View: RiskReturnView },
+  getCorrelationMatrix: { label: (i) => `Computing correlations for ${i?.symbols?.join(", ") ?? ""}`, View: CorrelationView },
+  runComparableValuation: { label: (i) => `Valuing ${i?.symbol ?? ""} against ${i?.peers?.length ?? ""} peers`, View: CompsView },
+  getDupontAnalysis: { label: (i) => `Running DuPont analysis for ${i?.symbol ?? ""}`, View: DupontView },
+  getFinancialHealthScore: { label: (i) => `Scoring financial health of ${i?.symbol ?? ""}`, View: HealthView },
+  runSipBacktest: { label: (i) => `Backtesting a monthly SIP in ${i?.symbol ?? ""}`, View: SipView },
+  getTechnicalIndicators: { label: (i) => `Computing technical indicators for ${i?.symbol ?? ""}`, View: TechnicalsView },
   getWatchlist: { label: () => "Loading your watchlist", View: WatchlistView },
   addToWatchlist: { label: (i) => `Adding ${i?.symbols?.join(", ") ?? ""} to your watchlist`, View: WatchlistView },
   removeFromWatchlist: { label: (i) => `Removing ${i?.symbols?.join(", ") ?? ""} from your watchlist`, View: WatchlistView },
@@ -30,6 +42,33 @@ const REGISTRY: Record<string, { label: (input: any) => string; View: ComponentT
   listPriceAlerts: { label: () => "Loading your alerts", View: AlertsView },
   deletePriceAlerts: { label: () => "Deleting alerts", View: AlertsView },
 };
+
+/** Tools with nothing worth exporting to a spreadsheet. */
+const NO_EXCEL = new Set(["searchTicker", ...PRIVATE_TOOLS]);
+
+function ExcelButton({ tool, data }: { tool: string; data: any }) {
+  const [busy, setBusy] = useState(false);
+  const model = EXCEL_MODEL_TOOLS.has(tool);
+  return (
+    <button
+      onClick={async () => {
+        setBusy(true);
+        trackClient("excel_download", { tool, scope: "card" });
+        try {
+          const { downloadToolExcel } = await import("@/lib/excel");
+          await downloadToolExcel(tool, data);
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="no-print -mt-1.5 mb-3 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-zinc-500 hover:bg-zinc-900 hover:text-emerald-300"
+      title={model ? "Live Excel model: blue cells are inputs, formulas recalculate" : "Download this data as an Excel sheet"}
+    >
+      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
+      {model ? "Download Excel model (live formulas)" : "Download as Excel"}
+    </button>
+  );
+}
 
 export function ToolView({ part, onPick }: { part: any; onPick?: (s: string) => void }) {
   const name = String(part.type).replace(/^tool-/, "");
@@ -45,7 +84,12 @@ export function ToolView({ part, onPick }: { part: any; onPick?: (s: string) => 
       const out = part.output;
       if (out && typeof out === "object" && "error" in out) return <ErrorNote tool={name} message={String(out.error)} />;
       const { View } = entry;
-      return <View data={out} onPick={onPick} />;
+      return (
+        <>
+          <View data={out} onPick={onPick} />
+          {!NO_EXCEL.has(name) && <ExcelButton tool={name} data={out} />}
+        </>
+      );
     }
     default:
       return null;

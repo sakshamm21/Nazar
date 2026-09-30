@@ -1,7 +1,8 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { ArrowUp, Square, TrendingUp } from "lucide-react";
+import { ArrowUp, Square, TrendingUp, Wrench } from "lucide-react";
+import { TOOL_COUNT } from "@/lib/tool-catalog";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageList, type Rating } from "./Messages";
 import type { FeedbackReason } from "@/lib/feedback-reasons";
@@ -9,8 +10,8 @@ import type { FeedbackReason } from "@/lib/feedback-reasons";
 const MAX_CHARS = 2000;
 
 const SUGGESTIONS: { group: string; items: string[] }[] = [
-  { group: "Markets", items: ["How are Indian markets doing today?", "Top Nifty 50 gainers today"] },
-  { group: "Research", items: ["Analyze Reliance Industries: valuation, growth and analyst view", "Compare TCS, Infosys and HCLTech on margins"] },
+  { group: "Markets", items: ["How are Indian markets doing today?", "₹10,000 monthly SIP in the Nifty 50 for 5 years: what would it be worth?"] },
+  { group: "Research", items: ["Analyze Reliance Industries: valuation, growth and analyst view", "Value HDFC Bank against ICICI, Kotak and Axis Bank using comps"] },
   { group: "Learn", items: ["What is a P/E ratio and why does it matter?", "TCS ka P/E ratio kya hai? Hinglish mein samjhao"] },
 ];
 
@@ -22,6 +23,8 @@ export function Chat({
   initialRatings,
   onFinished,
   prompt,
+  onMessages,
+  onOpenTools,
 }: {
   chatId: string;
   initialMessages: UIMessage[];
@@ -29,6 +32,9 @@ export function Chat({
   mode: "simple" | "pro";
   initialRatings?: Record<string, Rating>;
   onFinished: () => void;
+  /** Lets the parent read the live conversation (for the whole-chat Excel export). */
+  onMessages?: (m: UIMessage[]) => void;
+  onOpenTools?: () => void;
   /** A prompt injected from outside the chat (e.g. clicking a watchlist item). */
   prompt?: { text: string; nonce: number } | null;
 }) {
@@ -70,6 +76,10 @@ export function Chat({
   const busy = status === "submitted" || status === "streaming";
 
   useEffect(() => {
+    onMessages?.(messages);
+  }, [messages, onMessages]);
+
+  useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, status]);
 
@@ -103,6 +113,11 @@ export function Chat({
               </div>
               <h1 className="text-2xl font-semibold tracking-tight">What are we researching today?</h1>
               <p className="mt-2 max-w-md text-sm text-zinc-400">Ask about any listed company in India, the US or elsewhere. Stock AI pulls live market data and renders charts and tables as it researches.</p>
+              {onOpenTools && (
+                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-emerald-700/50 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20">
+                  <Wrench className="h-3.5 w-3.5" /> Explore {TOOL_COUNT} tools: DCF, comps, SIP backtest, risk, technicals · Excel models
+                </button>
+              )}
               <div className="mt-8 grid w-full gap-4 sm:grid-cols-3">
                 {SUGGESTIONS.map((g) => (
                   <div key={g.group} className="space-y-2">

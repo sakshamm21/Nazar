@@ -8,7 +8,7 @@ import { getDb, schema } from "./db";
  *   watchlist_add, alert_created, feedback.
  * Client-side (via /api/events, whitelisted): the ones in CLIENT_EVENTS.
  */
-export const CLIENT_EVENTS = new Set(["app_open", "export_pdf", "suggestion_click", "share_link_copied", "mode_change", "disclaimer_accepted", "sources_opened"]);
+export const CLIENT_EVENTS = new Set(["app_open", "export_pdf", "suggestion_click", "share_link_copied", "mode_change", "disclaimer_accepted", "sources_opened", "excel_download", "tools_opened", "catalog_example"]);
 
 /** Fire-and-forget: analytics must never break or slow the product. */
 export function track(userId: string, type: string, props: Record<string, unknown> = {}, chatId?: string | null) {

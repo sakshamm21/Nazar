@@ -26,12 +26,18 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
 
   if (has("compareStocks") && tickers.length >= 2) {
     out.push(`Which of ${tickers.slice(0, 3).join(", ")} has the strongest balance sheet?`);
-    out.push(`Show ${tickers.slice(0, 3).join(" vs ")} price performance over 1 year`);
+    if (!has("getCorrelationMatrix")) out.push(`How correlated are ${tickers.slice(0, 4).join(", ")}?`);
+    if (!has("runComparableValuation")) out.push(`Value ${tickers[0]} against ${tickers.slice(1, 4).join(", ")} using comps`);
     if (!has("getAnalystRatings")) out.push(`What do analysts think of ${tickers[0]}?`);
   } else if (t) {
     if (!has("getPriceHistory")) out.push(`Show ${t}'s price chart for the last year`);
     if (!has("getKeyMetrics") && !has("runDcfValuation")) out.push(`Is ${t} expensive? Show its key valuation metrics`);
     if (!has("runDcfValuation") && has("getKeyMetrics")) out.push(`Run a DCF on ${t}`);
+    if (has("runDcfValuation") && !has("runComparableValuation")) out.push(`Cross-check ${t} with a comps valuation against its peers`);
+    if (!has("getFinancialHealthScore") && (has("getKeyMetrics") || has("runDcfValuation"))) out.push(`What is ${t}'s financial health score?`);
+    if (!has("getRiskReturn") && has("getPriceHistory")) out.push(`How risky is ${t} compared to the index?`);
+    if (has("runSipBacktest")) out.push(`Compare that with a monthly SIP in the Nifty 50`);
+    if (has("getTechnicalIndicators") && !has("getRiskReturn")) out.push(`How volatile is ${t} vs the index over 3 years?`);
     if (!has("getAnalystRatings")) out.push(`What do analysts think of ${t}?`);
     if (!has("getNews")) out.push(`Latest news on ${t}`);
     if (!has("getFinancialStatements")) out.push(`Show ${t}'s revenue and profit over the last 4 years`);
@@ -68,6 +74,13 @@ export const TOOL_LABELS: Record<string, string> = {
   getMarketOverview: "Index board",
   getOwnership: "Ownership",
   runDcfValuation: "DCF model",
+  getRiskReturn: "Risk & return",
+  getCorrelationMatrix: "Correlation matrix",
+  runComparableValuation: "Comps valuation",
+  getDupontAnalysis: "DuPont analysis",
+  getFinancialHealthScore: "Health score",
+  runSipBacktest: "SIP backtest",
+  getTechnicalIndicators: "Technicals",
   getWatchlist: "Your watchlist",
   addToWatchlist: "Watchlist update",
   removeFromWatchlist: "Watchlist update",
