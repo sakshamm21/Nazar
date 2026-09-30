@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local embedded database (PGlite)
 /.data
+
+.vercel
+.env*
