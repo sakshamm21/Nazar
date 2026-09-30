@@ -16,6 +16,7 @@
     "@ai-sdk/openai": "^2.0.131",
     "@ai-sdk/react": "^2.0.272",
     "@electric-sql/pglite": "^0.5.8",
+    "@neondatabase/serverless": "^1.1.0",
     "ai": "^5.0.269",
     "drizzle-orm": "^0.45.3",
     "lucide-react": "^1.48.0",
