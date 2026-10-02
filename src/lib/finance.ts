@@ -1,36 +1,36 @@
 import "server-only";
 import YahooFinance from "yahoo-finance2";
+import { Limiter, isTransient, withRetry } from "./data/resilience";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Yahoo Finance data layer (from StockAI v1). Used live only by the Ask tab; the nightly pipeline
+ * reaches it through `data/provider.ts`. Pages never call it: they read snapshots from Postgres.
+ */
 
-const g = globalThis as unknown as { __yf?: InstanceType<typeof YahooFinance> };
-export const yf: any = (g.__yf ??= new YahooFinance());
+const g = globalThis as unknown as { __yf?: InstanceType<typeof YahooFinance>; __yfLimiter?: Limiter };
+export const yf: any = (g.__yf ??= new YahooFinance({ suppressNotices: ["yahooSurvey", "ripHistorical"] }));
+export { isTransient };
 
-const NV = { validateResult: false } as const;
+export const NV = { validateResult: false } as const;
 
 /* ------------------------------------------------------------------ */
-/* Reliability: Yahoo's unofficial API rate-limits and occasionally     */
-/* returns an HTML error page. Retry transient failures once and cache  */
-/* hot lookups briefly so parallel tool calls don't hammer it.          */
+/* Reliability: every Yahoo call goes through one limiter (max 6 at    */
+/* once per instance), exponential backoff with jitter, and a short    */
+/* cache so parallel tool calls don't hammer the API.                  */
 /* ------------------------------------------------------------------ */
 
-export const isTransient = (e: unknown) => /<!DOCTYPE|<html|\b429\b|Too Many Requests|ECONNRESET|ETIMEDOUT|fetch failed|socket hang up|Invalid Crumb/i.test(String((e as any)?.message ?? e));
+const limiter = (g.__yfLimiter ??= new Limiter(Number(process.env.YAHOO_CONCURRENCY) || 6));
 
-async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (e) {
-    if (!isTransient(e)) throw e;
-    await new Promise((r) => setTimeout(r, 700 + Math.random() * 500));
-    return fn();
-  }
+/** Runs one Yahoo call with the shared limiter and retry policy. */
+export function yahooCall<T>(fn: () => Promise<T>): Promise<T> {
+  return limiter.run(() => withRetry(fn, { attempts: 3, baseMs: 800 }));
 }
 
 const cache = new Map<string, { at: number; value: Promise<any> }>();
-function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
+export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < ttlMs) return hit.value;
-  const value = withRetry(fn).catch((e) => {
+  const value = yahooCall(fn).catch((e) => {
     cache.delete(key);
     throw e;
   });
@@ -138,11 +138,15 @@ export async function fxRate(from: string, to: string): Promise<number | null> {
   return q?.price ?? null;
 }
 
-export async function fetchMetrics(symbol: string, keys?: string[]) {
-  const qs = await quoteSummary(symbol, METRIC_MODULES);
+export const METRIC_MODULES_LIST = METRIC_MODULES;
+
+/**
+ * Pure: the 43-metric catalog from a quoteSummary payload. `fx` converts the reporting currency to
+ * the trading currency (null when they're the same or the rate is unknown).
+ */
+export function metricsFromSummary(qs: any, fx: number | null) {
   const currency: string = qs?.price?.currency ?? "USD";
   const reporting: string = qs?.financialData?.financialCurrency ?? currency;
-  const wanted = keys?.length ? METRICS.filter((m) => keys.includes(m.key)) : METRICS;
   const raw = (key: string) => {
     const m = METRICS.find((x) => x.key === key)!;
     return num(qs?.[m.path[0]]?.[m.path[1]]);
@@ -154,7 +158,6 @@ export async function fetchMetrics(symbol: string, keys?: string[]) {
   // Wipro ADR: INR vs USD). Yahoo mixes the two, producing e.g. P/S of 198x. Convert the
   // reporting-currency amounts at the live FX rate and recompute the ratios ourselves.
   if (reporting !== currency) {
-    const fx = await fxRate(reporting, currency);
     const conv = (key: string) => (fx == null ? null : raw(key) == null ? null : raw(key)! * fx);
     const mcap = raw("marketCap");
     const rev = conv("revenue"), ebitda = conv("ebitda"), cash = conv("totalCash"), debt = conv("totalDebt");
@@ -168,8 +171,20 @@ export async function fetchMetrics(symbol: string, keys?: string[]) {
     value = (key: string) => (MIXED_CCY_RATIOS.has(key) ? fixed[key] : REPORTING_CCY_KEYS.has(key) ? conv(key) : raw(key));
     fxNote = fx == null ? `Reports in ${reporting}; FX rate unavailable, so ${reporting} amounts are omitted.` : `Reports in ${reporting}; amounts converted to ${currency} at ${fx.toFixed(4)}.`;
   }
+  const values: Record<string, number | null> = Object.fromEntries(METRICS.map((m) => [m.key, value(m.key)]));
+  // Yahoo's beta for NSE stocks is unreliable (AUDIT B-7); Nazar computes beta from prices instead.
+  if (/\.(NS|BO)$/.test(qs?.price?.symbol ?? "")) values.beta = null;
+  return { currency, reporting, fxNote, values };
+}
 
-  const rows = wanted.map((m) => ({ key: m.key, label: m.label, category: m.category, format: m.format, value: value(m.key) }));
+export async function fetchMetrics(symbol: string, keys?: string[]) {
+  const qs = await quoteSummary(symbol, METRIC_MODULES);
+  const currency: string = qs?.price?.currency ?? "USD";
+  const reporting: string = qs?.financialData?.financialCurrency ?? currency;
+  const wanted = keys?.length ? METRICS.filter((m) => keys.includes(m.key)) : METRICS;
+  const fx = reporting !== currency ? await fxRate(reporting, currency) : null;
+  const { values, fxNote } = metricsFromSummary(qs, fx);
+  const rows = wanted.map((m) => ({ key: m.key, label: m.label, category: m.category, format: m.format, value: values[m.key] ?? null }));
   return {
     symbol: clean(symbol),
     name: qs?.price?.longName ?? qs?.price?.shortName ?? clean(symbol),
@@ -179,13 +194,12 @@ export async function fetchMetrics(symbol: string, keys?: string[]) {
   };
 }
 
-export async function fetchQuotes(symbols: string[]) {
-  const list = [...new Set(symbols.map(clean))];
-  const res: any[] = await cached(`q:${list.join(",")}`, 20_000, () => yf.quote(list, {}, NV)).then((r: any) => (Array.isArray(r) ? r : [r]));
-  return res.filter(Boolean).map((q: any) => ({
-    symbol: q.symbol,
-    name: q.longName ?? q.shortName ?? q.symbol,
-    currency: q.currency ?? "USD",
+/** Maps a Yahoo quote payload to the shape the app uses. */
+export function mapQuote(q: any) {
+  return {
+    symbol: q.symbol as string,
+    name: (q.longName ?? q.shortName ?? q.symbol) as string,
+    currency: (q.currency ?? "USD") as string,
     exchange: q.fullExchangeName ?? q.exchange,
     price: num(q.regularMarketPrice),
     change: num(q.regularMarketChange),
@@ -199,10 +213,17 @@ export async function fetchQuotes(symbols: string[]) {
     fiftyTwoWeekHigh: num(q.fiftyTwoWeekHigh),
     fiftyTwoWeekLow: num(q.fiftyTwoWeekLow),
     trailingPE: num(q.trailingPE),
-    marketState: q.marketState,
+    marketState: q.marketState as string | undefined,
     asOf: q.regularMarketTime ? new Date(q.regularMarketTime instanceof Date ? q.regularMarketTime : Number(q.regularMarketTime) * 1000).toISOString() : null,
-    timeZone: q.exchangeTimezoneName ?? null,
-  }));
+    timeZone: (q.exchangeTimezoneName ?? null) as string | null,
+  };
+}
+export type Quote = ReturnType<typeof mapQuote>;
+
+export async function fetchQuotes(symbols: string[]) {
+  const list = [...new Set(symbols.map(clean))];
+  const res: any[] = await cached(`q:${list.join(",")}`, 20_000, () => yf.quote(list, {}, NV)).then((r: any) => (Array.isArray(r) ? r : [r]));
+  return res.filter(Boolean).map(mapQuote);
 }
 
 const RANGE_DAYS: Record<string, number> = { "5d": 5, "1mo": 31, "3mo": 92, "6mo": 183, ytd: 0, "1y": 366, "2y": 731, "5y": 1827, "10y": 3653, max: 365 * 40 };

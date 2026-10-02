@@ -1,10 +1,16 @@
 import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
-import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, toDate, yf } from "./finance";
+import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, toDate, yahooCall, yf } from "./finance";
 import { analysisTools } from "./analysis-tools";
-import { ALERTS_MAX_ACTIVE, createAlert, deleteAlerts, listAlerts } from "./alerts";
-import { WATCHLIST_MAX, addToWatchlist, getWatchlist, removeFromWatchlist } from "./watchlist";
+import { eq } from "drizzle-orm";
+import { getDb, schema } from "./db";
+import { displayName } from "./market/portfolio-day";
+import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "./market/store";
+import { listAlerts } from "./repo/alerts";
+import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "./repo/portfolios";
+import { TARGETS_MAX_ACTIVE, createTarget, deleteTargets, listTargets } from "./repo/targets";
+import { buildPortfolioView } from "./views/portfolio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -38,7 +44,7 @@ export const marketTools = {
     inputSchema: z.object({ query: z.string().min(1) }),
     execute: async ({ query }) =>
       safe(async () => {
-        const r: any = await yf.search(query, { quotesCount: 8, newsCount: 0 }, { validateResult: false });
+        const r: any = await yahooCall(() => yf.search(query, { quotesCount: 8, newsCount: 0 }, { validateResult: false }));
         return {
           query,
           results: (r?.quotes ?? [])
@@ -250,7 +256,7 @@ export const marketTools = {
     inputSchema: z.object({ query: z.string().min(1).describe("Ticker or topic"), count: z.number().int().min(1).max(10).default(6) }),
     execute: async ({ query, count }) =>
       safe(async () => {
-        const r: any = await yf.search(query, { quotesCount: 0, newsCount: count }, { validateResult: false });
+        const r: any = await yahooCall(() => yf.search(query, { quotesCount: 0, newsCount: count }, { validateResult: false }));
         return {
           query,
           articles: (r?.news ?? []).map((n: any) => ({
@@ -273,7 +279,7 @@ export const marketTools = {
     }),
     execute: async ({ screen, count }) =>
       safe(async () => {
-        const r: any = await yf.screener({ scrIds: screen, count }, undefined, { validateResult: false });
+        const r: any = await yahooCall(() => yf.screener({ scrIds: screen, count }, undefined, { validateResult: false }));
         return {
           screen,
           title: r?.title ?? screen,
@@ -432,59 +438,116 @@ export const marketTools = {
   }),
 };
 
-/** Tools that read/write the signed-in user's own data (watchlist, alerts). */
+/** Tools that read the signed-in user's own data (portfolio, Watching) or manage their price alerts. */
 export function userTools(userId: string) {
+  const loadUser = async () => {
+    const db = await getDb();
+    const [u] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    if (!u) throw new Error("User not found");
+    return u;
+  };
+  const watchingView = async () => {
+    const db = await getDb();
+    const u = await loadUser();
+    const rows = await listWatching(userId);
+    const sources = sourcesFor(u);
+    const date = await latestTradeDate(db, sources);
+    const symbols = rows.map((r) => r.symbol);
+    const [snaps, inst] = await Promise.all([date ? snapshotsAsOf(db, symbols, date, sources) : new Map(), instrumentsFor(db, symbols)]);
+    return {
+      items: rows.map((r) => {
+        const s = snaps.get(r.symbol);
+        return { symbol: r.symbol, name: displayName(r.symbol, inst.get(r.symbol)), currency: "INR", price: s?.price ?? null, changePercent: s?.changePct != null ? s.changePct * 100 : null, marketState: null };
+      }),
+    };
+  };
+  const targetsView = async () => ({
+    alerts: (await listTargets(userId)).map((t) => ({ id: t.id, symbol: t.symbol, direction: t.direction, target: t.target, currency: "INR", note: t.note, createdAt: t.createdAt, triggeredAt: t.triggeredAt, triggeredPrice: t.triggeredPrice })),
+  });
   return {
+    getMyPortfolio: tool({
+      description:
+        "Read-only view of the user's own portfolios as Nazar tracks them (from last night's checkup): value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Never use it to tell the user to buy or sell anything.",
+      inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, e.g. \"Papa's portfolio\". Omit for the default.") }),
+      execute: async ({ portfolio }) =>
+        safe(async () => {
+          const u = await loadUser();
+          const db = await getDb();
+          const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
+          const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase()) || (p.ownerLabel ?? "").toLowerCase().includes(portfolio.toLowerCase())) : null;
+          const v = await buildPortfolioView(u, match?.id ?? null);
+          if (v.empty) return { portfolios: pfs.map((p) => p.name), empty: true, note: "No holdings yet. The user can import a Zerodha/Groww/Upstox file on the Portfolio page." };
+          const alerts = (await listAlerts(userId, { portfolioId: v.active!.id, limit: 10, includeSimulated: false })).map((a) => ({ date: a.tradeDate, type: a.type, title: a.titleEn }));
+          return {
+            portfolios: pfs.map((p) => p.name),
+            portfolio: v.active!.name,
+            asOf: v.tradeDate,
+            value: Math.round(v.valuation.value),
+            invested: Math.round(v.valuation.invested),
+            unrealised: Math.round(v.valuation.unrealised),
+            unrealisedPct: v.valuation.unrealisedPct,
+            today: { change: Math.round(v.valuation.dayChange), changePct: v.valuation.dayChangePct, niftyPct: v.niftyPct, explanation: v.h2.line.en },
+            xirr: v.xirr,
+            healthScore: v.health.score,
+            diversificationScore: v.innerRing,
+            risk: {
+              portfolioBeta: v.risk.portfolioBeta,
+              lossIfNiftyFalls10Pct: Math.round(v.risk.stress10.loss),
+              effectiveIndependentBets: v.risk.diversification?.effectiveBets ?? null,
+              clusters: v.risk.diversification?.clusters.map((c) => ({ symbols: c.symbols, weight: c.weight, avgCorrelation: c.avgCorrelation })) ?? [],
+              concentrationFlags: v.risk.concentration.flags.map((f) => `${f.label}: ${(f.weight * 100).toFixed(0)}%`),
+            },
+            sectors: v.sectors.map((s) => ({ sector: s.sector, weight: s.weight })),
+            holdings: v.cards.map((c) => ({ symbol: c.symbol, name: c.name, sector: c.sector, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
+            recentAlerts: alerts,
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
     getWatchlist: tool({
-      description: "Show the user's watchlist with live prices. Renders a watchlist table.",
+      description: "Show the stocks the user is Watching (no quantity), with the latest prices from Nazar's checkup. Renders a list.",
       inputSchema: z.object({}),
-      execute: async () => safe(() => getWatchlist(userId)),
+      execute: async () => safe(watchingView),
     }),
     addToWatchlist: tool({
-      description: `Add one or more tickers to the user's watchlist (max ${WATCHLIST_MAX}). Resolve company names to tickers first with searchTicker. Renders the updated watchlist.`,
+      description: `Add NSE tickers to the user's Watching list (max ${WATCHING_MAX}). Resolve company names with searchTicker first. Nazar starts tracking them from the next checkup.`,
       inputSchema: z.object({ symbols: z.array(symbol).min(1).max(10) }),
       execute: async ({ symbols }) =>
         safe(async () => {
-          const r = await addToWatchlist(userId, symbols);
-          return { ...r, ...(await getWatchlist(userId)) };
+          await addWatching(userId, symbols);
+          return { added: symbols.map((s) => s.toUpperCase()), ...(await watchingView()) };
         }),
     }),
     removeFromWatchlist: tool({
-      description: "Remove tickers from the user's watchlist. Renders the updated watchlist.",
+      description: "Remove tickers from the user's Watching list.",
       inputSchema: z.object({ symbols: z.array(symbol).min(1).max(20) }),
       execute: async ({ symbols }) =>
         safe(async () => {
-          const r = await removeFromWatchlist(userId, symbols);
-          return { ...r, ...(await getWatchlist(userId)) };
+          await removeWatching(userId, symbols);
+          return { removed: symbols, ...(await watchingView()) };
         }),
     }),
     createPriceAlert: tool({
-      description: `Create a price alert that notifies the user when a stock goes above or below a target price (in the stock's trading currency). Max ${ALERTS_MAX_ACTIVE} active alerts. Renders the alert list.`,
-      inputSchema: z.object({
-        symbol,
-        direction: z.enum(["above", "below"]),
-        target: z.number().positive(),
-        note: z.string().max(140).optional(),
-      }),
+      description: `Create a price alert that tells the user when a stock closes above or below a level they choose (checked after market close). Max ${TARGETS_MAX_ACTIVE} active. This only watches a level the user picked; never suggest levels yourself.`,
+      inputSchema: z.object({ symbol, direction: z.enum(["above", "below"]), target: z.number().positive(), note: z.string().max(140).optional() }),
       execute: async (input) =>
         safe(async () => {
-          const r = await createAlert(userId, input);
-          if ("error" in r) return r;
-          return { ...r, ...(await listAlerts(userId)) };
+          const created = await createTarget(userId, input);
+          return { created, ...(await targetsView()) };
         }),
     }),
     listPriceAlerts: tool({
-      description: "List the user's price alerts (active and triggered). Renders the alert list.",
+      description: "List the user's price alerts (active and triggered).",
       inputSchema: z.object({}),
-      execute: async () => safe(() => listAlerts(userId)),
+      execute: async () => safe(targetsView),
     }),
     deletePriceAlerts: tool({
-      description: "Delete price alerts by id (get ids from listPriceAlerts first). Renders the updated alert list.",
+      description: "Delete price alerts by id (get ids from listPriceAlerts first).",
       inputSchema: z.object({ ids: z.array(z.string().max(64)).min(1).max(25) }),
       execute: async ({ ids }) =>
         safe(async () => {
-          await deleteAlerts(userId, ids);
-          return listAlerts(userId);
+          await deleteTargets(userId, ids);
+          return targetsView();
         }),
     }),
   };

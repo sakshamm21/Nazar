@@ -54,4 +54,61 @@ export function pct(v: number | null | undefined, alreadyPercent = false) {
   return `${x > 0 ? "+" : ""}${x.toFixed(2)}%`;
 }
 
-export const upDown = (v: number | null | undefined) => (v == null ? "text-zinc-400" : v >= 0 ? "text-emerald-400" : "text-rose-400");
+/** Semantic gain/loss text colour (design tokens; see DESIGN.md). */
+export const upDown = (v: number | null | undefined) => (v == null || v === 0 ? "text-muted" : v > 0 ? "text-gain" : "text-loss");
+
+/* ------------------------------------------------------------------ */
+/* Nazar: rupee amounts, signed changes, dates (EN + HI)               */
+/* ------------------------------------------------------------------ */
+
+/** ₹8,412 (no decimals above ₹100; paise below). */
+export function inr(n: number | null | undefined, opts: { sign?: boolean; decimals?: number } = {}) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  const a = Math.abs(n);
+  const d = opts.decimals ?? (a < 100 ? 2 : 0);
+  const s = a.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const sign = n < 0 ? "−" : opts.sign && n > 0 ? "+" : "";
+  return `${sign}₹${s}`;
+}
+
+/** ₹8.4K / ₹3.2 L / ₹1.25 Cr for tight spaces. */
+export function inrCompact(n: number | null | undefined, opts: { sign?: boolean } = {}) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  const a = Math.abs(n);
+  const sign = n < 0 ? "−" : opts.sign && n > 0 ? "+" : "";
+  let body: string;
+  if (a >= 1e7) body = `${(a / 1e7).toFixed(a >= 1e9 ? 0 : 2)} Cr`;
+  else if (a >= 1e5) body = `${(a / 1e5).toFixed(2)} L`;
+  else if (a >= 1e3) body = `${(a / 1e3).toFixed(1)}K`;
+  else body = a.toFixed(0);
+  return `${sign}₹${body}`;
+}
+
+/** Rounds a rupee amount for prose: "~₹8,400". */
+export function inrApprox(n: number) {
+  const a = Math.abs(n);
+  const step = a >= 1e5 ? 1000 : a >= 1e4 ? 100 : a >= 1000 ? 10 : 1;
+  return inr(Math.round(a / step) * step);
+}
+
+/** −7.2% / +1.4% from a fraction (0.072 = 7.2%). Uses a real minus sign. */
+export function signedPct(fraction: number | null | undefined, decimals = 1) {
+  if (fraction == null || !Number.isFinite(fraction)) return "—";
+  const x = fraction * 100;
+  const s = Math.abs(x).toFixed(decimals);
+  return `${x < 0 ? "−" : x > 0 ? "+" : ""}${s}%`;
+}
+
+/** 7.2% (absolute) from a fraction. */
+export const absPct = (fraction: number | null | undefined, decimals = 1) => (fraction == null || !Number.isFinite(fraction) ? "—" : `${Math.abs(fraction * 100).toFixed(decimals)}%`);
+
+/** "Thu, 9 Oct" / "गुरुवार, 9 अक्टूबर" for an ISO date (treated as a calendar date). */
+export function dayLabel(iso: string, lang: "en" | "hi" = "en", withWeekday = true) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  return d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { timeZone: "UTC", day: "numeric", month: "short", ...(withWeekday ? { weekday: lang === "hi" ? "long" : "short" } : {}) });
+}
+
+/** "4:47 PM" in India time. */
+export function istTime(d: Date | string) {
+  return new Date(d).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
+}
