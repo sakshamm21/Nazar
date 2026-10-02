@@ -3,8 +3,8 @@
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";
-import { AnalystView, CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
-import { AlertsView, IndicesView, MoversView, NewsView, OwnershipView, ProfileView, SearchView, WatchlistView } from "./lists";
+import { CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
+import { AlertsView, IndicesView, MoversView, NewsView, OwnershipView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
 import { CompsView, CorrelationView, DupontView, HealthView, RiskReturnView, SipView, TechnicalsView } from "./analysis-views";
 import { EXCEL_MODEL_TOOLS } from "@/lib/tool-catalog";
 import { PRIVATE_TOOLS } from "@/lib/tool-names";
@@ -19,7 +19,6 @@ const REGISTRY: Record<string, { label: (input: any) => string; View: ComponentT
   getKeyMetrics: { label: (i) => `Pulling key metrics for ${i?.symbol ?? ""}`, View: MetricsView },
   getFinancialStatements: { label: (i) => `Loading ${i?.symbol ?? ""} ${i?.statement ?? ""} statement`, View: FinancialsView },
   compareStocks: { label: (i) => `Comparing ${i?.symbols?.join(" vs ") ?? ""}`, View: CompareView },
-  getAnalystRatings: { label: (i) => `Gathering analyst ratings for ${i?.symbol ?? ""}`, View: AnalystView },
   getEarnings: { label: (i) => `Loading earnings for ${i?.symbol ?? ""}`, View: EarningsView },
   getCompanyProfile: { label: (i) => `Loading profile for ${i?.symbol ?? ""}`, View: ProfileView },
   getNews: { label: (i) => `Fetching news on ${i?.query ?? ""}`, View: NewsView },
@@ -35,7 +34,8 @@ const REGISTRY: Record<string, { label: (input: any) => string; View: ComponentT
   getFinancialHealthScore: { label: (i) => `Scoring financial health of ${i?.symbol ?? ""}`, View: HealthView },
   runSipBacktest: { label: (i) => `Backtesting a monthly SIP in ${i?.symbol ?? ""}`, View: SipView },
   getTechnicalIndicators: { label: (i) => `Computing technical indicators for ${i?.symbol ?? ""}`, View: TechnicalsView },
-  getWatchlist: { label: () => "Loading your watchlist", View: WatchlistView },
+  getMyPortfolio: { label: () => "Reading your portfolio from last night's checkup", View: PortfolioToolView },
+  getWatchlist: { label: () => "Loading your Watching list", View: WatchlistView },
   addToWatchlist: { label: (i) => `Adding ${i?.symbols?.join(", ") ?? ""} to your watchlist`, View: WatchlistView },
   removeFromWatchlist: { label: (i) => `Removing ${i?.symbols?.join(", ") ?? ""} from your watchlist`, View: WatchlistView },
   createPriceAlert: { label: (i) => `Setting alert on ${i?.symbol ?? ""}`, View: AlertsView },
@@ -61,7 +61,7 @@ function ExcelButton({ tool, data }: { tool: string; data: any }) {
           setBusy(false);
         }
       }}
-      className="no-print -mt-1.5 mb-3 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-zinc-500 hover:bg-zinc-900 hover:text-emerald-300"
+      className="no-print -mt-1.5 mb-3 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-subtle hover:bg-surface-2 hover:text-accent"
       title={model ? "Live Excel model: blue cells are inputs, formulas recalculate" : "Download this data as an Excel sheet"}
     >
       {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}

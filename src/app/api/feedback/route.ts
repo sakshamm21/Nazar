@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { track } from "@/lib/analytics";
-import { getUserId } from "@/lib/auth";
+import { sessionFromRequest } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/feedback-reasons";
 
@@ -16,7 +16,7 @@ const Body = z.object({
 
 /** 👍/👎 on an assistant answer. rating=null clears it. Only messages in the user's own chats can be rated. */
 export async function POST(req: Request) {
-  const userId = await getUserId();
+  const userId = (await sessionFromRequest(req))?.userId ?? null;
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Bad request" }, { status: 400 });

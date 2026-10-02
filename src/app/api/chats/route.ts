@@ -1,11 +1,11 @@
 import { desc, eq, sql } from "drizzle-orm";
-import { getUserId } from "@/lib/auth";
+import { sessionFromRequest } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  const userId = await getUserId();
+export async function GET(req: Request) {
+  const userId = (await sessionFromRequest(req))?.userId ?? null;
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
   const db = await getDb();
   const chats = await db

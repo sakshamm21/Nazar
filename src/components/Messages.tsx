@@ -38,13 +38,13 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
         return (
           <div key={m.id} className={m.role === "user" ? "my-5 flex justify-end print-avoid-break" : "my-5"}>
             {m.role === "user" ? (
-              <div className="user-bubble max-w-[85%] rounded-2xl rounded-br-md bg-emerald-600/90 px-4 py-2.5 text-sm text-white">
+              <div className="user-bubble max-w-[85%] rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm text-accent-ink">
                 {m.parts.map((p, i) => (p.type === "text" ? <span key={i} className="whitespace-pre-wrap">{p.text}</span> : null))}
               </div>
             ) : (
               <div>
                 {m.parts.map((p: any, i) => {
-                  if (p.type === "text") return <div key={i} className="prose-chat"><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
+                  if (p.type === "text") return <div key={i} className="prose-ask"><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
                   if (typeof p.type === "string" && p.type.startsWith("tool-")) {
                     if (readOnly && PRIVATE_TOOLS.has(p.type.slice(5))) return null;
                     return <ToolView key={p.toolCallId ?? i} part={p} onPick={readOnly ? undefined : onPick} />;
@@ -52,8 +52,8 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
                   return null;
                 })}
                 {!readOnly && meta?.guarded && (
-                  <div className="no-print mt-1 flex items-center gap-1 text-[11px] text-zinc-600">
-                    <ShieldCheck className="h-3 w-3" /> Outside Stock AI&apos;s scope
+                  <div className="no-print mt-1 flex items-center gap-1 text-[11px] text-subtle">
+                    <ShieldCheck className="h-3 w-3" /> Outside Nazar&apos;s scope
                   </div>
                 )}
                 {!readOnly && !meta?.guarded && meta?.model && (
@@ -88,19 +88,19 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
 
   return (
     <div className="no-print mt-1.5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-600">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-subtle">
         {calls.length > 0 ? (
           <button
             onClick={() => {
               if (!open) trackClient("sources_opened", { tools: calls.length }, chatId);
               setOpen(!open);
             }}
-            className="flex items-center gap-1 hover:text-zinc-300"
+            className="flex items-center gap-1 hover:text-text"
             aria-expanded={open}
           >
             <ChevronRight className={`h-3 w-3 transition ${open ? "rotate-90" : ""}`} />
             <Database className="h-3 w-3" /> Based on {ok.length} live data {ok.length === 1 ? "call" : "calls"}
-            {failed > 0 && <span className="text-amber-500/80">· {failed} failed</span>}
+            {failed > 0 && <span className="text-warn">· {failed} failed</span>}
           </button>
         ) : (
           <span className="flex items-center gap-1"><Database className="h-3 w-3" /> No market data used (general knowledge)</span>
@@ -113,10 +113,10 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
         </span>
         {onRate && (
           <span className="ml-auto flex items-center gap-0.5">
-            <button onClick={() => rate("up")} className={`rounded p-1 ${rating === "up" ? "text-emerald-400" : "hover:text-zinc-300"}`} aria-label="Helpful" aria-pressed={rating === "up"}>
+            <button onClick={() => rate("up")} className={`rounded p-1 ${rating === "up" ? "text-accent" : "hover:text-text"}`} aria-label="Helpful" aria-pressed={rating === "up"}>
               <ThumbsUp className="h-3.5 w-3.5" fill={rating === "up" ? "currentColor" : "none"} />
             </button>
-            <button onClick={() => rate("down")} className={`rounded p-1 ${rating === "down" ? "text-rose-400" : "hover:text-zinc-300"}`} aria-label="Not helpful" aria-pressed={rating === "down"}>
+            <button onClick={() => rate("down")} className={`rounded p-1 ${rating === "down" ? "text-loss" : "hover:text-text"}`} aria-label="Not helpful" aria-pressed={rating === "down"}>
               <ThumbsDown className="h-3.5 w-3.5" fill={rating === "down" ? "currentColor" : "none"} />
             </button>
           </span>
@@ -124,7 +124,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
       </div>
       {askReason && rating === "down" && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span className="text-zinc-500">What went wrong?</span>
+          <span className="text-subtle">What went wrong?</span>
           {(Object.keys(FEEDBACK_REASONS) as FeedbackReason[]).map((k) => (
             <button
               key={k}
@@ -132,7 +132,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
                 onRate?.(message.id, "down", k);
                 setAskReason(false);
               }}
-              className="rounded-full border border-zinc-800 px-2 py-0.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+              className="rounded-full border border-line px-2 py-0.5 text-muted hover:border-line-strong hover:text-text"
             >
               {FEEDBACK_REASONS[k]}
             </button>
@@ -140,8 +140,8 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
         </div>
       )}
       {open && (
-        <div className="mt-2 rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-[11px] text-zinc-400">
-          <div className="mb-1 font-medium text-zinc-300">How this answer was built</div>
+        <div className="mt-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-[11px] text-muted">
+          <div className="mb-1 font-medium text-text">How this answer was built</div>
           <ol className="list-decimal space-y-0.5 pl-4">
             {calls.map((p, i) => {
               const name = p.type.slice(5);
@@ -151,13 +151,13 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
               return (
                 <li key={p.toolCallId ?? i}>
                   {TOOL_LABELS[name] ?? name}
-                  {subject && <span className="text-zinc-500"> · {String(subject)}</span>}
-                  {bad && <span className="text-amber-500/80"> · failed</span>}
+                  {subject && <span className="text-subtle"> · {String(subject)}</span>}
+                  {bad && <span className="text-warn"> · failed</span>}
                 </li>
               );
             })}
           </ol>
-          <div className="mt-1.5 text-zinc-500">
+          <div className="mt-1.5 text-subtle">
             Source: {sources.length ? "Yahoo Finance" : "n/a"} (quotes can be delayed up to ~15 min) · Written by {label}, which is told to use only these results for numbers.
           </div>
         </div>
@@ -178,7 +178,7 @@ function FollowUps({ message, asked, onPick, chatId }: { message: UIMessage; ask
             trackClient("suggestion_click", { position: i }, chatId);
             onPick(q);
           }}
-          className="rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 transition hover:border-emerald-500/50 hover:text-emerald-200"
+          className="rounded-full border border-line bg-surface-2 px-3 py-1 text-xs text-text transition hover:border-accent hover:text-accent"
         >
           {q}
         </button>

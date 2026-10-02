@@ -77,7 +77,8 @@ export function inrCompact(n: number | null | undefined, opts: { sign?: boolean 
   const a = Math.abs(n);
   const sign = n < 0 ? "−" : opts.sign && n > 0 ? "+" : "";
   let body: string;
-  if (a >= 1e7) body = `${(a / 1e7).toFixed(a >= 1e9 ? 0 : 2)} Cr`;
+  if (a >= 1e12) body = `${(a / 1e12).toFixed(2)} L Cr`;
+  else if (a >= 1e7) body = `${(a / 1e7).toLocaleString("en-IN", { maximumFractionDigits: a >= 1e9 ? 0 : 2 })} Cr`;
   else if (a >= 1e5) body = `${(a / 1e5).toFixed(2)} L`;
   else if (a >= 1e3) body = `${(a / 1e3).toFixed(1)}K`;
   else body = a.toFixed(0);

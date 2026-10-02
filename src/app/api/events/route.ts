@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CLIENT_EVENTS, track } from "@/lib/analytics";
-import { getUserId } from "@/lib/auth";
+import { sessionFromRequest } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,7 @@ const Body = z.object({
 
 /** Client-side product events (whitelisted types only, small flat props). */
 export async function POST(req: Request) {
-  const userId = await getUserId();
+  const userId = (await sessionFromRequest(req))?.userId ?? null;
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success || !CLIENT_EVENTS.has(body.data.type)) return Response.json({ error: "Unknown event" }, { status: 400 });

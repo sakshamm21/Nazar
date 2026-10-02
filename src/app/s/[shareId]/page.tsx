@@ -22,8 +22,8 @@ async function load(shareId: string) {
 export async function generateMetadata({ params }: { params: Promise<{ shareId: string }> }): Promise<Metadata> {
   const chat = await load((await params).shareId);
   return {
-    title: chat ? `${chat.title} · Stock AI` : "Not found · Stock AI",
-    description: "Equity research shared from Stock AI.",
+    title: chat ? `${chat.title} · Nazar` : "Not found · Nazar",
+    description: "Research shared from Nazar.",
     robots: { index: false, follow: false },
   };
 }

@@ -1,5 +1,5 @@
 /**
- * User-facing catalog of what Stock AI can do (the "Tools" panel). Client-safe.
+ * User-facing catalog of what Nazar's Ask tab can do (the "Tools" panel). Client-safe.
  * `excel`: "model" = downloads as a live Excel model with formulas; "data" = downloads as a data sheet.
  */
 export type CatalogItem = { id: string; tools: string[]; name: string; description: string; example: string; excel: "model" | "data" | null };
@@ -55,7 +55,7 @@ export const TOOL_CATALOG: CatalogGroup[] = [
       { id: "overview", tools: ["getMarketOverview"], name: "Market overview", description: "Nifty, Sensex, sector indices, India VIX and USD/INR; also US and global boards.", example: "How are Indian markets doing today?", excel: "data" },
       { id: "movers", tools: ["getIndianMarketMovers", "getMarketMovers"], name: "Top movers", description: "Nifty 50 gainers, losers, most active; US screeners too.", example: "Top Nifty 50 losers today", excel: "data" },
       { id: "news", tools: ["getNews"], name: "News", description: "Latest headlines for a company or topic.", example: "Latest news on Zomato", excel: "data" },
-      { id: "analysts", tools: ["getAnalystRatings", "getEarnings"], name: "Analysts & earnings", description: "Buy/hold/sell consensus, price targets, EPS beats and misses.", example: "What do analysts think of Sun Pharma?", excel: "data" },
+      { id: "analysts", tools: ["getEarnings"], name: "Earnings", description: "Quarterly revenue and profit, EPS versus estimates, and the next results date.", example: "How did Sun Pharma's last few quarters go?", excel: "data" },
       { id: "company", tools: ["getCompanyProfile", "getOwnership"], name: "Company & ownership", description: "Business description, management, promoter/institutional holdings.", example: "Who owns ITC and what does it do?", excel: "data" },
     ],
   },
@@ -64,8 +64,9 @@ export const TOOL_CATALOG: CatalogGroup[] = [
     name: "Your tools",
     blurb: "Track what matters to you",
     items: [
-      { id: "watchlist", tools: ["getWatchlist", "addToWatchlist", "removeFromWatchlist"], name: "Watchlist", description: "Save stocks and get a quick update on all of them.", example: "Add Infosys and HDFC Bank to my watchlist", excel: null },
-      { id: "alerts", tools: ["createPriceAlert", "listPriceAlerts", "deletePriceAlerts"], name: "Price alerts", description: "Get notified when a stock crosses a price.", example: "Alert me if Reliance falls below ₹1,100", excel: null },
+      { id: "portfolio", tools: ["getMyPortfolio"], name: "Your portfolio", description: "Read-only view of your holdings from last night's checkup: today's move, P&L, risk and health.", example: "Why is my portfolio down this month?", excel: null },
+      { id: "watchlist", tools: ["getWatchlist", "addToWatchlist", "removeFromWatchlist"], name: "Watching list", description: "Stocks you follow without owning; Nazar includes them in its nightly check.", example: "Add Titan to my Watching list", excel: null },
+      { id: "alerts", tools: ["createPriceAlert", "listPriceAlerts", "deletePriceAlerts"], name: "Price alerts", description: "Tell me when a stock closes beyond a level you choose.", example: "Tell me if Reliance closes below ₹1,100", excel: null },
     ],
   },
 ];

@@ -28,7 +28,6 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
     out.push(`Which of ${tickers.slice(0, 3).join(", ")} has the strongest balance sheet?`);
     if (!has("getCorrelationMatrix")) out.push(`How correlated are ${tickers.slice(0, 4).join(", ")}?`);
     if (!has("runComparableValuation")) out.push(`Value ${tickers[0]} against ${tickers.slice(1, 4).join(", ")} using comps`);
-    if (!has("getAnalystRatings")) out.push(`What do analysts think of ${tickers[0]}?`);
   } else if (t) {
     if (!has("getPriceHistory")) out.push(`Show ${t}'s price chart for the last year`);
     if (!has("getKeyMetrics") && !has("runDcfValuation")) out.push(`Is ${t} expensive? Show its key valuation metrics`);
@@ -38,7 +37,6 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
     if (!has("getRiskReturn") && has("getPriceHistory")) out.push(`How risky is ${t} compared to the index?`);
     if (has("runSipBacktest")) out.push(`Compare that with a monthly SIP in the Nifty 50`);
     if (has("getTechnicalIndicators") && !has("getRiskReturn")) out.push(`How volatile is ${t} vs the index over 3 years?`);
-    if (!has("getAnalystRatings")) out.push(`What do analysts think of ${t}?`);
     if (!has("getNews")) out.push(`Latest news on ${t}`);
     if (!has("getFinancialStatements")) out.push(`Show ${t}'s revenue and profit over the last 4 years`);
     out.push(`Compare ${t} with its closest peers`);
@@ -50,8 +48,9 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
   }
   if (has("getIndianMarketMovers")) out.push("How are Indian markets doing overall today?", "Which Nifty 50 stocks are near their 52-week low?");
   if (has("getMarketMovers")) out.push("How are US markets doing today?");
-  if (has("getWatchlist") || has("addToWatchlist")) out.push("Give me a quick update on the stocks in my watchlist");
-  if (t && !has("createPriceAlert") && !has("addToWatchlist")) out.push(`Add ${t} to my watchlist`);
+  if (has("getMyPortfolio")) out.push("Which of my holdings is riskiest?", "How diversified am I really?");
+  if (has("getWatchlist") || has("addToWatchlist")) out.push("Give me a quick update on the stocks I'm watching");
+  if (t && !has("createPriceAlert") && !has("addToWatchlist")) out.push(`Add ${t} to my Watching list`);
 
   const seen = new Set(askedBefore.map((q) => q.trim().toLowerCase()));
   return [...new Set(out)].filter((q) => !seen.has(q.toLowerCase())).slice(0, 3);
@@ -65,7 +64,6 @@ export const TOOL_LABELS: Record<string, string> = {
   getKeyMetrics: "Key metrics",
   getFinancialStatements: "Financial statements",
   compareStocks: "Peer comparison",
-  getAnalystRatings: "Analyst ratings",
   getEarnings: "Earnings",
   getCompanyProfile: "Company profile",
   getNews: "News",
@@ -81,7 +79,8 @@ export const TOOL_LABELS: Record<string, string> = {
   getFinancialHealthScore: "Health score",
   runSipBacktest: "SIP backtest",
   getTechnicalIndicators: "Technicals",
-  getWatchlist: "Your watchlist",
+  getMyPortfolio: "Your portfolio",
+  getWatchlist: "Your Watching list",
   addToWatchlist: "Watchlist update",
   removeFromWatchlist: "Watchlist update",
   createPriceAlert: "Price alert",

@@ -116,7 +116,6 @@ export const METRICS: MetricDef[] = [
   { key: "shortPercentOfFloat", label: "Short % of float", category: "Risk & ownership", format: "percent", path: ["defaultKeyStatistics", "shortPercentOfFloat"] },
   { key: "heldPercentInsiders", label: "Insider ownership", category: "Risk & ownership", format: "percent", path: ["defaultKeyStatistics", "heldPercentInsiders"] },
   { key: "heldPercentInstitutions", label: "Institutional ownership", category: "Risk & ownership", format: "percent", path: ["defaultKeyStatistics", "heldPercentInstitutions"] },
-  { key: "targetMeanPrice", label: "Analyst target (mean)", category: "Valuation", format: "currency", path: ["financialData", "targetMeanPrice"] },
 ];
 
 export const METRIC_KEYS = METRICS.map((m) => m.key) as [string, ...string[]];

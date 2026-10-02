@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   // Bundled data files read at runtime by server code.
   outputFileTracingIncludes: { "/**": ["./src/data/**/*", "./drizzle/**/*"] },
   poweredByHeader: false,
+  // Don't generate AGENTS.md / CLAUDE.md in the repo.
+  agentRules: false,
 };
 
 export default nextConfig;

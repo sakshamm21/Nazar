@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import { getUserId } from "@/lib/auth";
+import { sessionFromRequest } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await getUserId();
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const userId = (await sessionFromRequest(req))?.userId ?? null;
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
   const { id } = await ctx.params;
   const db = await getDb();
@@ -15,8 +15,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   return Response.json({ id: chat.id, title: chat.title, messages: chat.messages, shareId: chat.shareId, updatedAt: chat.updatedAt, feedback: Object.fromEntries(ratings.map((r) => [r.messageId, r.rating])) });
 }
 
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const userId = await getUserId();
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const userId = (await sessionFromRequest(req))?.userId ?? null;
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
   const { id } = await ctx.params;
   const db = await getDb();

@@ -190,10 +190,14 @@ function holdingsFor(list: { symbol: string; value: number; daysAgo: number }[],
   return list.map((h, i) => {
     const bars = fx.symbols[h.symbol].bars.map(([d, c]) => [map.get(d)!, c] as [string, number]);
     const last = bars.at(-1)![1];
-    const buy = bars[Math.max(0, bars.length - 1 - h.daysAgo)];
     const quantity = Math.max(1, Math.round(h.value / last));
-    // Average price a little above that day's close (brokerage, a couple of buys), deterministic per row.
-    const avgPrice = Math.round(buy[1] * (1 + ((i % 3) + 1) * 0.004) * 100) / 100;
+    // The persona bought gradually over the holding period, so their average sits at a typical
+    // (35th-percentile) price of that window rather than at one day's close; the first bar at or
+    // below it becomes the buy date. Prices are real; only the persona's entry points are invented.
+    const window = bars.slice(-(h.daysAgo + 1), -10);
+    const target = [...window].map(([, c]) => c).sort((a, b) => a - b)[Math.floor(window.length * 0.35)] ?? last;
+    const buy = window.find(([, c]) => c <= target) ?? bars[Math.max(0, bars.length - 1 - h.daysAgo)];
+    const avgPrice = Math.round(target * (1 + ((i % 3) + 1) * 0.004) * 100) / 100;
     return { symbol: h.symbol, quantity, avgPrice, buyDate: buy[0] };
   });
 }
@@ -258,7 +262,10 @@ async function rateReplayed(db: DB, userId: string, ids: string[], date: string,
         rating = (smallSoFar + small) % 5 === 3 ? "up" : "down";
         small++;
       } else rating = "up";
-    } else if (["portfolio_move", "results", "health_change", "concentration"].includes(a.type)) rating = "up";
+    } else if (a.type === "portfolio_move") {
+      // Whole-portfolio wiggles under 2% felt like noise to this persona; bigger days were useful.
+      rating = Number(a.data.magnitude ?? 0) < 2 ? ((smallSoFar + small) % 4 === 1 ? "up" : "down") : "up";
+    } else if (["results", "health_change", "concentration"].includes(a.type)) rating = "up";
     if (rating) await db.insert(schema.alertFeedback).values({ alertId: a.id, userId, rating, source: "app", createdAt: checkupAt(date, 900) }).onConflictDoNothing();
   }
   return small;

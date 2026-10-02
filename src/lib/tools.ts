@@ -162,39 +162,6 @@ export const marketTools = {
     })),
   }),
 
-  getAnalystRatings: tool({
-    description: "Wall Street analyst consensus: buy/hold/sell counts, price targets, recent upgrades/downgrades. Renders a ratings chart.",
-    inputSchema: z.object({ symbol }),
-    execute: async ({ symbol }) =>
-      safe(async () => {
-        const qs = await quoteSummary(symbol, ["recommendationTrend", "financialData", "upgradeDowngradeHistory", "price"]);
-        const fd = qs?.financialData ?? {};
-        return {
-          symbol: clean(symbol),
-          currency: qs?.price?.currency ?? "USD",
-          currentPrice: num(fd.currentPrice) ?? num(qs?.price?.regularMarketPrice),
-          recommendation: fd.recommendationKey ?? null,
-          analystCount: num(fd.numberOfAnalystOpinions),
-          target: { low: num(fd.targetLowPrice), mean: num(fd.targetMeanPrice), median: num(fd.targetMedianPrice), high: num(fd.targetHighPrice) },
-          trend: (qs?.recommendationTrend?.trend ?? []).map((t: any) => ({
-            period: t.period,
-            strongBuy: num(t.strongBuy) ?? 0,
-            buy: num(t.buy) ?? 0,
-            hold: num(t.hold) ?? 0,
-            sell: num(t.sell) ?? 0,
-            strongSell: num(t.strongSell) ?? 0,
-          })),
-          recentActions: (qs?.upgradeDowngradeHistory?.history ?? []).slice(0, 8).map((h: any) => ({
-            date: toDate(h.epochGradeDate),
-            firm: h.firm,
-            action: h.action,
-            from: h.fromGrade,
-            to: h.toGrade,
-          })),
-        };
-      }),
-  }),
-
   getEarnings: tool({
     description: "Earnings history (EPS actual vs estimate, surprise %), quarterly revenue/earnings and next earnings date. Renders an EPS beat/miss chart.",
     inputSchema: z.object({ symbol }),
@@ -272,9 +239,9 @@ export const marketTools = {
   }),
 
   getMarketMovers: tool({
-    description: "US market screeners: today's top gainers, losers, most active, most shorted, undervalued large caps, growth tech, etc. US stocks only; for India use getIndianMarketMovers. Renders a table.",
+    description: "US market screeners: today's top gainers, losers, most active, most shorted, growth tech, small-cap gainers. US stocks only; for India use getIndianMarketMovers. Renders a table.",
     inputSchema: z.object({
-      screen: z.enum(["day_gainers", "day_losers", "most_actives", "most_shorted_stocks", "undervalued_large_caps", "undervalued_growth_stocks", "growth_technology_stocks", "aggressive_small_caps", "small_cap_gainers"]).default("day_gainers"),
+      screen: z.enum(["day_gainers", "day_losers", "most_actives", "most_shorted_stocks", "growth_technology_stocks", "small_cap_gainers"]).default("day_gainers"),
       count: z.number().int().min(3).max(25).default(10),
     }),
     execute: async ({ screen, count }) =>

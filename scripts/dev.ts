@@ -21,7 +21,7 @@ async function main() {
     console.log(`Local database ready in ${((Date.now() - t) / 1000).toFixed(1)}s. Test accounts: demo@nazar.dev / nazar123 (see TEST_ACCOUNTS.md)`);
   }
   const port = process.env.PORT ?? "3000";
-  const child = spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["next", "dev", "-p", port], { stdio: "inherit", shell: process.platform === "win32" });
+  const child = spawn(`npx next dev -p ${Number(port) || 3000}`, { stdio: "inherit", shell: true });
   child.on("exit", (code) => process.exit(code ?? 0));
 }
 

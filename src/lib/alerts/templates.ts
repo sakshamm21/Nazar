@@ -116,10 +116,20 @@ export function attributionLine(a: Attribution, ownerLabel?: string | null): Bi 
 
 export function marketSplitLine(a: Attribution): Bi | null {
   if (a.kind !== "down" && a.kind !== "up") return null;
-  const dir = a.kind === "down" ? { en: "fall", hi: "गिरावट" } : { en: "rise", hi: "बढ़त" };
+  const m = Math.round(a.marketPart), sp = Math.round(a.specificPart);
+  // Both parts pushed the same way: split the move.
+  if (Math.sign(m) === Math.sign(sp) || m === 0 || sp === 0) {
+    const dir = a.kind === "down" ? { en: "fall", hi: "गिरावट" } : { en: "rise", hi: "बढ़त" };
+    return {
+      en: `${inr(Math.abs(m))} of today's ${dir.en} was the market moving; ${inr(Math.abs(sp))} was specific to your stocks.`,
+      hi: `आज की ${dir.hi} में ${inr(Math.abs(m))} बाज़ार की वजह से था; ${inr(Math.abs(sp))} आपके शेयरों से जुड़ा था।`,
+    };
+  }
+  // The parts pulled in opposite directions: say what the market alone would have done.
+  const better = sp > 0;
   return {
-    en: `${inr(Math.abs(a.marketPart))} of today's ${dir.en} was the market moving; ${inr(Math.abs(a.specificPart))} was specific to your stocks.`,
-    hi: `आज की ${dir.hi} में ${inr(Math.abs(a.marketPart))} बाज़ार की वजह से था; ${inr(Math.abs(a.specificPart))} आपके शेयरों से जुड़ा था।`,
+    en: `The market alone would have ${m < 0 ? "cost you" : "added"} ${inr(Math.abs(m))} today; your stocks did ${inr(Math.abs(sp))} ${better ? "better" : "worse"} than that.`,
+    hi: `सिर्फ़ बाज़ार की वजह से आज ${inr(Math.abs(m))} ${m < 0 ? "घटते" : "बढ़ते"}; आपके शेयरों ने उससे ${inr(Math.abs(sp))} ${better ? "बेहतर" : "कमज़ोर"} किया।`,
   };
 }
 

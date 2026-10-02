@@ -1,7 +1,9 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { ArrowUp, Square, TrendingUp, Wrench } from "lucide-react";
+import { ArrowUp, Square, Wrench } from "lucide-react";
+import { NazarMark } from "@/components/rings/nazar-mark";
+import { IrisLoader } from "@/components/rings/iris";
 import { TOOL_COUNT } from "@/lib/tool-catalog";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageList, type Rating } from "./Messages";
@@ -10,9 +12,9 @@ import type { FeedbackReason } from "@/lib/feedback-reasons";
 const MAX_CHARS = 2000;
 
 const SUGGESTIONS: { group: string; items: string[] }[] = [
-  { group: "Markets", items: ["How are Indian markets doing today?", "₹10,000 monthly SIP in the Nifty 50 for 5 years: what would it be worth?"] },
-  { group: "Research", items: ["Analyze Reliance Industries: valuation, growth and analyst view", "Value HDFC Bank against ICICI, Kotak and Axis Bank using comps"] },
-  { group: "Learn", items: ["What is a P/E ratio and why does it matter?", "TCS ka P/E ratio kya hai? Hinglish mein samjhao"] },
+  { group: "Your portfolio", items: ["Why is my portfolio down this month?", "Which of my holdings is riskiest, and why?"] },
+  { group: "Understand", items: ["Explain Infosys's latest results in simple words", "How diversified am I really?"] },
+  { group: "Markets & learning", items: ["How are Indian markets doing today?", "Mere portfolio mein sabse risky share kaunsa hai? Hinglish mein samjhao"] },
 ];
 
 export function Chat({
@@ -108,22 +110,20 @@ export function Chat({
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-6">
           {messages.length === 0 && (
             <div className="no-print flex flex-col items-center pt-[12vh] text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
-                <TrendingUp className="h-6 w-6" />
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight">What are we researching today?</h1>
-              <p className="mt-2 max-w-md text-sm text-zinc-400">Ask about any listed company in India, the US or elsewhere. Stock AI pulls live market data and renders charts and tables as it researches.</p>
+              <NazarMark size={44} className="mb-4" />
+              <h1 className="t-title-1 text-text">Ask Nazar anything about your money</h1>
+              <p className="mt-2 max-w-md text-sm text-muted">Questions about your portfolio, a company or the market. Nazar reads your holdings and live data, and explains in plain language. It never tells you what to buy or sell.</p>
               {onOpenTools && (
-                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-emerald-700/50 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20">
-                  <Wrench className="h-3.5 w-3.5" /> Explore {TOOL_COUNT} tools: DCF, comps, SIP backtest, risk, technicals · Excel models
+                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs text-accent hover:bg-accent-soft">
+                  <Wrench className="h-3.5 w-3.5" /> Research tools: {TOOL_COUNT} tools incl. DCF, comps, SIP backtest · Excel
                 </button>
               )}
               <div className="mt-8 grid w-full gap-4 sm:grid-cols-3">
                 {SUGGESTIONS.map((g) => (
                   <div key={g.group} className="space-y-2">
-                    <div className="text-left text-[11px] font-medium uppercase tracking-wide text-zinc-600">{g.group}</div>
+                    <div className="text-left text-[11px] font-medium uppercase tracking-wide text-subtle">{g.group}</div>
                     {g.items.map((s) => (
-                      <button key={s} onClick={() => send(s)} className="block w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3.5 py-3 text-left text-sm text-zinc-300 transition hover:border-emerald-500/50 hover:bg-zinc-900">
+                      <button key={s} onClick={() => send(s)} className="block w-full rounded-[16px] border border-line bg-surface-2 px-3.5 py-3 text-left text-sm text-text transition hover:border-accent hover:bg-surface-2">
                         {s}
                       </button>
                     ))}
@@ -136,18 +136,14 @@ export function Chat({
           <MessageList messages={messages} onPick={send} chatId={chatId} ratings={ratings} onRate={rate} showFollowUps={!busy} />
 
           {status === "submitted" && (
-            <div className="no-print my-5 flex items-center gap-2 text-sm text-zinc-400">
-              <span className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400 [animation-delay:-0.3s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400 [animation-delay:-0.15s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400" />
-              </span>
+            <div className="no-print my-5 flex items-center gap-2 text-sm text-muted">
+              <IrisLoader size={18} label="Thinking" />
               Thinking…
             </div>
           )}
 
           {error && (
-            <div className="no-print my-4 rounded-lg border border-rose-900/60 bg-rose-950/30 px-3 py-2 text-sm text-rose-300">
+            <div className="no-print my-4 rounded-lg border border-loss bg-loss-soft px-3 py-2 text-sm text-loss">
               {parseError(error.message)}
             </div>
           )}
@@ -155,7 +151,7 @@ export function Chat({
         </div>
       </div>
 
-      <div className="no-print border-t border-zinc-800/80 bg-zinc-950/80 backdrop-blur">
+      <div className="no-print border-t border-line bg-bg/90 backdrop-blur">
         <form
           className="mx-auto flex max-w-3xl items-end gap-2 px-4 py-3"
           onSubmit={(e) => {
@@ -173,21 +169,21 @@ export function Chat({
               }
             }}
             rows={1}
-            placeholder="Ask about a stock, compare companies, run a DCF…"
-            className={`max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 ${tooLong ? "border-rose-700" : "border-zinc-800 focus:border-emerald-500/60"}`}
+            placeholder="Ask about your portfolio, a stock or the market…"
+            className={`max-h-40 min-h-[44px] flex-1 resize-none rounded-[16px] border bg-surface-1 px-3.5 py-2.5 text-sm text-text outline-none placeholder:text-subtle ${tooLong ? "border-loss" : "border-line focus:border-accent"}`}
           />
           {busy ? (
-            <button type="button" onClick={() => stop()} className="flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-800 text-zinc-200 hover:bg-zinc-700" aria-label="Stop">
+            <button type="button" onClick={() => stop()} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-surface-3 text-text hover:bg-surface-3" aria-label="Stop">
               <Square className="h-4 w-4" />
             </button>
           ) : (
-            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-40" aria-label="Send">
+            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
               <ArrowUp className="h-5 w-5" />
             </button>
           )}
         </form>
-        <div className="pb-2 text-center text-[11px] text-zinc-600">
-          {tooLong ? <span className="text-rose-400">{input.length} / {MAX_CHARS} characters: please shorten your question.</span> : "Market data via Yahoo Finance, may be delayed. Not investment advice."}
+        <div className="pb-2 text-center text-[11px] text-subtle">
+          {tooLong ? <span className="text-loss">{input.length} / {MAX_CHARS} characters: please shorten your question.</span> : "Nazar explains; you decide. Market data via Yahoo Finance, may be delayed."}
         </div>
       </div>
     </div>
