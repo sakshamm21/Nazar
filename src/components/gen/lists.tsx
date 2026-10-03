@@ -174,33 +174,6 @@ export function WatchlistView({ data, onPick }: { data: any; onPick?: (s: string
   );
 }
 
-export function AlertsView({ data }: { data: any }) {
-  const active = data.alerts.filter((a: any) => !a.triggeredAt);
-  const fired = data.alerts.filter((a: any) => a.triggeredAt);
-  return (
-    <Panel title="Price alerts" subtitle={data.warning ?? `${active.length} active · ${fired.length} triggered`}>
-      {data.alerts.length === 0 && <div className="text-sm text-subtle">No alerts yet.</div>}
-      <ul className="space-y-1 text-sm">
-        {[...active, ...fired].map((a: any) => (
-          <li key={a.id} className="flex items-center justify-between gap-2 border-t border-line/60 pt-1 first:border-0 first:pt-0">
-            <span>
-              <span className="font-mono font-semibold">{a.symbol}</span>{" "}
-              <span className="text-muted">{a.direction === "above" ? "rises above" : "falls below"}</span>{" "}
-              <span className="tabular-nums">{fmt(a.target, "currency", a.currency ?? "USD")}</span>
-            </span>
-            {a.triggeredAt ? (
-              <span className="text-xs text-warn">Triggered at {fmt(a.triggeredPrice, "currency", a.currency ?? "USD")}</span>
-            ) : (
-              <span className="text-xs text-subtle">Active</span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </Panel>
-  );
-}
-
-/* ---------------- Your portfolio (read-only, getMyPortfolio) ---------------- */
 export function PortfolioToolView({ data }: { data: any }) {
   if (data.empty) return <Panel title="Your portfolio" subtitle="No holdings yet">Import your holdings on the Portfolio page and Nazar starts watching.</Panel>;
   const top = [...(data.holdings ?? [])].sort((a: any, b: any) => b.weight - a.weight).slice(0, 8);

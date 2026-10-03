@@ -49,7 +49,7 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
   if (has("getMarketMovers")) out.push("How are US markets doing today?");
   if (has("getMyPortfolio")) out.push("Which of my holdings is riskiest?", "How diversified am I really?");
   if (has("getWatchlist") || has("addToWatchlist")) out.push("Give me a quick update on the stocks I'm watching");
-  if (t && !has("createPriceAlert") && !has("addToWatchlist")) out.push(`Add ${t} to my Watching list`);
+  if (t && !has("addToWatchlist")) out.push(`Add ${t} to my Watching list`);
 
   const seen = new Set(askedBefore.map((q) => q.trim().toLowerCase()));
   return [...new Set(out)].filter((q) => !seen.has(q.toLowerCase())).slice(0, 3);
@@ -82,7 +82,4 @@ export const TOOL_LABELS: Record<string, string> = {
   getWatchlist: "Your Watching list",
   addToWatchlist: "Watching list update",
   removeFromWatchlist: "Watching list update",
-  createPriceAlert: "Price level",
-  listPriceAlerts: "Your price levels",
-  deletePriceAlerts: "Price level update",
 };

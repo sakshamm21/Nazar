@@ -3,7 +3,6 @@ import { ArrowLeft, MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertCard, ResultsLists } from "@/components/alerts/alert-card";
 import { Sparkline } from "@/components/charts/sparkline";
 import { ExcelDownload } from "@/components/stock/excel-download";
 import { StockChart } from "@/components/stock/stock-chart";
@@ -15,14 +14,14 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { requirePageUser } from "@/lib/current-user";
 import { getDb, schema } from "@/lib/db";
 import { riskReturn, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
-import { healthLine, quarterName, resultsPoints } from "@/lib/alerts/templates";
+import { ResultsLists } from "@/components/stock/results-lists";
+import { healthLine, quarterName, resultsPoints } from "@/lib/portfolio/words";
 import { ASSET_META, isManualSymbol } from "@/lib/instruments/asset-classes";
 import { catalogItem, classOfSymbol } from "@/lib/instruments/catalog";
 import { NIFTY, sectorOf } from "@/lib/instruments/sectors";
 import { absPct, dayLabel, inr, inrCompact } from "@/lib/format";
 import { displayName } from "@/lib/market/portfolio-day";
 import { dateSources, instrumentsFor, latestResults, latestTradeDate, priceHistory, shiftDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
-import { alertsFor } from "@/lib/views/alerts";
 import { GLOSSARY } from "@/lib/glossary";
 
 export async function generateMetadata({ params }: { params: Promise<{ symbol: string }> }): Promise<Metadata> {
@@ -92,8 +91,6 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   } catch {
     rr = null;
   }
-  const { alerts } = await alertsFor(user.id, { limit: 200 });
-  const myAlerts = alerts.filter((a) => a.symbol === symbol).slice(0, 6);
   const r = results.get(symbol);
   const pts = r ? resultsPoints(r.data.current, r.data.previous, r.data.yearAgo) : [];
   const fmt = (k: (typeof METRIC_ROWS)[number], v: number | null | undefined) => (v == null ? "—" : k.fmt === "x" ? `${v.toFixed(1)}×` : k.fmt === "pct" ? `${(v * 100).toFixed(1)}%` : inrCompact(v));
@@ -106,7 +103,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
 
   return (
     <div className="space-y-5 lg:space-y-6">
-      <Link href="/home" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
+      <Link href="/portfolio" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
         <ArrowLeft className="h-4 w-4" /> Home
       </Link>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -141,7 +138,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
             const value = h.quantity * (snap.price ?? h.avgPrice);
             return (
               <div key={h.id} className="text-sm">
-                <div className="t-caption">{p.ownerLabel ? `${p.ownerLabel}'s portfolio` : p.name}</div>
+                <div className="t-caption">{p.name}</div>
                 <div className="num text-text">
                   {h.quantity.toLocaleString("en-IN", { maximumFractionDigits: 3 })} {ASSET_META[assetClass].unit} · {inr(value)}
                 </div>
@@ -163,19 +160,6 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
               <CardHeader overline={r.data.backfilled ? "Latest reported quarter" : `Results · reported ${dayLabel(r.detectedOn, "en")}`} title={`${quarterName(r.quarterEnd).en} results, explained`} right={<InfoTip k="results" />} />
               <ResultsLists improved={pts.filter((p) => p.good)} worse={pts.filter((p) => !p.good)} health={healthLine({ healthBefore: r.healthBefore, healthAfter: r.healthAfter, annualHealthUpdated: r.data.annualHealthUpdated })} />
               <QuarterBars quarters={(snap.quarterly ?? []).slice(-5)} />
-            </Card>
-          )}
-
-          {myAlerts.length > 0 && (
-            <Card className="p-5 sm:p-6">
-              <CardHeader overline="History" title="Past alerts for this stock" />
-              <div className="mt-3 divide-y divide-line">
-                {myAlerts.map((a) => (
-                  <div key={a.id} className="py-4">
-                    <AlertCard a={a} />
-                  </div>
-                ))}
-              </div>
             </Card>
           )}
         </div>

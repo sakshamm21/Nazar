@@ -97,46 +97,55 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
     await downloadChatExcel(parts as { toolName: string; data: any }[], title);
   };
 
+  const today = hydrated ? new Date().toDateString() : "";
+  const groups = [
+    { label: "Today", rows: chats.filter((c) => hydrated && new Date(c.updatedAt).toDateString() === today) },
+    { label: hydrated ? "Earlier" : "", rows: chats.filter((c) => !hydrated || new Date(c.updatedAt).toDateString() !== today) },
+  ].filter((g) => g.rows.length);
   const historyList = (
-    <div className="space-y-1">
-      <Button size="sm" className="mb-3 w-full" onClick={fresh}>
+    <div>
+      <button onClick={fresh} className="mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-[14px] border border-dashed border-line-strong text-sm font-medium text-text transition-colors hover:border-accent hover:text-accent">
         <Plus className="h-4 w-4" /> New conversation
-      </Button>
-      {chats.length === 0 && <p className="px-2 py-2 text-sm text-subtle">Your conversations are kept here so you can come back to them.</p>}
-      {chats.map((c) => (
-        <div key={c.id} className={cn("group flex items-center rounded-[12px]", c.id === chatId ? "bg-surface-2" : "hover:bg-surface-2")}>
-          <button onClick={() => open(c.id)} className="min-w-0 flex-1 truncate px-3 py-2 text-left text-sm text-text">
-            {c.title}
-          </button>
-          <button
-            onClick={async () => {
-              await fetch(`/api/chats/${c.id}`, { method: "DELETE" });
-              if (c.id === chatId) fresh();
-              refresh();
-            }}
-            className="mr-1 rounded-full p-1.5 text-subtle opacity-100 hover:text-loss lg:opacity-0 lg:group-hover:opacity-100"
-            aria-label={`Delete "${c.title}"`}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+      </button>
+      {chats.length === 0 && <p className="px-2 py-2 text-sm leading-6 text-subtle">Your conversations are kept here so you can come back to them.</p>}
+      {groups.map((g) => (
+        <div key={g.label} className="mb-3">
+          {g.label && <div className="t-overline mb-1 px-2">{g.label}</div>}
+          <ul className="space-y-0.5">
+            {g.rows.map((c) => (
+              <li key={c.id} className={cn("group flex items-center rounded-[12px] transition-colors", c.id === chatId ? "bg-accent-soft" : "hover:bg-surface-2")}>
+                <button onClick={() => open(c.id)} aria-current={c.id === chatId ? "true" : undefined} className={cn("min-w-0 flex-1 truncate px-3 py-2 text-left text-sm", c.id === chatId ? "font-medium text-accent" : "text-muted group-hover:text-text")}>
+                  {c.title}
+                </button>
+                <button
+                  onClick={async () => {
+                    await fetch(`/api/chats/${c.id}`, { method: "DELETE" });
+                    if (c.id === chatId) fresh();
+                    refresh();
+                  }}
+                  className="mr-1 rounded-full p-1.5 text-subtle opacity-100 hover:text-loss lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
+                  aria-label={`Delete "${c.title}"`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="flex h-[calc(100dvh-13.5rem)] gap-6 lg:h-[calc(100dvh-7rem)]">
-      <aside className="no-print hidden w-60 shrink-0 overflow-y-auto lg:block">
-        <div className="t-overline mb-2 px-1">Conversations</div>
-        {historyList}
-      </aside>
+    <div className="flex h-[calc(100dvh-13.5rem)] gap-5 lg:h-[calc(100dvh-7rem)]">
+      <aside className="no-print hidden w-64 shrink-0 overflow-y-auto rounded-[var(--radius-card)] border border-line bg-surface-1 p-3 lg:block">{historyList}</aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface-1 print-expand">
         <div className="no-print flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2.5 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <button onClick={() => setHistoryOpen(true)} className="rounded-full p-2 text-muted hover:bg-surface-2 lg:hidden" aria-label="Your conversations">
               <History className="h-5 w-5" />
             </button>
-            {hasMessages && <span className="hidden min-w-0 max-w-[220px] truncate text-sm font-semibold text-text md:block">{title}</span>}
+            <span className="hidden min-w-0 max-w-[260px] truncate text-sm font-medium text-text md:block">{hasMessages ? title : "New conversation"}</span>
             <Segmented
               label="Answer style"
               value={mode}
@@ -220,7 +229,7 @@ function ShareSheet({ open, onClose, chatId, shareId, onChange }: { open: boolea
   const [copied, setCopied] = useState(false);
   const url = shareId && typeof window !== "undefined" ? `${location.origin}/s/${shareId}` : "";
   return (
-    <Sheet open={open} onClose={onClose} title="Share this conversation" description="Anyone with the link sees a read-only copy. Your portfolio, Watching list and alerts are never included.">
+    <Sheet open={open} onClose={onClose} title="Share this conversation" description="Anyone with the link sees a read-only copy. Your portfolio and Watching list are never included.">
       {shareId ? (
         <div className="space-y-3">
           <div className="flex gap-2">

@@ -18,7 +18,7 @@ export type Profile = {
   emailVerified: boolean;
   isTestAccount: boolean;
   memberSince: string;
-  stats: { portfolios: number; holdings: number; watching: number; alertsRated: number; netWorth: number | null };
+  stats: { portfolios: number; holdings: number; watching: number; netWorth: number | null };
 };
 
 /** Who you are in Nazar: name (editable in place), email, what you track, and account actions. */
@@ -29,6 +29,11 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   const [busy, setBusy] = useState(false);
   const [password, setPassword] = useState(false);
   const first = profile.name.split(" ")[0];
+  const signOut = async () => {
+    await apiCall("/api/auth/logout", "POST");
+    router.push("/");
+    router.refresh();
+  };
 
   const saveName = async () => {
     const next = name.trim();
@@ -52,12 +57,14 @@ export function ProfileCard({ profile }: { profile: Profile }) {
     { label: profile.stats.portfolios === 1 ? "Portfolio" : "Portfolios", value: String(profile.stats.portfolios) },
     { label: "Holdings", value: String(profile.stats.holdings) },
     { label: "Watching", value: String(profile.stats.watching) },
-    { label: "Alerts rated", value: String(profile.stats.alertsRated) },
   ];
 
   return (
-    <Card className="nz-ring nz-aura overflow-hidden p-5 sm:p-7">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+    <Card className="overflow-hidden p-5 sm:p-7">
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
+        <Button variant="secondary" size="sm" className="absolute right-0 top-0" onClick={signOut}>
+          <LogOut className="h-4 w-4" /> Sign out
+        </Button>
         <Avatar name={profile.name} size={84} />
         <div className="min-w-0 flex-1">
           <div className="t-overline">Your profile</div>
@@ -92,7 +99,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-muted">
             <span className="truncate">{profile.name === first ? profile.email : `${profile.name} · ${profile.email}`}</span>
             {profile.isTestAccount ? (
-              <Chip tone="warn">Shared test account</Chip>
+              <Chip tone="warn">Shared demo account</Chip>
             ) : profile.emailVerified ? (
               <Chip tone="gain">
                 <BadgeCheck className="h-3 w-3" /> Verified
@@ -105,7 +112,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <dl className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-[16px] border border-line bg-surface-2/70 px-3.5 py-3">
             <dd className="num text-[22px] font-bold leading-7 text-text">{s.value}</dd>
@@ -114,30 +121,19 @@ export function ProfileCard({ profile }: { profile: Profile }) {
         ))}
       </dl>
 
-      <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
+      <div className={profile.isTestAccount ? "hidden" : "mt-5 flex flex-wrap gap-2 border-t border-line pt-5"}>
         {!profile.isTestAccount && (
           <Button variant="secondary" size="sm" onClick={() => setPassword(true)}>
             <KeyRound className="h-4 w-4" /> Change password
           </Button>
         )}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={async () => {
-            await apiCall("/api/auth/logout", "POST");
-            router.push("/");
-            router.refresh();
-          }}
-        >
-          <LogOut className="h-4 w-4" /> Sign out
-        </Button>
         {!profile.isTestAccount && (
           <Button
             variant="ghost"
             size="sm"
             className="ml-auto text-loss hover:bg-loss-soft hover:text-loss"
             onClick={async () => {
-              if (!confirm("Delete your account and all your portfolios, alerts and chats? This can't be undone.")) return;
+              if (!confirm("Delete your account and all your portfolios and chats? This can't be undone.")) return;
               await apiCall("/api/account", "DELETE");
               router.push("/");
               router.refresh();
@@ -147,7 +143,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           </Button>
         )}
       </div>
-      {profile.isTestAccount && <p className="t-caption mt-3">Everyone who picks this test account shares it, and it is put back to its starting state every night. Create your own account to keep your portfolio.</p>}
+      {profile.isTestAccount && <p className="t-caption mt-3">Everyone who opens the demo shares this account, and it is put back to its starting state every night. Create your own account to keep your portfolio.</p>}
       <PasswordSheet open={password} onClose={() => setPassword(false)} />
     </Card>
   );

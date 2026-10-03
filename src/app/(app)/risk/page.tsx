@@ -36,11 +36,11 @@ export default async function RiskPage() {
   const conc = v.risk.concentration;
   return (
     <div className="space-y-5 lg:space-y-6">
-      <Link href="/home" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
-        <ArrowLeft className="h-4 w-4" /> Home
+      <Link href="/analysis" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
+        <ArrowLeft className="h-4 w-4" /> Analysis
       </Link>
       <div>
-        <div className="t-overline">{v.active!.ownerLabel ? `${v.active!.ownerLabel}'s portfolio` : v.active!.name}</div>
+        <div className="t-overline">{v.active!.name}</div>
         <h1 className="t-title-1 mt-1 text-text">Hidden risks</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">Three checks most investors never run: what a market fall would cost you, which holdings secretly move together, and how concentrated your money is.</p>
       </div>

@@ -10,9 +10,7 @@ import { sample } from "../analytics/stats";
 import { getDb, schema } from "../db";
 import { displayName } from "../market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "../market/store";
-import { listAlerts } from "../repo/alerts";
 import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo/portfolios";
-import { TARGETS_MAX_ACTIVE, createTarget, deleteTargets, listTargets } from "../repo/targets";
 import { buildPortfolioView } from "../views/portfolio";
 
 const symbol = z.string().min(1).max(12).describe("Ticker symbol, e.g. AAPL, MSFT, RELIANCE.NS, 7203.T");
@@ -385,7 +383,7 @@ const marketTools = {
   }),
 };
 
-/** Tools that read the signed-in user's own data (portfolio, Watching) or manage their price alerts. */
+/** Tools that read the signed-in user's own data (portfolio, Watching). */
 function userTools(userId: string) {
   const loadUser = async () => {
     const db = await getDb();
@@ -408,23 +406,19 @@ function userTools(userId: string) {
       }),
     };
   };
-  const targetsView = async () => ({
-    alerts: (await listTargets(userId)).map((t) => ({ id: t.id, symbol: t.symbol, direction: t.direction, target: t.target, currency: "INR", note: t.note, createdAt: t.createdAt, triggeredAt: t.triggeredAt, triggeredPrice: t.triggeredPrice })),
-  });
   return {
     getMyPortfolio: tool({
       description:
         "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
-      inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, e.g. \"Papa's portfolio\". Omit for the default.") }),
+      inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.") }),
       execute: async ({ portfolio }) =>
         safe(async () => {
           const u = await loadUser();
           const db = await getDb();
           const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
-          const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase()) || (p.ownerLabel ?? "").toLowerCase().includes(portfolio.toLowerCase())) : null;
+          const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase())) : null;
           const v = await buildPortfolioView(u, match?.id ?? null);
           if (v.empty) return { portfolios: pfs.map((p) => p.name), empty: true, note: "No holdings yet. On the Portfolio page the user can search and add stocks, funds, ETFs, gold, US stocks and crypto, add deposits and PF by hand, or import a broker file or mutual fund statement." };
-          const alerts = (await listAlerts(userId, { portfolioId: v.active!.id, limit: 10, includeSimulated: false })).map((a) => ({ date: a.tradeDate, type: a.type, title: a.titleEn }));
           return {
             portfolios: pfs.map((p) => p.name),
             portfolio: v.active!.name,
@@ -449,7 +443,6 @@ function userTools(userId: string) {
             // Sector mix of the stock part only; funds, gold and deposits have no sector.
             sectors: v.sectors.map((s) => ({ sector: s.sector, weight: s.weight })),
             holdings: v.cards.map((c) => ({ symbol: c.href ? c.symbol : null, name: c.name, type: ASSET_META[c.assetClass].label, category: c.category, sector: c.assetClass === "stock" ? c.sector : null, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
-            recentAlerts: alerts,
           };
         }),
       toModelOutput: forModel((o) => o),
@@ -475,29 +468,6 @@ function userTools(userId: string) {
         safe(async () => {
           await removeWatching(userId, symbols);
           return { removed: symbols, ...(await watchingView()) };
-        }),
-    }),
-    createPriceAlert: tool({
-      description: `Create a price alert that tells the user when a stock closes above or below a level they choose (checked after market close). Max ${TARGETS_MAX_ACTIVE} active. This only watches a level the user picked; never suggest levels yourself.`,
-      inputSchema: z.object({ symbol, direction: z.enum(["above", "below"]), target: z.number().positive(), note: z.string().max(140).optional() }),
-      execute: async (input) =>
-        safe(async () => {
-          const created = await createTarget(userId, input);
-          return { created, ...(await targetsView()) };
-        }),
-    }),
-    listPriceAlerts: tool({
-      description: "List the user's price alerts (active and triggered).",
-      inputSchema: z.object({}),
-      execute: async () => safe(targetsView),
-    }),
-    deletePriceAlerts: tool({
-      description: "Delete price alerts by id (get ids from listPriceAlerts first).",
-      inputSchema: z.object({ ids: z.array(z.string().max(64)).min(1).max(25) }),
-      execute: async ({ ids }) =>
-        safe(async () => {
-          await deleteTargets(userId, ids);
-          return targetsView();
         }),
     }),
   };

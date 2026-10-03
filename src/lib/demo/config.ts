@@ -10,20 +10,18 @@ import type { ManualClass } from "@/lib/instruments/asset-classes";
 export type PersonaHolding = { symbol: string; value: number; daysAgo: number };
 /** An asset with no price feed, as the persona would have typed it in. */
 export type PersonaManual = { assetClass: ManualClass; name: string; invested: number; value: number; valueDaysAgo: number; ratePct?: number; startDaysAgo: number; maturesInDays?: number };
-export type PersonaPortfolio = { name: string; ownerLabel: string | null; language: "en" | "hi"; holdings: PersonaHolding[]; manual: PersonaManual[]; recipient?: string };
+export type PersonaPortfolio = { name: string; holdings: PersonaHolding[]; manual: PersonaManual[] };
 export type Persona = { id: "investor" | "saver"; portfolios: PersonaPortfolio[]; watching: string[] };
 
 const FUND = { flexi: "MF:122639", nifty: "MF:120716", small: "MF:125497", balanced: "MF:118968", liquid: "MF:119091", large: "MF:118825" };
 
-/** Stocks first, with funds, ETFs, a REIT, gold and deposits around them; plus a parent's portfolio in Hindi. */
+/** Stocks first, with funds, ETFs, a REIT, gold and deposits around them; plus a second, smaller portfolio. */
 const INVESTOR: Persona = {
   id: "investor",
   watching: ["TITAN.NS", "ASIANPAINT.NS", "ETERNAL.NS", "JUNIORBEES.NS", "US:NVDA"],
   portfolios: [
     {
       name: "My portfolio",
-      ownerLabel: null,
-      language: "en",
       holdings: [
         { symbol: "HDFCBANK.NS", value: 240_000, daysAgo: 310 },
         { symbol: "ICICIBANK.NS", value: 160_000, daysAgo: 280 },
@@ -57,10 +55,7 @@ const INVESTOR: Persona = {
       ],
     },
     {
-      name: "Papa's portfolio",
-      ownerLabel: "Papa",
-      language: "hi",
-      recipient: "papa@example.com",
+      name: "Dividend basket",
       holdings: [
         { symbol: "ITC.NS", value: 300_000, daysAgo: 330 },
         { symbol: "HDFCBANK.NS", value: 250_000, daysAgo: 320 },
@@ -86,8 +81,6 @@ const SAVER: Persona = {
   portfolios: [
     {
       name: "Long-term money",
-      ownerLabel: null,
-      language: "en",
       holdings: [
         { symbol: FUND.nifty, value: 450_000, daysAgo: 330 },
         { symbol: FUND.flexi, value: 350_000, daysAgo: 320 },
@@ -130,7 +123,7 @@ export const PERSONA_SYMBOLS = [...new Set(Object.values(PERSONAS).flatMap((p) =
 export const TEST_PASSWORD = "nazar123";
 export type TestAccount = { email: string; name: string; persona: Persona["id"] | null; label: string; blurb: string };
 export const TEST_ACCOUNTS: TestAccount[] = [
-  { email: "demo@nazar.dev", name: "Aarav Mehta", persona: "investor", label: "Aarav, the investor", blurb: "14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits. Also tracks his father's portfolio in Hindi." },
+  { email: "demo@nazar.dev", name: "Aarav Mehta", persona: "investor", label: "Aarav, the investor", blurb: "14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits, and a second portfolio of dividend payers." },
   { email: "riya@nazar.dev", name: "Riya Kapoor", persona: "saver", label: "Riya, the saver", blurb: "Mostly mutual funds and ETFs, with gold, silver, a US index fund, PPF, EPF, NPS and an emergency fund." },
   { email: "tester1@nazar.dev", name: "Kabir Shah", persona: "investor", label: "Kabir (a second investor)", blurb: "A separate copy of the investor account, for a second tester." },
   { email: "tester2@nazar.dev", name: "Meera Nair", persona: "saver", label: "Meera (a second saver)", blurb: "A separate copy of the saver account, for a second tester." },
@@ -141,8 +134,8 @@ export const isTestEmail = (email: string) => TEST_ACCOUNTS.some((a) => a.email 
 /** Internal: the hidden account each persona's history is built on; test accounts are copies of it. */
 export const templateEmail = (persona: Persona["id"]) => `template+${persona}@nazar.internal`;
 
-/** Bump when the alert rules change in a way that should show in the personas' replayed history. */
-const HISTORY_RULES = 2; // 2: crypto alerts only on moves of 15%+
+/** Bump to rebuild the accounts when how they are built changes. */
+const HISTORY_RULES = 3; // 3: no alerts, no family portfolio
 
 /** Changes whenever the personas, accounts or history rules change, so existing accounts are rebuilt to match. */
 export const PERSONA_VERSION = (() => {
@@ -151,5 +144,5 @@ export const PERSONA_VERSION = (() => {
   return h.toString(36);
 })();
 
-/** Sessions of real market history the alert engine is replayed over when a persona is first built. */
+/** Sessions of real market history that get a stored snapshot when a persona is first built. */
 export const HISTORY_DAYS = 45;

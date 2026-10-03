@@ -1,7 +1,7 @@
 import "server-only";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
-import { and, asc, desc, eq, inArray, like, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { DB } from "@/lib/db";
 import { schema } from "@/lib/db";
 import { marketProvider } from "@/lib/data/market";
@@ -19,11 +19,8 @@ import { HISTORY_DAYS, PERSONAS, PERSONA_SYMBOLS, PERSONA_VERSION, TEST_ACCOUNTS
  * account is an ordinary account whose holdings are priced by the same sources, the same nightly
  * checkup and the same refresh-on-open as everyone else's.
  *
- * What makes them useful on day one is history. When a persona is first built, the real alert
- * engine is replayed over the last 45 real market sessions (from the price history the data
- * sources return), the persona's ratings are applied (small moves "not useful", big ones
- * "useful"), and the real tuner then raises the threshold. After that the nightly checkup keeps
- * adding real alerts like for any account.
+ * What makes them useful on day one is history: when a persona is first built, the recent sessions
+ * get a stored snapshot from the real price history, so charts and analysis have something to show.
  *
  * Because the accounts are shared, they are put back once a day: each one is wiped and copied
  * again from its persona's hidden template account.
@@ -53,7 +50,7 @@ export async function ensureTestAccounts(db: DB, opts: { force?: boolean; provid
   const m = await marker(db);
   // Already done today, for the personas as they are now defined.
   if (!opts.force && m?.runDate === today && m.status === "done" && m.stage === "accounts" && (m.stats as { version?: string })?.version === PERSONA_VERSION) return { today, rebuilt: false };
-  // Personas or rules changed since the templates were built: replay their history again.
+  // Personas changed since the templates were built: build them again.
   const outdated = Boolean(m) && (m!.stats as { version?: string })?.version !== PERSONA_VERSION;
   // Claim the run so two instances don't rebuild at once.
   const lockedUntil = new Date(Date.now() + 300_000);
@@ -208,7 +205,7 @@ function holdingsFor(list: PersonaHolding[], hist: Map<string, Map<string, numbe
   });
 }
 
-/** Builds a persona's hidden template account, replaying the alert engine over recent real sessions. */
+/** Builds a persona's hidden template account from the real price history. */
 async function buildTemplate(db: DB, persona: Persona, date: string, force: boolean): Promise<boolean> {
   const email = templateEmail(persona.id);
   const [existing] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
@@ -217,7 +214,6 @@ async function buildTemplate(db: DB, persona: Persona, date: string, force: bool
     const wanted = persona.portfolios.reduce((a, p) => a + p.holdings.length + p.manual.length, 0);
     if (Number(n) >= wanted) return false; // complete: the nightly checkup keeps it current
   }
-  const sessions = await sessionsUpTo(db, date, HISTORY_DAYS + 1);
   const symbols = [...new Set(persona.portfolios.flatMap((p) => p.holdings.map((h) => h.symbol)))];
   const hist = await priceHistory(db, symbols, ["live"], shiftDate(date, -400), date);
 
@@ -226,7 +222,7 @@ async function buildTemplate(db: DB, persona: Persona, date: string, force: bool
   await db.insert(schema.users).values({ id: userId, email, name: "Template", isTestAccount: true, emailVerifiedAt: new Date(), createdAt: checkupAt(shiftDate(date, -90)) });
   for (const [i, p] of persona.portfolios.entries()) {
     const portfolioId = randomUUID();
-    await db.insert(schema.portfolios).values({ id: portfolioId, userId, name: p.name, ownerLabel: p.ownerLabel, language: p.language, isDefault: i === 0, sortOrder: i });
+    await db.insert(schema.portfolios).values({ id: portfolioId, userId, name: p.name, isDefault: i === 0, sortOrder: i });
     const market = holdingsFor(p.holdings, hist).map((h) => ({ id: randomUUID(), portfolioId, source: "manual" as const, ...h }));
     const manual = p.manual.map((m) => {
       const id = randomUUID();
@@ -236,53 +232,9 @@ async function buildTemplate(db: DB, persona: Persona, date: string, force: bool
       };
     });
     if (market.length + manual.length) await db.insert(schema.holdings).values([...market, ...manual]);
-    if (p.recipient) await db.insert(schema.recipients).values({ id: randomUUID(), userId, portfolioId, email: p.recipient, confirmedAt: checkupAt(shiftDate(date, -70)) });
   }
   if (persona.watching.length) await db.insert(schema.watching).values(persona.watching.map((symbol) => ({ userId, symbol })));
-  // History starts on "everything" so small moves alert; the replayed ratings then teach the tuner.
-  await db.insert(schema.alertSettings).values({ userId, sensitivity: "everything", emailDigest: false, quietMode: false });
-
-  const { evaluateUser, runTuner } = await import("@/lib/pipeline/evaluate");
-  const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId));
-  const tuneIndex = sessions.length - 8;
-  let smallCount = 0;
-  for (let i = 1; i < sessions.length; i++) {
-    const d = sessions[i];
-    const created = await evaluateUser(user, { date: d, sources: ["live"], news: false, tune: false, createdAt: checkupAt(d) });
-    if (i < sessions.length - 1) smallCount += await rateReplayed(db, userId, created.created, d, smallCount);
-    if (i === tuneIndex) await runTuner(userId, "everything", d, checkupAt(d, 600));
-  }
-  // Older alerts read; the last two sessions stay unread.
-  await db.execute(sql`update alert_events set read_at = created_at + interval '2 hours' where user_id = ${userId} and trade_date < ${sessions.at(-2) ?? date}`);
-
-  // Weekly reports for the last two completed weeks.
-  const { generateWeekly } = await import("@/lib/reports/generate");
-  const fridays = sessions.filter((d) => new Date(`${d}T00:00:00Z`).getUTCDay() === 5 && shiftDate(d, 2) < date).slice(-2);
-  const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId)).orderBy(asc(schema.portfolios.sortOrder));
-  for (const f of fridays) for (const p of pfs) await generateWeekly(user, p, f, ["live"], new Date(`${shiftDate(f, 2)}T03:00:00Z`));
   return true;
-}
-
-/** Deterministic ratings for replayed alerts: small moves mostly "not useful", big moves and results "useful". */
-async function rateReplayed(db: DB, userId: string, ids: string[], date: string, smallSoFar: number) {
-  if (!ids.length) return 0;
-  const alerts = await db.select().from(schema.alertEvents).where(inArray(schema.alertEvents.id, ids));
-  let small = 0;
-  for (const a of alerts) {
-    let rating: "up" | "down" | null = null;
-    if (a.type === "stock_move") {
-      const m = Number(a.data.magnitude ?? 0);
-      if (m < 5) {
-        rating = (smallSoFar + small) % 5 === 3 ? "up" : "down";
-        small++;
-      } else rating = "up";
-    } else if (a.type === "portfolio_move") {
-      // Whole-portfolio wiggles under 2% felt like noise to this persona; bigger days were useful.
-      rating = Number(a.data.magnitude ?? 0) < 2 ? ((smallSoFar + small) % 4 === 1 ? "up" : "down") : "up";
-    } else if (["results", "health_change", "concentration"].includes(a.type)) rating = "up";
-    if (rating) await db.insert(schema.alertFeedback).values({ alertId: a.id, userId, rating, source: "app", createdAt: checkupAt(date, 900) }).onConflictDoNothing();
-  }
-  return small;
 }
 
 /**
@@ -298,21 +250,6 @@ export async function cloneTemplate(db: DB, T: string, userId: string) {
     select ${nid("h.id")}, ${nid("h.portfolio_id")}, case when h.symbol like 'MANUAL:%' then 'MANUAL:' || upper(${nid("h.id")}) else h.symbol end, h.asset_class, h.quantity, h.avg_price, h.buy_date, h.isin, h.raw_name, h.details, h.source, h.created_at, h.updated_at
     from holdings h join portfolios p on p.id = h.portfolio_id where p.user_id = ${T}`);
   await db.execute(sql`insert into watching (user_id, symbol, added_at) select ${U}, symbol, added_at from watching where user_id = ${T}`);
-  await db.execute(sql`insert into recipients (id, user_id, portfolio_id, email, confirmed_at, unsubscribed_at, created_at)
-    select ${nid("id")}, ${U}, ${nid("portfolio_id")}, email, confirmed_at, unsubscribed_at, created_at from recipients where user_id = ${T}`);
-  await db.execute(sql`insert into alert_settings (user_id, sensitivity, quiet_mode, email_digest, updated_at) select ${U}, sensitivity, quiet_mode, false, updated_at from alert_settings where user_id = ${T}`);
-  await db.execute(sql`insert into alert_thresholds (user_id, alert_type, value, muted, source, frozen_until, updated_at) select ${U}, alert_type, value, muted, source, frozen_until, updated_at from alert_thresholds where user_id = ${T}`);
-  await db.execute(sql`insert into threshold_changes (id, user_id, alert_type, old_value, new_value, muted, evidence, message_en, message_hi, created_at, undone_at)
-    select ${nid("id")}, ${U}, alert_type, old_value, new_value, muted, evidence, message_en, message_hi, created_at, undone_at from threshold_changes where user_id = ${T}`);
-  await db.execute(sql`insert into alert_events (id, user_id, portfolio_id, type, symbol, severity, trade_date, dedupe_key, title_en, body_en, title_hi, body_hi, data, is_simulated, created_at, read_at)
-    select ${nid("a.id")}, ${U}, case when a.portfolio_id is null then null else ${nid("a.portfolio_id")} end, a.type, a.symbol, a.severity, a.trade_date,
-      case when a.portfolio_id is null then a.dedupe_key else replace(a.dedupe_key, a.portfolio_id, ${nid("a.portfolio_id")}) end, a.title_en, a.body_en, a.title_hi, a.body_hi,
-      case when a.data ? 'thresholdChangeId' then jsonb_set(a.data, '{thresholdChangeId}', to_jsonb(${nid("(a.data->>'thresholdChangeId')")})) else a.data end,
-      a.is_simulated, a.created_at, a.read_at from alert_events a where a.user_id = ${T} and a.is_simulated = false`);
-  await db.execute(sql`insert into alert_feedback (alert_id, user_id, rating, source, created_at)
-    select ${nid("alert_id")}, ${U}, rating, source, created_at from alert_feedback where user_id = ${T}`);
-  await db.execute(sql`insert into reports (id, user_id, portfolio_id, week_start, week_end, content, created_at)
-    select ${nid("id")}, ${U}, ${nid("portfolio_id")}, week_start, week_end, content, created_at from reports where user_id = ${T}`);
 }
 
 /** Wipes a user's own data (keeps the account). */
@@ -344,12 +281,7 @@ async function resetAccounts(db: DB) {
     await wipeUserData(db, u.id);
     const [template] = acc.persona ? await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, templateEmail(acc.persona))).limit(1) : [];
     if (template) await cloneTemplate(db, template.id, u.id);
-    // Their addresses are made up, so nothing is ever emailed.
-    else await db.insert(schema.alertSettings).values({ userId: u.id, emailDigest: false }).onConflictDoNothing();
   }
-  // A template keeps collecting real alerts every night; keep roughly four months of them.
-  const templates = await db.select({ id: schema.users.id }).from(schema.users).where(like(schema.users.email, "template+%@nazar.internal"));
-  if (templates.length) await db.delete(schema.alertEvents).where(and(inArray(schema.alertEvents.userId, templates.map((t) => t.id)), lt(schema.alertEvents.tradeDate, shiftDate(istDate(new Date()), -120))));
 }
 
 /** An isolated copy of a persona's data under a new account. Nothing in the app creates one; tests use it to check that copies never share state. */

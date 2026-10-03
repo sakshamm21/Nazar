@@ -5,7 +5,22 @@ import { ASSET_META, groupOf, isManualSymbol, manualValue, shortCode, type Asset
 import { catalogItem } from "@/lib/instruments/catalog";
 import { DISPLAY_NAMES, shortName } from "@/lib/instruments/master";
 import { NIFTY, SECTOR_INDICES, sectorOf } from "@/lib/instruments/sectors";
-import type { DayHolding } from "@/lib/alerts/rules";
+import type { QuarterRow } from "@/lib/db/schema";
+import type { HoldingState } from "@/lib/portfolio/math";
+
+/** A holding on one day: its state plus what changed around it. */
+export type DayHolding = HoldingState & {
+  changePct: number | null;
+  industry: string | null;
+  sectorRaw: string | null;
+  healthPrev: number | null;
+  altmanZone?: string | null;
+  altmanZonePrev?: string | null;
+  healthAnnualChanged?: boolean;
+  nextResultsDate: string | null;
+  results: { id: string; quarterEnd: string; detectedOn: string; current: QuarterRow; previous: QuarterRow | null; yearAgo: QuarterRow | null; healthBefore: number | null; healthAfter: number | null; annualHealthUpdated: boolean } | null;
+  prevWeight?: number | null;
+};
 import { instrumentsFor, latestResults, shiftDate, snapshotsAsOf, type Instrument, type Snapshot } from "./store";
 
 type HoldingRow = typeof schema.holdings.$inferSelect;

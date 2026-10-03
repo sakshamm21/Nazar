@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { squarify } from "@/components/charts/heatmap";
-import { isAdviceFree } from "@/lib/alerts/guard";
+import { isAdviceFree } from "@/lib/guard";
 import { buildPerformance, explain, holdingSeries, type PerfHolding } from "@/lib/portfolio/performance";
 
 const dates = ["2026-08-31", "2026-09-01", "2026-09-15", "2026-09-29", "2026-09-30", "2026-10-01"];

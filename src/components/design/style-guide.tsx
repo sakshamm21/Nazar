@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { AlertCard, type AlertDTO } from "@/components/alerts/alert-card";
 import { PriceChart } from "@/components/charts/price-chart";
 import { Sparkline } from "@/components/charts/sparkline";
 import { IrisLoader } from "@/components/rings/iris";
@@ -23,23 +22,6 @@ import { inr } from "@/lib/format";
 
 const TOKENS = ["bg", "surface-1", "surface-2", "surface-3", "line", "line-strong", "text", "muted", "subtle", "accent", "accent-ink", "ice", "gain", "loss", "warn"];
 const series = Array.from({ length: 60 }, (_, i) => ({ date: new Date(Date.UTC(2026, 6, 1 + i)).toISOString().slice(0, 10), value: 1500 + Math.sin(i / 6) * 60 + i * 3 + (i % 7) * 4 }));
-const sample: AlertDTO = {
-  id: "sample",
-  type: "stock_move",
-  symbol: "TMPV.NS",
-  severity: "critical",
-  tradeDate: "2026-10-02",
-  titleEn: "Tata Motors fell 7.0%",
-  bodyEn: "Likely reason: something specific to Tata Motors. It moved far more than the market (Nifty −0.4%). Tata Motors is 22% of your portfolio; its value fell ~₹8,400 today.",
-  titleHi: "Tata Motors 7.0% गिरा",
-  bodyHi: "संभावित वजह: Tata Motors से जुड़ी कोई बात। Tata Motors आपके पोर्टफोलियो का 22% हिस्सा है; आज इसकी वैल्यू लगभग ₹8,400 कम हुई।",
-  data: { reason: { kind: "company" }, impactInr: -8400 },
-  isSimulated: false,
-  readAt: null,
-  rating: null,
-  portfolio: { id: "p", label: "Papa's", language: "hi" },
-};
-
 export function StyleGuide() {
   const [value, setValue] = useState(1864210);
   return (
@@ -148,9 +130,6 @@ export function StyleGuide() {
             <Card className="p-5">
               <CardHeader overline="Card" title="Price, 60 days" />
               <PriceChart points={series} height={160} />
-            </Card>
-            <Card className="mt-3 p-5">
-              <AlertCard a={sample} />
             </Card>
             <div className="mt-3 space-y-2">
               <Skeleton className="h-6 w-1/2" />

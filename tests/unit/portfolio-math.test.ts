@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { adjustedBeta, attribution, concentration, correlationClusters, diversification, diversificationScore, effectiveBets, healthRollup, sectorAllocation, stressTest, valuation, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
-import { attributionLine, marketSplitLine } from "@/lib/alerts/templates";
+import { attributionLine, marketSplitLine } from "@/lib/portfolio/words";
 
 const h = (o: Partial<HoldingState> & { symbol: string }): HoldingState => ({ name: o.symbol, sector: "IT", quantity: 10, avgPrice: 100, buyDate: null, price: 100, prevClose: 100, beta: 1, health: null, ...o });
 

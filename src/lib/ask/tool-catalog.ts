@@ -66,7 +66,6 @@ export const TOOL_CATALOG: CatalogGroup[] = [
     items: [
       { id: "portfolio", tools: ["getMyPortfolio"], name: "Your portfolio", description: "Read-only view of your holdings from last night's checkup: today's move, P&L, risk and health.", example: "Why is my portfolio down this month?", excel: null },
       { id: "watching", tools: ["getWatchlist", "addToWatchlist", "removeFromWatchlist"], name: "Watching list", description: "Stocks you follow without owning; Nazar includes them in its nightly check.", example: "Add Titan to my Watching list", excel: null },
-      { id: "levels", tools: ["createPriceAlert", "listPriceAlerts", "deletePriceAlerts"], name: "Price levels", description: "Tell me when a stock closes beyond a level you choose.", example: "Tell me if Reliance closes below ₹1,100", excel: null },
     ],
   },
 ];

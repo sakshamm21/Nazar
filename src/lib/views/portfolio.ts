@@ -1,29 +1,19 @@
 import "server-only";
-import { and, desc, eq, gte, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { correlationMatrix, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
-import { attributionLine, marketSplitLine } from "@/lib/alerts/templates";
-import { effectiveSettings } from "@/lib/alerts/thresholds";
+import { attributionLine, marketSplitLine } from "@/lib/portfolio/words";
 import { groupOf, isManualSymbol, manualValue } from "@/lib/instruments/asset-classes";
 import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
 import { buildPerformance } from "@/lib/portfolio/performance";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
-import { getSettings, getThresholds, listThresholdChanges, unreadCount } from "@/lib/repo/alerts";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
 
 type User = typeof schema.users.$inferSelect;
 
-export type AttentionItem = {
-  id: string;
-  kind: "alert" | "results" | "learned" | "concentration" | "upcoming" | "stale" | "cluster" | "simulated";
-  severity: "critical" | "important" | "info";
-  title: string;
-  body: string;
-  href: string;
-  meta?: string;
-};
+export type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster"; title: string; body: string; href: string };
 
 /**
  * Everything the Home "Portfolio X-ray" shows, computed from stored snapshots (never from Yahoo):
@@ -37,11 +27,11 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   const active = portfolios.find((p) => p.id === portfolioId) ?? portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null;
   const tradeDate = await latestTradeDate(db, sources);
   const watching = await listWatching(user.id);
-  const base = { user, portfolios, active, tradeDate, sources, watchingCount: watching.length, simulated: user.simState ?? null };
-  if (!active || !tradeDate) return { ...base, empty: true as const, unread: await unreadCount(user.id) };
+  const base = { user, portfolios, active, tradeDate, sources, watchingCount: watching.length };
+  if (!active || !tradeDate) return { ...base, empty: true as const };
 
   const holdingsRows = await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, active.id));
-  if (!holdingsRows.length) return { ...base, empty: true as const, unread: await unreadCount(user.id) };
+  if (!holdingsRows.length) return { ...base, empty: true as const };
 
   const day = await loadPortfolioDay(db, holdingsRows, tradeDate, sources);
   const states: HoldingState[] = day.holdings;
@@ -146,19 +136,15 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     nifty,
   );
 
-  const attention = await attentionItems(user, active.id, tradeDate, day, conc, div);
-  const settings = await getSettings(user.id);
-  const eff = effectiveSettings(settings.sensitivity, await getThresholds(user.id));
 
   return {
     ...base,
     empty: false as const,
-    unread: await unreadCount(user.id),
     asOf: day.asOf,
     niftyPct: day.niftyPct,
     valuation: v,
     attribution: attr,
-    h2: { line: attributionLine(attr, active.ownerLabel), split: marketSplitLine(attr) },
+    h2: { line: attributionLine(attr), split: marketSplitLine(attr) },
     xirr,
     health,
     innerRing: inner,
@@ -167,55 +153,31 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     allocation: assetAllocation(states),
     performance,
     cards,
-    attention,
+    notes: notesFor(tradeDate, day, conc, div),
     staleCount: cards.filter((c) => c.stale).length,
-    thresholds: { stockMove: eff.stockMove, sensitivity: settings.sensitivity },
   };
 }
 
 export type PortfolioView = Awaited<ReturnType<typeof buildPortfolioView>>;
 export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
 
-async function attentionItems(user: User, portfolioId: string, tradeDate: string, day: Awaited<ReturnType<typeof loadPortfolioDay>>, conc: ReturnType<typeof concentration>, div: ReturnType<typeof diversification> | null): Promise<AttentionItem[]> {
-  const db = await getDb();
-  const items: AttentionItem[] = [];
-  const hi = false; // Home is English; Hindi shows on alert cards for Hindi portfolios.
-
-  // Today's (or the simulated day's) important alerts for this portfolio.
-  const recent = await db
-    .select()
-    .from(schema.alertEvents)
-    .where(and(eq(schema.alertEvents.userId, user.id), eq(schema.alertEvents.portfolioId, portfolioId), gte(schema.alertEvents.tradeDate, shiftDate(tradeDate, -1)), isNull(schema.alertEvents.readAt)))
-    .orderBy(desc(schema.alertEvents.tradeDate), desc(schema.alertEvents.createdAt))
-    .limit(8);
-  for (const a of recent.filter((x) => x.type !== "results" && x.severity !== "info").slice(0, 3))
-    items.push({ id: a.id, kind: a.isSimulated ? "simulated" : "alert", severity: a.severity, title: hi ? a.titleHi : a.titleEn, body: hi ? a.bodyHi : a.bodyEn, href: `/alerts/${a.id}` });
-
-  // H4: results reported in the last few sessions.
+/** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
+function notesFor(tradeDate: string, day: Awaited<ReturnType<typeof loadPortfolioDay>>, conc: ReturnType<typeof concentration>, div: ReturnType<typeof diversification> | null): Note[] {
+  const items: Note[] = [];
   for (const h of day.holdings) {
-    if (!h.results || h.results.detectedOn < shiftDate(tradeDate, -4)) continue;
-    const alert = recent.find((a) => a.type === "results" && a.symbol === h.symbol);
-    items.push({ id: `results-${h.symbol}`, kind: "results", severity: "important", title: `${h.name} reported results`, body: alert?.bodyEn ?? "See what improved and what got worse.", href: `/stock/${encodeURIComponent(h.symbol)}#results`, meta: h.results.detectedOn });
+    if (!h.results || h.results.detectedOn < shiftDate(tradeDate, -7)) continue;
+    items.push({ id: `results-${h.symbol}`, kind: "results", title: `${h.name} reported results`, body: "See what improved and what got worse in the quarter.", href: `/stock/${encodeURIComponent(h.symbol)}#results` });
   }
-
-  // H5: a recent learned-threshold change (with Undo in Settings).
-  const [change] = (await listThresholdChanges(user.id)).filter((c) => !c.undoneAt && Date.now() - c.createdAt.getTime() < 21 * 86400000);
-  if (change) items.push({ id: `learned-${change.id}`, kind: "learned", severity: "info", title: "Nazar adjusted your alerts", body: change.messageEn, href: "/settings#learned" });
-
-  // H3: hidden cluster and concentration.
   const cl = div?.clusters[0];
   if (cl && cl.symbols.length >= 3 && cl.weight >= 0.25) {
     const names = cl.symbols.map((s) => day.holdings.find((h) => h.symbol === s)?.name ?? s);
-    items.push({ id: "cluster", kind: "cluster", severity: "info", title: "Less diversified than it looks", body: `${names.slice(0, 3).join(", ")}${names.length > 3 ? ` and ${names.length - 3} more` : ""} tend to move together: ${Math.round(cl.weight * 100)}% of your money behaves like one bet.`, href: "/risk" });
+    items.push({ id: "cluster", kind: "cluster", title: "Less diversified than it looks", body: `${names.slice(0, 3).join(", ")}${names.length > 3 ? ` and ${names.length - 3} more` : ""} tend to move together: ${Math.round(cl.weight * 100)}% of your money behaves like one bet.`, href: "/risk" });
   }
-  for (const f of conc.flags.filter((x) => x.kind !== "top3").slice(0, 1))
-    items.push({ id: `conc-${f.label}`, kind: "concentration", severity: "info", title: `${f.label} is ${Math.round(f.weight * 100)}% of this portfolio`, body: "One company or sector's news now moves a large part of your money.", href: "/risk" });
-
-  // Upcoming results in the next 7 days.
-  const soon = day.holdings.filter((h) => h.nextResultsDate && h.nextResultsDate > tradeDate && h.nextResultsDate <= shiftDate(tradeDate, 7)).sort((a, b) => a.nextResultsDate!.localeCompare(b.nextResultsDate!));
-  if (soon.length) items.push({ id: "upcoming", kind: "upcoming", severity: "info", title: `${soon.length === 1 ? `${soon[0].name} reports` : `${soon.length} holdings report`} results this week`, body: soon.map((h) => `${h.name} (${new Date(`${h.nextResultsDate}T12:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })})`).join(", "), href: `/stock/${encodeURIComponent(soon[0].symbol)}` });
-
+  for (const f of conc.flags.filter((x) => x.kind !== "top3").slice(0, 2))
+    items.push({ id: `conc-${f.label}`, kind: "concentration", title: `${f.label} is ${Math.round(f.weight * 100)}% of this portfolio`, body: "One company or sector's news now moves a large part of your money.", href: "/risk" });
+  const soon = day.holdings.filter((h) => h.nextResultsDate && h.nextResultsDate > tradeDate && h.nextResultsDate <= shiftDate(tradeDate, 14)).sort((a, b) => a.nextResultsDate!.localeCompare(b.nextResultsDate!));
+  if (soon.length) items.push({ id: "upcoming", kind: "upcoming", title: `${soon.length === 1 ? `${soon[0].name} reports` : `${soon.length} of your companies report`} results soon`, body: soon.map((h) => `${h.name} (${new Date(`${h.nextResultsDate}T12:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })})`).join(", "), href: `/stock/${encodeURIComponent(soon[0].symbol)}` });
   const stale = day.holdings.filter((h) => h.stale);
-  if (stale.length) items.push({ id: "stale", kind: "stale", severity: "info", title: `${stale.length} ${stale.length === 1 ? "price is" : "prices are"} from an earlier day`, body: `Nazar couldn't refresh ${stale.map((h) => h.name).slice(0, 3).join(", ")} in the last check. Values use the last known price.`, href: "/portfolio" });
+  if (stale.length) items.push({ id: "stale", kind: "stale", title: `${stale.length} ${stale.length === 1 ? "price is" : "prices are"} from an earlier day`, body: `Nazar couldn't refresh ${stale.map((h) => h.name).slice(0, 3).join(", ")} in the last check. Values use the last known price.`, href: "/portfolio?tab=manage" });
   return items;
 }

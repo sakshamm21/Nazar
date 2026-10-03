@@ -1,23 +1,19 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { and, eq, isNull, lt, or, inArray, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { marketProvider } from "@/lib/data/market";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
-import { latestTradeDate } from "@/lib/market/store";
 import { logger } from "@/lib/logger";
 import { collectBatch, collectQuotes, liveUniverse } from "./collect";
-import { deliverForUser } from "./deliver";
-import { evaluateUser } from "./evaluate";
-import { deliverWeekly, generateWeekly } from "@/lib/reports/generate";
 
 /**
  * The nightly checkup as a resumable state machine. Vercel Hobby allows one run per day per cron
  * entry (±59 min) and 300s per invocation, so several daily entries call the same handler and
  * each advances whatever stage is pending from a stored cursor, under a 240s budget.
  *
- *   quotes → collect (cursor over symbols) → alerts (cursor over users) → deliver → done
+ *   quotes → collect (cursor over symbols) → done
  *
  * A lock row prevents overlapping runs; every write is idempotent, so re-runs are safe.
  */
@@ -70,7 +66,7 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
         stats.quotes = q.count;
         stats.marketDate = q.marketDate;
         if (!q.marketDate || q.marketDate !== runDate) {
-          // Weekend or market holiday: prices were refreshed, but there's no new session to alert on.
+          // Weekend or market holiday: prices were refreshed, and there is no new session to collect.
           stats.reason = "no session today";
           await save(run, { stage: "done", status: "skipped", stats, finishedAt: new Date() });
           break;
@@ -84,40 +80,11 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
         stats.results = (stats.results ?? 0) + r.results;
         stats.stale = [...(stats.stale ?? []), ...r.stale].slice(0, 50);
         if (r.circuitOpen) errors.push(`circuit open at ${r.next}/${universe.length}`);
-        await save(run, r.done || r.circuitOpen ? { stage: "alerts", cursor: 0, stats, errors } : { cursor: r.next, stats, errors });
-      } else if (run.stage === "alerts") {
-        const users = await db
-          .selectDistinct({ u: schema.users })
-          .from(schema.users)
-          .innerJoin(schema.portfolios, eq(schema.portfolios.userId, schema.users.id))
-          .where(eq(schema.users.isDemo, false))
-          .orderBy(schema.users.id);
-        let i = run.cursor;
-        for (; i < users.length && Date.now() < deadline; i++) {
-          try {
-            const r = await evaluateUser(users[i].u, { date: stats.marketDate, sources: ["live"], news: true });
-            stats.alerts = (stats.alerts ?? 0) + r.created.length;
-          } catch (e) {
-            errors.push(`alerts ${users[i].u.id}: ${String((e as Error).message).slice(0, 120)}`);
-          }
-        }
-        await save(run, i >= users.length ? { stage: "deliver", cursor: 0, stats, errors } : { cursor: i, stats, errors });
-      } else if (run.stage === "deliver") {
-        const rows = await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.tradeDate, stats.marketDate), eq(schema.alertEvents.isSimulated, false)));
-        const byUser = new Map<string, typeof rows>();
-        for (const a of rows) byUser.set(a.userId, [...(byUser.get(a.userId) ?? []), a]);
-        const ids = [...byUser.keys()].sort();
-        const users = ids.length ? await db.select().from(schema.users).where(and(inArray(schema.users.id, ids), eq(schema.users.isDemo, false))) : [];
-        let i = run.cursor;
-        for (; i < users.length && Date.now() < deadline; i++) {
-          const r = await deliverForUser(users[i], byUser.get(users[i].id) ?? [], stats.marketDate);
-          stats.emailsSent = (stats.emailsSent ?? 0) + r.sent;
-        }
-        if (i >= users.length) {
+        if (r.done || r.circuitOpen) {
           await save(run, { stage: "done", status: "done", cursor: 0, stats, errors, finishedAt: new Date() });
           break;
         }
-        await save(run, { cursor: i, stats, errors });
+        await save(run, { cursor: r.next, stats, errors });
       } else break;
     }
   } catch (e) {
@@ -130,37 +97,7 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
   return { kind: "nightly", runDate, stage: run.stage, status: run.status, more: run.status === "running", stats: { ...stats, universe: undefined, universeSize: (stats.universe ?? []).length, ms: Date.now() - started } };
 }
 
-export async function runWeekly(opts: { budgetMs?: number; now?: Date } = {}): Promise<RunResult> {
-  const deadline = Date.now() + (opts.budgetMs ?? 240_000);
-  const runDate = istDate(opts.now ?? new Date());
-  const run = await openRun("weekly", runDate, "reports");
-  if (run.status !== "running") return { kind: "weekly", runDate, stage: run.stage, status: run.status, more: false, stats: run.stats };
-  if (!(await lock(run, 280_000))) return { kind: "weekly", runDate, stage: run.stage, status: "running", more: false, stats: run.stats, busy: true };
-  const db = await getDb();
-  const stats = { ...(run.stats as Record<string, any>) };
-  try {
-    const weekEnd = await latestTradeDate(db, ["live"]);
-    if (!weekEnd) {
-      await save(run, { stage: "done", status: "skipped", stats: { reason: "no market data yet" }, finishedAt: new Date() });
-    } else {
-      const rows = await db.select({ p: schema.portfolios, u: schema.users }).from(schema.portfolios).innerJoin(schema.users, eq(schema.users.id, schema.portfolios.userId)).where(eq(schema.users.isDemo, false)).orderBy(schema.portfolios.id);
-      let i = run.cursor;
-      for (; i < rows.length && Date.now() < deadline; i++) {
-        const report = await generateWeekly(rows[i].u, rows[i].p, weekEnd, ["live"]);
-        if (report) {
-          stats.reports = (stats.reports ?? 0) + 1;
-          stats.emails = (stats.emails ?? 0) + (await deliverWeekly(rows[i].u, rows[i].p, report));
-        }
-      }
-      await save(run, i >= rows.length ? { stage: "done", status: "done", cursor: i, stats, finishedAt: new Date() } : { cursor: i, stats });
-    }
-  } finally {
-    await db.update(schema.pipelineRuns).set({ lockedUntil: null }).where(eq(schema.pipelineRuns.id, run.id));
-  }
-  return { kind: "weekly", runDate, stage: run.stage, status: run.status, more: run.status === "running", stats };
-}
-
-/** Housekeeping: prune rate-limit rows and simulated days, and put the shared test accounts back. */
+/** Housekeeping: prune rate-limit rows and put the shared test accounts back. */
 export async function runMaintenance() {
   const db = await getDb();
   const expired = await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.demoExpiresAt, new Date()))).returning({ id: schema.users.id });

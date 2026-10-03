@@ -6,8 +6,6 @@ export const runtime = "nodejs";
 
 const Create = z.object({
   name: z.string().trim().min(1, "Give the portfolio a name.").max(60),
-  ownerLabel: z.string().trim().max(40).optional().nullable(),
-  language: z.enum(["en", "hi"]).default("en"),
 });
 
 export const GET = api(async (req) => {

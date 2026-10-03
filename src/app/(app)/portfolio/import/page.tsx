@@ -35,7 +35,7 @@ export default async function ImportPage() {
         <h1 className="t-title-1 text-text">Import your holdings</h1>
         <p className="mt-1 text-sm text-muted">Nazar detects the file, maps every row to the right stock, ETF or mutual fund (by ISIN first, so renames like Zomato → Eternal just work) and flags anything it can&apos;t match.</p>
       </div>
-      <Importer portfolios={portfolios.map((p) => ({ id: p.id, label: p.ownerLabel ? `${p.ownerLabel}'s portfolio` : p.name }))} defaultId={portfolios.find((p) => p.id === sel)?.id ?? portfolios[0].id} />
+      <Importer portfolios={portfolios.map((p) => ({ id: p.id, label: p.name }))} defaultId={portfolios.find((p) => p.id === sel)?.id ?? portfolios[0].id} />
       <Card className="p-5 sm:p-6">
         <h2 className="t-title-2 text-text">Where to find the file</h2>
         <ul className="mt-3 space-y-3 text-sm">

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/cn";
 import { inr, inrCompact, signedPct } from "@/lib/format";
 
@@ -43,6 +43,13 @@ export function squarify(values: number[], w: number, h: number): Rect[] {
   return out;
 }
 
+const WIDE = "(min-width: 768px)";
+const onWide = (cb: () => void) => {
+  const m = window.matchMedia(WIDE);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+
 const MODES = [
   { id: "today", label: "Today", cap: 0.03 },
   { id: "total", label: "Since you invested", cap: 0.3 },
@@ -56,9 +63,10 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
   const [mode, setMode] = useState<(typeof MODES)[number]["id"]>("today");
   const [sel, setSel] = useState<string | null>(null);
   const sorted = useMemo(() => [...tiles].filter((t) => t.value > 0).sort((a, b) => b.value - a.value), [tiles]);
-  // Laid out in a 100 × 62 box, then placed with percentages so it scales with the card.
-  const W = 100, H = 62;
-  const rects = useMemo(() => squarify(sorted.map((t) => t.value), W, H), [sorted]);
+  // Laid out in a box (wide on a desktop, squarer on a phone), then placed with percentages so it scales with the card.
+  const wide = useSyncExternalStore(onWide, () => window.matchMedia(WIDE).matches, () => true);
+  const W = 100, H = wide ? 42 : 78;
+  const rects = useMemo(() => squarify(sorted.map((t) => t.value), W, H), [sorted, H]);
   const cap = MODES.find((m) => m.id === mode)!.cap;
   const active = sorted.find((t) => t.symbol === sel) ?? null;
   const pctOf = (t: HeatTile) => (mode === "today" ? t.today : t.total);

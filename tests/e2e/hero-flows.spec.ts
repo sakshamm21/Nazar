@@ -3,8 +3,7 @@ import path from "node:path";
 
 /**
  * Signs in with the demo button, exactly like a visitor would (or, given an email, as one of the
- * other test accounts through the form). The account is shared, so
- * each test first clears any simulated day a previous test left behind. 
+ * other test accounts through the form). The accounts are shared and put back every night.
  */
 async function startDemo(page: Page, email?: string) {
   await page.goto("/signin");
@@ -14,186 +13,120 @@ async function startDemo(page: Page, email?: string) {
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
   } else await page.getByRole("button", { name: "Try the demo" }).click();
   await page.waitForURL(/\/home/);
-  if (await page.getByText(/Simulated bad day/).count()) {
-    await page.request.post("/api/demo/reset");
-    await page.reload();
-  }
 }
 
-test.describe("Landing", () => {
-  test("pitch, three things it does, and one tap into the demo", async ({ page }) => {
+test.describe("Landing and sign-in", () => {
+  test("pitch, the four screens, and one tap into the demo", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Your money,\s*watched/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sign in", exact: true }).first()).toBeVisible();
-    for (const t of ["See it move", "Know why", "Hear only what matters"]) await expect(page.getByRole("heading", { name: t })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /See what your money did\.\s*Understand why\./ })).toBeVisible();
+    for (const t of ["At a glance", "Charts you can drag", "Analysis that explains", "Ask, in your own words"]) await expect(page.getByRole("heading", { name: t })).toBeVisible();
     await expect(page.getByText(/No tips, no predictions/)).toBeVisible();
     await page.getByRole("button", { name: "Try the demo" }).click();
     await page.waitForURL(/\/home/);
   });
-});
 
-test.describe("Demo: Home and Simulate a bad day", () => {
-  test("Home shows every hero feature within one tap", async ({ page }) => {
-    await startDemo(page);
-    await expect(page.locator('[data-tour="h2"]')).toContainText(/You're (down|up)|A quiet day/);
-    await expect(page.getByRole("heading", { name: "What needs your attention" })).toBeVisible();
-    await expect(page.getByText("Nazar adjusted your alerts")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What you own" })).toBeVisible(); // allocation across asset types
-    await expect(page.getByText("Health and hidden risk")).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Papa's/ })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Simulate a bad day in the market" })).toBeVisible();
-    await expect(page.getByText(/Nazar is watching/)).toBeVisible();
-    // No tour: nothing covers Home on arrival.
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-  });
-
-  test("Simulate a bad day fires real alerts, then Back to normal clears them", async ({ page }) => {
-    await startDemo(page);
-    await page.getByRole("button", { name: "Simulate a bad day" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Run the simulation" }).click();
-    await expect(page.getByText(/alerts? just arrived/)).toBeVisible();
-    await expect(page.getByText(/Simulated bad day/)).toBeVisible();
-    await page.goto("/alerts?tab=alerts");
-    await expect(page.getByText("Simulation").first()).toBeVisible();
-    await expect(page.getByText(/Likely reason:/).first()).toBeVisible();
-    await page.getByRole("button", { name: "Back to normal" }).click();
-    await expect(page.getByText(/Simulated bad day/)).toHaveCount(0);
-  });
-});
-
-test.describe("Hero features", () => {
-  test.beforeEach(async ({ page }) => {
-    await startDemo(page);
-  });
-
-  test("H2: why did my portfolio move today", async ({ page }) => {
-    await page.locator('[data-tour="h2"]').click();
-    await expect(page.getByRole("heading", { name: "Why did my portfolio move today?" })).toBeVisible();
-    await expect(page.getByText("What moved it")).toBeVisible();
-    await expect(page.getByText(/market part/).first()).toBeVisible();
-  });
-
-  test("H3: stress test slider and hidden clusters", async ({ page }) => {
-    await page.goto("/risk");
-    await expect(page.getByText("If the Nifty 50 fell")).toBeVisible();
-    const slider = page.getByRole("slider", { name: /Nifty fall/ });
-    await slider.fill("20");
-    await expect(page.getByText("20%", { exact: true })).toBeVisible();
-    await expect(page.getByText(/You own \d+ market-priced holdings, but/)).toBeVisible();
-    await expect(page.getByText("Moves together").first()).toBeVisible();
-  });
-
-  test("H4: results card on the stock page", async ({ page }) => {
-    await page.goto("/stock/INFY.NS");
-    await expect(page.getByText(/results, explained/)).toBeVisible();
-    await expect(page.getByText("What improved").first()).toBeVisible();
-    await expect(page.getByText("What got worse").first()).toBeVisible();
-  });
-
-  test("H5: learned threshold with evidence, and Undo", async ({ page }) => {
-    // Undo changes the account for everyone until tonight, so it is done on the second investor.
-    await page.request.post("/api/auth/logout");
-    await startDemo(page, "tester1@nazar.dev");
-    await page.goto("/settings");
-    await expect(page.getByText(/You found small-move alerts less useful/)).toBeVisible();
-    await expect(page.getByText(/Evidence:/).first()).toBeVisible();
-    const undo = page.getByRole("button", { name: "Undo" }).first();
-    if (await undo.isVisible()) await undo.click(); // an earlier run today may already have undone it
-    await expect(page.getByText("Undone").first()).toBeVisible();
-  });
-
-  test("H6: Papa's portfolio and the Hindi weekly report", async ({ page }) => {
-    await page.getByRole("link", { name: "हिंदी रिपोर्ट देखें" }).click();
-    await expect(page.getByRole("heading", { name: "Sunday report" })).toBeVisible();
-    await expect(page.getByText("इस हफ़्ते")).toBeVisible();
-    await page.getByRole("radio", { name: "English" }).click();
-    await expect(page.getByText("This week")).toBeVisible();
-  });
-
-  test("the analyzer says what moved, why and how, for any period", async ({ page }) => {
-    await page.goto("/alerts");
-    await expect(page.getByRole("tab", { name: "Analysis" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("heading", { name: /^(Up|Down) ₹[\d,]+ over the last month$|^Barely moved/ })).toBeVisible();
-    await expect(page.getByText(/of your \d+ holdings rose and \d+ fell/)).toBeVisible();
-    await expect(page.getByText("Specific to what you own")).toBeVisible();
-    await expect(page.getByText(/than the Nifty by [\d.]+ points|in step with the Nifty/)).toBeVisible();
-    await page.getByRole("radio", { name: "1W" }).click();
-    await expect(page.getByRole("heading", { name: /over the last week$|^Barely moved/ })).toBeVisible();
-    await page.getByRole("button", { name: /Open alerts/ }).click();
-    await expect(page.getByRole("tab", { name: /^Alerts/ })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("article").first()).toBeVisible();
-  });
-
-  test("Home's chart follows the range you pick", async ({ page }) => {
-    const chart = page.getByRole("img", { name: /^Portfolio value/ });
-    await expect(chart).toBeVisible();
-    await page.getByRole("radio", { name: "1M", exact: true }).click();
-    await expect(page.getByText("past month")).toBeVisible();
-    await expect(chart).toHaveAttribute("aria-label", /past month/);
-    await page.getByRole("button", { name: "vs Nifty" }).click();
-    await expect(page.getByText(/· Nifty [+−]/).first()).toBeVisible();
-    // The allocation ring answers a tap.
-    await page.getByRole("button", { name: /^Stocks/ }).click();
-    await expect(page.getByText(/^\d+ holdings?: /)).toBeVisible();
-  });
-
-  test("H1: rate an alert", async ({ page }) => {
-    await page.goto("/alerts?tab=alerts");
-    // Pick an alert nobody has rated yet (the demo's older alerts carry replayed ratings).
-    const unrated = page.getByRole("article").filter({ has: page.locator('button[aria-label="Useful"][aria-pressed="false"]') }).first();
-    const title = (await unrated.getAttribute("aria-label"))!;
-    const card = page.getByRole("article", { name: title, exact: true }).first();
-    const saved = page.waitForResponse((r) => r.url().includes("/feedback") && r.ok());
-    await card.getByRole("button", { name: "Useful", exact: true }).click();
-    await saved;
-    await expect(card.getByRole("button", { name: "Useful", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await page.reload();
-    await expect(page.getByRole("article", { name: title, exact: true }).first().getByRole("button", { name: "Useful", exact: true })).toHaveAttribute("aria-pressed", "true");
-  });
-});
-
-test.describe("Accounts", () => {
-  test("the demo button, the investor's profile, and the saver's mix of assets", async ({ page }) => {
+  test("sign-in is one demo button and the form", async ({ page }) => {
     await page.goto("/signin");
-    // One demo button and the form: no list of accounts to choose from.
+    await expect(page.getByRole("button", { name: "Try the demo" })).toBeVisible();
     await expect(page.getByText(/the investor|the saver|brand new/)).toHaveCount(0);
-    await page.getByRole("button", { name: "Try the demo" }).click();
-    await page.waitForURL(/\/home/);
-    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible();
-    await page.goto("/settings");
-    await expect(page.getByRole("heading", { name: /Hey,\s*Aarav/ })).toBeVisible();
-    await expect(page.getByText("Shared test account", { exact: true })).toBeVisible();
-
-    // The saver: funds, ETFs, gold and deposits, all valued.
-    await page.getByRole("button", { name: "Sign out" }).click();
-    await startDemo(page, "riya@nazar.dev");
-    await page.goto("/portfolio");
-    for (const group of ["Mutual funds", "ETFs", "Gold & silver", "Retirement", "Fixed income", "Stocks", "US stocks", "Crypto"]) await expect(page.getByRole("heading", { name: new RegExp(`^${group}\\s*\\d+$`) })).toBeVisible();
-    await expect(page.getByText("price on its way")).toHaveCount(0);
-  });
-
-  test("Ask opens with a guided start built from the account's own holdings", async ({ page }) => {
-    await startDemo(page);
-    await page.goto("/ask");
-    await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
-    await expect(page.getByText("Nazar fetches live data")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?" })).toBeVisible();
-    await page.getByRole("tab", { name: "One company" }).click();
-    await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
-    await expect(page.getByLabel("Your question")).toBeVisible();
   });
 
   test("the app is closed to signed-out visitors", async ({ page }) => {
-    for (const p of ["/home", "/portfolio", "/alerts", "/settings"]) {
+    for (const p of ["/home", "/portfolio", "/analysis", "/settings"]) {
       await page.goto(p);
       await page.waitForURL(/\/signin/);
     }
   });
+});
 
-  test("build a portfolio across asset classes", async ({ page }) => {
+test.describe("Home", () => {
+  test("is the glance: value, today's line, the map, and the way out", async ({ page }) => {
+    await startDemo(page);
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), Aarav/ })).toBeVisible();
+    await expect(page.getByText(/Nazar is watching/)).toBeVisible();
+    await expect(page.getByText(/You're (down|up)|A quiet day/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What is up, what is down" })).toBeVisible();
+    // Nothing covers Home on arrival, and there are no alerts or family sections any more.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByText(/Simulate a bad day|What needs your attention|Shared with family/)).toHaveCount(0);
+    // Signing out is in view without opening anything.
+    await expect(page.getByRole("button", { name: "Sign out" }).first()).toBeVisible();
+    // The heatmap answers a tap with the numbers.
+    await page.getByRole("link", { name: /^HDFC Bank:/ }).click();
+    await expect(page.getByText(/% of this portfolio/)).toBeVisible();
+    await page.getByRole("link", { name: /^Analysis/ }).last().click();
+    await page.waitForURL(/\/analysis/);
+  });
+
+  test("sign out from the sidebar", async ({ page }) => {
+    await startDemo(page);
+    await page.getByRole("button", { name: "Sign out" }).first().click();
+    await page.waitForURL((u) => u.pathname === "/");
+    await page.goto("/home");
+    await page.waitForURL(/\/signin/);
+  });
+});
+
+test.describe("Portfolio", () => {
+  test("Overview: the chart, the ring and the holdings table respond", async ({ page }) => {
     await startDemo(page);
     await page.goto("/portfolio");
-    await expect(page.getByRole("heading", { name: "Fixed income" })).toBeVisible(); // the test account's deposit
+    await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
+    const chart = page.getByRole("img", { name: /^Portfolio value/ });
+    await expect(chart).toBeVisible();
+    await page.getByRole("radio", { name: "1M", exact: true }).click();
+    await expect(chart).toHaveAttribute("aria-label", /past month/);
+    await page.getByRole("button", { name: "vs Nifty" }).click();
+    await expect(page.getByText(/· Nifty [+−]/).first()).toBeVisible();
+    await page.getByRole("button", { name: /^Stocks/ }).click();
+    await expect(page.getByText(/^\d+ holdings?: /)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Biggest movers" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Health and hidden risk" })).toBeVisible();
+    const sort = page.getByRole("radiogroup", { name: "Sort holdings by" });
+    await sort.getByRole("radio", { name: /^Today/ }).click();
+    await expect(sort.getByRole("radio", { name: /^Today/ })).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("Manage: every asset class, all priced", async ({ page }) => {
+    await startDemo(page, "riya@nazar.dev");
+    await page.goto("/portfolio?tab=manage");
+    await expect(page.getByRole("tab", { name: "Manage" })).toHaveAttribute("aria-selected", "true");
+    for (const group of ["Mutual funds", "ETFs", "Gold & silver", "Retirement", "Fixed income", "Stocks", "US stocks", "Crypto"]) await expect(page.getByRole("heading", { name: new RegExp(`^${group}\\s*\\d+$`) })).toBeVisible();
+    await expect(page.getByText("price on its way")).toHaveCount(0);
+  });
+
+  test("Manage: create, rename and delete a portfolio", async ({ page }) => {
+    // Done on the second investor so the main demo keeps its two portfolios for everyone else.
+    await startDemo(page, "tester1@nazar.dev");
+    await page.goto("/portfolio?tab=manage");
+    const list = page.getByRole("region", { name: "Your portfolios" });
+    const stale = list.getByRole("button", { name: /^Delete (Side bets|Long shots)$/ });
+    while (await stale.count()) {
+      await stale.first().click();
+      await page.getByRole("dialog").getByRole("button", { name: "Delete portfolio" }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
+    await list.getByRole("button", { name: "New portfolio" }).click();
+    await list.getByLabel("New portfolio name").fill("Side bets");
+    await list.getByRole("button", { name: "Create" }).click();
+    await expect(page.getByText("Portfolio created. Add what it holds below.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Build your portfolio" })).toBeVisible();
+    await list.getByRole("button", { name: "Rename Side bets" }).click();
+    await list.getByLabel("Portfolio name").fill("Long shots");
+    await list.getByRole("button", { name: "Save name" }).click();
+    await expect(list.getByRole("button", { name: "Rename Long shots" })).toBeVisible();
+    await list.getByRole("button", { name: "Delete Long shots" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("It is empty, so nothing else is lost.")).toBeVisible();
+    await dialog.getByRole("button", { name: "Delete portfolio" }).click();
+    await expect(page.getByText("Long shots deleted.")).toBeVisible();
+    await expect(list.getByRole("button", { name: "Rename Long shots" })).toHaveCount(0);
+  });
+
+  test("Manage: add across asset classes, then remove", async ({ page }) => {
+    await startDemo(page);
+    await page.goto("/portfolio?tab=manage");
+    await expect(page.getByRole("heading", { name: /^Fixed income/ })).toBeVisible(); // the demo's deposit
     await page.getByRole("button", { name: "Add assets" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Search").fill("parag parikh flexi");
@@ -203,7 +136,7 @@ test.describe("Accounts", () => {
     await dialog.getByLabel("Name").fill("Emergency fund");
     await dialog.getByLabel("Amount (₹)").fill("150000");
     await dialog.getByRole("button", { name: "Add to portfolio" }).click();
-    await expect(page.getByText("Emergency fund")).toBeVisible();
+    await expect(page.getByText("Emergency fund").first()).toBeVisible();
     await page.getByRole("button", { name: "Remove Emergency fund" }).click();
     await expect(page.getByText("Emergency fund removed")).toBeVisible();
   });
@@ -224,6 +157,7 @@ test.describe("Accounts", () => {
     await dialog.getByLabel("Shares").fill("5");
     await dialog.getByRole("button", { name: "Add to portfolio" }).click();
     await expect(page.getByText(/added\. Nazar is watching it now/)).toBeVisible();
+    await page.goto("/portfolio?tab=manage");
     await expect(page.getByRole("heading", { name: /^Stocks\s*1$/ })).toBeVisible();
     await expect(page.getByText(/5 shares ×/)).toBeVisible();
   });
@@ -241,15 +175,80 @@ test.describe("Accounts", () => {
     await page.getByLabel("6-digit code").fill(code!);
     await page.getByRole("button", { name: "Verify and continue" }).click();
     await page.waitForURL(/\/home/);
-    await expect(page.getByText(/Let's set up your first portfolio|Add your holdings/)).toBeVisible();
+    await expect(page.getByText(/Let's set up your first portfolio|Add what you own and Nazar starts watching/)).toBeVisible();
     await page.goto("/portfolio/import");
     await page.locator('input[type="file"]').setInputFiles(path.join(__dirname, "..", "fixtures", "zerodha-console.csv"));
     await expect(page.getByText(/Detected: Zerodha Console holdings/)).toBeVisible();
     await expect(page.getByText(/rows ready/)).toBeVisible();
     await page.getByRole("button", { name: /^Import \d+ from Zerodha/ }).click();
     await page.waitForURL(/\/home/);
-    await page.goto("/portfolio");
+    await page.goto("/portfolio?tab=manage");
     await expect(page.getByText("Infosys").filter({ visible: true }).first()).toBeVisible();
+  });
+});
+
+test.describe("Analysis", () => {
+  test.beforeEach(async ({ page }) => {
+    await startDemo(page);
+  });
+
+  test("says what moved, why and how, for any period, then returns, risk and health", async ({ page }) => {
+    await page.goto("/analysis");
+    await expect(page.getByRole("heading", { name: /^(Up|Down) ₹[\d,]+ over the last month$|^Barely moved/ })).toBeVisible();
+    await expect(page.getByText(/of your \d+ holdings rose and \d+ fell/)).toBeVisible();
+    await expect(page.getByText("Specific to what you own")).toBeVisible();
+    await expect(page.getByText(/than the Nifty by [\d.]+ points|in step with the Nifty/)).toBeVisible();
+    await page.getByRole("radio", { name: "1W" }).click();
+    await expect(page.getByRole("heading", { name: /over the last week$|^Barely moved/ })).toBeVisible();
+    for (const h of ["Where the gains and losses are", "What could hurt, and how concentrated you are", "How sound your holdings are"]) await expect(page.getByRole("heading", { name: h })).toBeVisible();
+    await expect(page.getByText("If the Nifty fell 10%")).toBeVisible();
+    // Nothing about alerts is left on the page.
+    await expect(page.getByRole("main").getByText(/\balerts?\b/i)).toHaveCount(0);
+  });
+
+  test("old alert links land on the analysis", async ({ page }) => {
+    await page.goto("/alerts");
+    await page.waitForURL(/\/analysis/);
+    await expect(page.getByRole("heading", { name: "Analysis", exact: true })).toBeVisible();
+  });
+
+  test("stress test slider and hidden clusters", async ({ page }) => {
+    await page.goto("/risk");
+    await expect(page.getByText("If the Nifty 50 fell")).toBeVisible();
+    const slider = page.getByRole("slider", { name: /Nifty fall/ });
+    await slider.fill("20");
+    await expect(page.getByText("20%", { exact: true })).toBeVisible();
+    await expect(page.getByText(/You own \d+ market-priced holdings, but/)).toBeVisible();
+    await expect(page.getByText("Moves together").first()).toBeVisible();
+  });
+
+  test("results card on the stock page", async ({ page }) => {
+    await page.goto("/stock/INFY.NS");
+    await expect(page.getByText(/results, explained/)).toBeVisible();
+    await expect(page.getByText("What improved").first()).toBeVisible();
+    await expect(page.getByText("What got worse").first()).toBeVisible();
+  });
+});
+
+test.describe("Ask and You", () => {
+  test("Ask opens on a question to start from, built from the account's own holdings", async ({ page }) => {
+    await startDemo(page);
+    await page.goto("/ask");
+    await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?" })).toBeVisible();
+    await page.getByRole("tab", { name: "One company" }).click();
+    await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
+    await expect(page.getByLabel("Your question")).toBeVisible();
+    await expect(page.getByRole("button", { name: "New conversation" })).toBeVisible();
+  });
+
+  test("the profile shows who you are, with sign out first", async ({ page }) => {
+    await startDemo(page);
+    await page.goto("/settings");
+    await expect(page.getByRole("heading", { name: /Hey,\s*Aarav/ })).toBeVisible();
+    await expect(page.getByText("Shared demo account", { exact: true })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("button", { name: "Sign out" })).toBeVisible();
+    await expect(page.getByText(/sensitivity|Price alerts|email digest/i)).toHaveCount(0);
   });
 });
 
@@ -257,10 +256,11 @@ test.describe("Mobile @mobile", () => {
   test("bottom tabs navigate between the main areas @mobile", async ({ page }) => {
     await startDemo(page);
     const nav = page.getByRole("navigation", { name: "Main" }).last();
-    for (const [label, url] of [["Alerts", /\/alerts/], ["Portfolio", /\/portfolio/], ["You", /\/settings/], ["Home", /\/home/]] as const) {
+    for (const [label, url] of [["Analysis", /\/analysis/], ["Portfolio", /\/portfolio/], ["Ask", /\/ask/], ["You", /\/settings/], ["Home", /\/home/]] as const) {
       await nav.getByRole("link", { name: label }).click();
       await page.waitForURL(url);
     }
+    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
   });
 });
 

@@ -10,7 +10,7 @@
  * At most 2 per alert; trusted Indian business sources first.
  * Fetched only for symbols that triggered a company-specific alert, so a handful of calls a day.
  */
-import { findAdvice } from "@/lib/alerts/guard";
+import { findAdvice } from "@/lib/guard";
 
 export type Headline = { title: string; source: string; link: string; published: string };
 

@@ -1,27 +1,26 @@
 "use client";
-import { ArrowDownUp, Eye, Pencil, Plus, Search, Settings2, Trash2, Upload, Users, X } from "lucide-react";
+import { ArrowDownUp, Eye, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PortfolioSwitcher } from "@/components/home/portfolio-switcher";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Delta } from "@/components/ui/delta";
-import { Field, FormAlert, Input, Select } from "@/components/ui/field";
+import { Input, Select } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { apiCall } from "@/lib/api-client";
-import { absPct, inr, inrCompact } from "@/lib/format";
+import { absPct, inr } from "@/lib/format";
 import { ASSET_META, GROUP_COLOR, GROUP_ORDER, groupOf, isManualClass, shortCode, type AssetGroup } from "@/lib/instruments/asset-classes";
-import { AllocationBar, AssetIcon, type Slice } from "./asset-ui";
+import { AssetIcon } from "./asset-ui";
 import { AssetBuilder } from "./asset-builder";
+import { PortfolioList, type PortfolioSummary } from "./portfolio-list";
 import { HoldingSheet, type HoldingRow } from "./holding-sheet";
 
-type Pf = { id: string; name: string; ownerLabel: string | null; language: "en" | "hi" };
 export type Row = HoldingRow & { category: string | null; changePct: number | null; value: number; invested: number; pnl: number | null; pnlPct: number | null; weight: number; source: string };
 type Watch = { symbol: string; name: string; price: number | null; changePct: number | null };
-type Totals = { value: number; invested: number; dayChange: number | null; dayChangePct: number | null };
+type Totals = { value: number };
 type SortKey = "value" | "pnlPct" | "changePct" | "name";
 
 const SORTS: { value: SortKey; label: string }[] = [
@@ -32,11 +31,11 @@ const SORTS: { value: SortKey; label: string }[] = [
 ];
 const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
-export function PortfolioManager({ portfolios, activeId, rows, totals, allocation, watching, isDemo }: { portfolios: Pf[]; activeId: string | null; rows: Row[]; totals: Totals; allocation: Slice[]; watching: Watch[]; isDemo: boolean }) {
+/** The changing side of Portfolio: your portfolios, what each holds, and what you only watch. */
+export function PortfolioManager({ portfolios, activeId, rows, totals, watching, isDemo, max }: { portfolios: PortfolioSummary[]; activeId: string | null; rows: Row[]; totals: Totals; watching: Watch[]; isDemo: boolean; max: number }) {
   const router = useRouter();
   const params = useSearchParams();
   const [builder, setBuilder] = useState<null | "all" | "manual">(params.get("add") === "1" ? "all" : null);
-  const [creating, setCreating] = useState<null | "self" | "family">(params.get("new") === "family" ? "family" : null);
   const [editing, setEditing] = useState<Row | null>(null);
   const [sort, setSort] = useState<SortKey>("value");
   const [filter, setFilter] = useState("");
@@ -78,71 +77,30 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
     });
   };
 
-  const pnl = totals.value - totals.invested;
   return (
-    <div className="space-y-5 lg:space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="t-title-1 text-text">Portfolio</h1>
-          <p className="mt-1 text-sm text-muted">Everything you own in one place: stocks, funds, gold, deposits and more.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setCreating("family")}>
-            <Users className="h-4 w-4" /> Family portfolio
-          </Button>
-          <Button variant="secondary" size="sm" onClick={() => setCreating("self")}>
-            <Plus className="h-4 w-4" /> New portfolio
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 lg:space-y-7">
+      <PortfolioList portfolios={portfolios} activeId={activeId} max={max} />
 
-      <PortfolioSwitcher portfolios={portfolios} activeId={activeId} />
-
-      {rows.length === 0 && <EmptyPortfolio onSearch={() => setBuilder("all")} onManual={() => setBuilder("manual")} settingsHref={active ? `/portfolio/${active.id}/settings` : null} />}
+      {rows.length === 0 && <EmptyPortfolio onSearch={() => setBuilder("all")} onManual={() => setBuilder("manual")} />}
 
       {active && rows.length > 0 && (
         <>
-          <Card className="p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <div className="t-overline">{active.ownerLabel ? `${active.ownerLabel}'s portfolio · reports in ${active.language === "hi" ? "Hindi" : "English"}` : active.name}</div>
-                <div className="num mt-1 font-[family-name:var(--font-display)] text-[34px] font-semibold leading-tight tracking-[-0.02em] text-text">{inr(totals.value)}</div>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  {totals.dayChange != null && (
-                    <span className="flex items-baseline gap-1.5">
-                      <Delta amount={totals.dayChange} pct={totals.dayChangePct} size="sm" /> <span className="text-[13px] text-subtle">today</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => setBuilder("all")}>
-                  <Plus className="h-4 w-4" /> Add assets
-                </Button>
-                <ButtonLink href="/portfolio/import" variant="secondary">
-                  <Upload className="h-4 w-4" /> Import
-                </ButtonLink>
-                <ButtonLink href={`/portfolio/${active.id}/settings`} variant="ghost" className="px-3">
-                  <Settings2 className="h-4 w-4" /> <span className="sr-only sm:not-sr-only">Settings</span>
-                </ButtonLink>
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="t-title-2 text-text">What {active.name} holds</h2>
+              <p className="mt-0.5 text-sm text-muted">
+                <span className="num">{rows.length}</span> holdings worth <span className="num text-text">{inr(totals.value)}</span>. Tap the pencil to change one.
+              </p>
             </div>
-            <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-line pt-4">
-              <Stat label="Invested">
-                <span className="num text-[15px] font-medium text-text">{inrCompact(totals.invested)}</span>
-              </Stat>
-              <Stat label="Total gain or loss">
-                <Delta amount={pnl} pct={totals.invested ? pnl / totals.invested : null} compact showArrow={false} size="sm" />
-              </Stat>
-              <Stat label="Holdings">
-                <span className="num text-[15px] font-medium text-text">{rows.length}</span>
-                <span className="text-[12px] text-subtle"> in {allocation.length} {allocation.length === 1 ? "asset type" : "asset types"}</span>
-              </Stat>
-            </dl>
-            <div className="mt-5 border-t border-line pt-4">
-              <AllocationBar slices={allocation} format={inrCompact} />
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setBuilder("all")}>
+                <Plus className="h-4 w-4" /> Add assets
+              </Button>
+              <ButtonLink href="/portfolio/import" variant="secondary">
+                <Upload className="h-4 w-4" /> Import
+              </ButtonLink>
             </div>
-          </Card>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {rows.length > 6 && (
@@ -183,7 +141,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
             </Card>
           ))}
           {groups.length === 0 && <p className="px-1 text-sm text-muted">No holding matches “{filter.trim()}”.</p>}
-          {isDemo && <p className="t-caption">Test account: it is shared, and what you change here is undone when it is put back tonight.</p>}
+          {isDemo && <p className="t-caption">Demo account: it is shared, and what you change here is undone when it is put back tonight.</p>}
         </>
       )}
 
@@ -191,16 +149,6 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
 
       <AssetBuilder open={!!builder} initialTab={builder ?? "all"} onClose={() => setBuilder(null)} portfolioId={activeId} held={rows.map((r) => ({ symbol: r.symbol, quantity: r.quantity, avgPrice: r.avgPrice }))} />
       <HoldingSheet row={editing} portfolioId={activeId} onClose={() => setEditing(null)} onRemove={remove} />
-      <CreatePortfolioSheet mode={creating} onClose={() => setCreating(null)} />
-    </div>
-  );
-}
-
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-[12px] text-subtle">{label}</dt>
-      <dd className="mt-0.5">{children}</dd>
     </div>
   );
 }
@@ -246,21 +194,11 @@ function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRe
   );
 }
 
-function EmptyPortfolio({ onSearch, onManual, settingsHref }: { onSearch: () => void; onManual: () => void; settingsHref: string | null }) {
+function EmptyPortfolio({ onSearch, onManual }: { onSearch: () => void; onManual: () => void }) {
   const tile = "flex h-full w-full flex-col items-start gap-3 rounded-[16px] border border-line bg-surface-2/60 p-5 text-left transition-colors hover:bg-surface-2";
   return (
     <Card className="p-5 sm:p-6">
-      <CardHeader
-        overline="Start here"
-        title="Build your portfolio"
-        right={
-          settingsHref && (
-            <Link href={settingsHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-text">
-              <Settings2 className="h-4 w-4" /> Settings
-            </Link>
-          )
-        }
-      />
+      <CardHeader overline="Start here" title="Build your portfolio" />
       <p className="mt-1 text-sm text-muted">Add what you own in any order. You can mix all three ways, and change anything later.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <button className={tile} onClick={onSearch}>
@@ -320,68 +258,6 @@ function TickerSearch({ onPick }: { onPick: (r: { symbol: string; name: string }
         </ul>
       )}
     </div>
-  );
-}
-
-function CreatePortfolioSheet({ mode, onClose }: { mode: null | "self" | "family"; onClose: () => void }) {
-  const router = useRouter();
-  const [name, setName] = useState("");
-  const [owner, setOwner] = useState("");
-  const [language, setLanguage] = useState<"en" | "hi">("hi");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const family = mode === "family";
-  return (
-    <Sheet
-      open={!!mode}
-      onClose={onClose}
-      title={family ? "Add a family portfolio" : "New portfolio"}
-      description={family ? "Track a parent's or partner's money separately. Nazar can send them a weekly report and major alerts in their language." : "Most people need one. Create another to keep things separate."}
-      footer={
-        <Button
-          className="w-full"
-          loading={busy}
-          onClick={async () => {
-            if (family && !owner.trim()) return setError("Whose portfolio is it?");
-            setBusy(true);
-            try {
-              const j = await apiCall("/api/portfolios", "POST", family ? { name: `${owner.trim()}'s portfolio`, ownerLabel: owner.trim(), language } : { name: name.trim() || "My portfolio", language: "en" });
-              document.cookie = `nazar_pf=${j.portfolio.id}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
-              onClose();
-              router.push(family ? `/portfolio/${j.portfolio.id}/settings?new=1` : "/portfolio");
-              router.refresh();
-            } catch (e) {
-              setError((e as Error).message);
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          Create
-        </Button>
-      }
-    >
-      <div className="space-y-4">
-        {family ? (
-          <>
-            <Field label="Whose portfolio is it?" htmlFor="owner" hint={`Shown as "Papa's portfolio".`}>
-              <Input id="owner" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Papa" />
-            </Field>
-            <Field label="Language for their reports and alerts" htmlFor="lang">
-              <Select id="lang" value={language} onChange={(e) => setLanguage(e.target.value as "en" | "hi")}>
-                <option value="hi">Simple Hindi (हिंदी)</option>
-                <option value="en">English</option>
-              </Select>
-            </Field>
-          </>
-        ) : (
-          <Field label="Name" htmlFor="pname">
-            <Input id="pname" value={name} onChange={(e) => setName(e.target.value)} placeholder="My portfolio" />
-          </Field>
-        )}
-        <FormAlert message={error} />
-      </div>
-    </Sheet>
   );
 }
 

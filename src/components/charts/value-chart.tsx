@@ -72,7 +72,7 @@ export function ValueChart({ dates, values, nifty, height = 240, footnote }: { d
         {vsNifty && niftyChange != null && <span className="num text-sm text-subtle">· Nifty {niftyChange >= 0 ? "+" : "−"}{absPct(niftyChange)}</span>}
       </div>
 
-      <div style={{ height }} className="-mx-2 mt-3 touch-pan-y select-none" role="img" aria-label={`Portfolio value, ${RANGES.find((r) => r.id === range)!.word}: from ${inr(Math.round(first.value))} to ${inr(Math.round(points.at(-1)!.value))}`}>
+      <div style={{ height }} className="nz-enter -mx-2 mt-3 touch-pan-y select-none" role="img" aria-label={`Portfolio value, ${RANGES.find((r) => r.id === range)!.word}: from ${inr(Math.round(first.value))} to ${inr(Math.round(points.at(-1)!.value))}`}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={points} margin={{ top: 10, right: 8, left: 8, bottom: 0 }} onMouseMove={(s) => setHover(typeof s?.activeTooltipIndex === "number" ? s.activeTooltipIndex : null)} onMouseLeave={() => setHover(null)}>
             <defs>
@@ -84,7 +84,7 @@ export function ValueChart({ dates, values, nifty, height = 240, footnote }: { d
             <XAxis dataKey="date" hide />
             <YAxis domain={["dataMin", "dataMax"]} hide padding={{ top: 6, bottom: 6 }} />
             <Tooltip cursor={{ stroke: "var(--line-strong)", strokeWidth: 1 }} content={() => null} />
-            <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2.25} fill={`url(#v${id})`} dot={false} activeDot={{ r: 5, strokeWidth: 3, stroke: "var(--surface-1)", fill: color }} animationDuration={500} />
+            <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2.25} fill={`url(#v${id})`} dot={false} activeDot={{ r: 5, strokeWidth: 3, stroke: "var(--surface-1)", fill: color }} isAnimationActive={false} />
             {vsNifty && <Line type="monotone" dataKey="nifty" stroke="var(--subtle)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
           </AreaChart>
         </ResponsiveContainer>

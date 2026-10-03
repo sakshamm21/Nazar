@@ -168,6 +168,19 @@ body {
 .nz-iris > span { animation: nz-iris 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
 .nz-iris > span:nth-child(2) { animation-delay: 0.45s; }
 .nz-iris > span:nth-child(3) { animation-delay: 0.9s; }
+/* Every page arrives in sequence: each block a beat after the one above it. */
+.nz-stagger > * { animation: nz-fade-up 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nz-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.nz-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.nz-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.nz-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.nz-stagger > *:nth-child(n + 6) { animation-delay: 250ms; }
+@keyframes nz-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.nz-draw { animation: nz-draw 1.8s cubic-bezier(0.22, 1, 0.36, 1) 300ms both; }
+@keyframes nz-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.nz-float { animation: nz-float 6s ease-in-out infinite; }
+@keyframes nz-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+.nz-pop { animation: nz-pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--d, 0ms); }
 .nz-enter { animation: nz-fade-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .nz-skeleton {
   background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
@@ -178,11 +191,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .nz-breathe, .nz-iris > span, .nz-skeleton { animation: none !important; }
+  .nz-breathe, .nz-iris > span, .nz-skeleton, .nz-float { animation: none !important; }
 }
 
 /* ---------------- Markdown in Ask answers ---------------- */

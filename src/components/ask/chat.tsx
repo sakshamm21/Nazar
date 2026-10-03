@@ -116,8 +116,10 @@ export function Chat({
           <MessageList messages={messages} onPick={send} chatId={chatId} ratings={ratings} onRate={rate} showFollowUps={!busy} />
 
           {status === "submitted" && (
-            <div className="no-print my-5 flex items-center gap-2 text-sm text-muted">
-              <IrisLoader size={18} label="Thinking" />
+            <div className="no-print nz-enter my-6 flex items-center gap-3 text-sm text-muted">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-soft">
+                <IrisLoader size={16} label="Thinking" />
+              </span>
               Reading your question and choosing what to look up…
             </div>
           )}
@@ -131,10 +133,10 @@ export function Chat({
         </div>
       </div>
 
-      <div className="no-print border-t border-line bg-surface-1">
-        <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4">
+      <div className="no-print bg-gradient-to-t from-surface-1 via-surface-1 to-transparent">
+        <div className="mx-auto max-w-3xl px-3 pt-2 sm:px-4">
         <form
-          className={`flex items-end gap-2 rounded-[26px] border bg-surface-2 p-1.5 pl-4 transition-colors focus-within:border-accent ${tooLong ? "border-loss" : "border-line"}`}
+          className={`flex items-end gap-2 rounded-[22px] border bg-surface-2 p-2 pl-4 shadow-[var(--shadow-pop)] transition-[border-color,box-shadow] focus-within:border-accent ${tooLong ? "border-loss" : "border-line-strong"}`}
           onSubmit={(e) => {
             e.preventDefault();
             send(input);
@@ -155,11 +157,11 @@ export function Chat({
             className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-[15px] text-text outline-none placeholder:text-subtle"
           />
           {busy ? (
-            <button type="button" onClick={() => stop()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
+            <button type="button" onClick={() => stop()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
               <Square className="h-4 w-4" />
             </button>
           ) : (
-            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
+            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-accent text-accent-ink transition hover:brightness-110 active:scale-95 disabled:bg-surface-3 disabled:text-subtle" aria-label="Send">
               <ArrowUp className="h-5 w-5" />
             </button>
           )}
@@ -170,8 +172,8 @@ export function Chat({
             <span className="text-loss">{input.length} / {MAX_CHARS} characters: please shorten your question.</span>
           ) : (
             <>
-              <span>Enter to send · Shift + Enter for a new line{left != null ? ` · ${left} of ${remaining!.limit} questions left today` : ""}</span>
-              <span>Nazar explains; you decide. Data via Yahoo Finance, may be delayed.</span>
+              <span>{left != null ? `${left} of ${remaining!.limit} questions left today` : "Enter to send · Shift + Enter for a new line"}</span>
+              <span>Nazar explains; you decide. Data can be delayed.</span>
             </>
           )}
         </div>

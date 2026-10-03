@@ -3,35 +3,17 @@ import { z } from "zod";
 import { getDb, schema } from "@/lib/db";
 import { forbidden } from "@/lib/errors";
 import { api, json, parseBody, requireUser } from "@/lib/http";
-import { getSettings, getThresholds, listThresholdChanges, updateSettings } from "@/lib/repo/alerts";
-import { effectiveSettings } from "@/lib/alerts/thresholds";
 
 export const runtime = "nodejs";
 
-const Patch = z.object({
-  sensitivity: z.enum(["major", "balanced", "everything"]).optional(),
-  quietMode: z.boolean().optional(),
-  emailDigest: z.boolean().optional(),
-  uiLanguage: z.enum(["en", "hi"]).optional(),
-  name: z.string().trim().min(1).max(80).optional(),
-});
-
-export const GET = api(async (req) => {
-  const u = await requireUser(req);
-  const s = await getSettings(u.id);
-  const t = await getThresholds(u.id);
-  return json({ settings: s, effective: { ...effectiveSettings(s.sensitivity, t), muted: [...effectiveSettings(s.sensitivity, t).muted] }, changes: await listThresholdChanges(u.id) });
-});
+const Patch = z.object({ name: z.string().trim().min(1).max(80) });
 
 export const PATCH = api(async (req) => {
   const u = await requireUser(req);
-  const { uiLanguage, name, ...alert } = await parseBody(req, Patch);
+  const { name } = await parseBody(req, Patch);
   // The shared test account keeps its name, or one visitor's edit would greet everyone else.
-  if (name && u.isTestAccount) throw forbidden("The test account's name can't be changed. Create your own account to set yours.");
-  if (uiLanguage || name) {
-    const db = await getDb();
-    await db.update(schema.users).set({ ...(uiLanguage ? { uiLanguage } : {}), ...(name ? { name } : {}) }).where(eq(schema.users.id, u.id));
-  }
-  const s = Object.keys(alert).length ? await updateSettings(u.id, alert) : await getSettings(u.id);
-  return json({ settings: s });
+  if (u.isTestAccount) throw forbidden("The demo account's name can't be changed. Create your own account to set yours.");
+  const db = await getDb();
+  await db.update(schema.users).set({ name }).where(eq(schema.users.id, u.id));
+  return json({ ok: true });
 });

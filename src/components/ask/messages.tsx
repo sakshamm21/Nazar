@@ -37,16 +37,16 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
         const meta = (m as any).metadata as Meta | undefined;
         const isLast = m.id === lastAssistant?.id;
         return (
-          <div key={m.id} className={m.role === "user" ? "my-5 flex justify-end print-avoid-break" : "my-5"}>
+          <div key={m.id} className={m.role === "user" ? "nz-enter my-6 flex justify-end print-avoid-break" : "nz-enter my-6"}>
             {m.role === "user" ? (
-              <div className="user-bubble max-w-[85%] rounded-[22px] rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink">
+              <div className="user-bubble max-w-[85%] rounded-[20px] rounded-br-[6px] border border-accent/25 bg-accent-soft px-4 py-2.5 text-[15px] leading-6 text-text">
                 {m.parts.map((p, i) => (p.type === "text" ? <span key={i} className="whitespace-pre-wrap">{p.text}</span> : null))}
               </div>
             ) : (
-              <div>
-                <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
-                  <NazarMark size={18} /> Nazar
-                </div>
+              <div className="flex gap-3">
+                <NazarMark size={28} className="no-print mt-0.5 hidden sm:block" />
+                <div className="min-w-0 flex-1">
+                <div className="mb-1 text-[12px] font-medium text-subtle">Nazar</div>
                 {m.parts.map((p: any, i) => {
                   if (p.type === "text") return <div key={i} className="prose-ask"><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
                   if (typeof p.type === "string" && p.type.startsWith("tool-")) {
@@ -64,6 +64,7 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
                   <AnswerFooter message={m} meta={meta} chatId={chatId} rating={ratings[m.id]} onRate={onRate} />
                 )}
                 {!readOnly && showFollowUps && isLast && !meta?.guarded && onPick && <FollowUps message={m} asked={asked} onPick={onPick} chatId={chatId} />}
+                </div>
               </div>
             )}
           </div>
@@ -182,7 +183,7 @@ function FollowUps({ message, asked, onPick, chatId }: { message: UIMessage; ask
             trackClient("suggestion_click", { position: i }, chatId);
             onPick(q);
           }}
-          className="rounded-full border border-line bg-surface-2 px-3 py-1 text-xs text-text transition hover:border-accent hover:text-accent"
+          className="rounded-full border border-line bg-surface-2 px-3.5 py-1.5 text-[13px] text-text transition hover:-translate-y-0.5 hover:border-accent hover:text-accent"
         >
           {q}
         </button>

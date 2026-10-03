@@ -4,7 +4,7 @@ import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";
 import { CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
-import { AlertsView, IndicesView, MoversView, NewsView, OwnershipView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
+import { IndicesView, MoversView, NewsView, OwnershipView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
 import { CompsView, CorrelationView, DupontView, HealthView, RiskReturnView, SipView, TechnicalsView } from "./analysis-views";
 import { EXCEL_MODEL_TOOLS } from "@/lib/ask/tool-catalog";
 import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
@@ -38,9 +38,6 @@ const REGISTRY: Record<string, { label: (input: any) => string; View: ComponentT
   getWatchlist: { label: () => "Loading your Watching list", View: WatchlistView },
   addToWatchlist: { label: (i) => `Adding ${i?.symbols?.join(", ") ?? ""} to your watchlist`, View: WatchlistView },
   removeFromWatchlist: { label: (i) => `Removing ${i?.symbols?.join(", ") ?? ""} from your watchlist`, View: WatchlistView },
-  createPriceAlert: { label: (i) => `Setting alert on ${i?.symbol ?? ""}`, View: AlertsView },
-  listPriceAlerts: { label: () => "Loading your alerts", View: AlertsView },
-  deletePriceAlerts: { label: () => "Deleting alerts", View: AlertsView },
 };
 
 /** Tools with nothing worth exporting to a spreadsheet. */

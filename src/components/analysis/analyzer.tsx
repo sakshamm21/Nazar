@@ -1,5 +1,4 @@
 "use client";
-import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PriceChart } from "@/components/charts/price-chart";
@@ -16,7 +15,7 @@ const signed = (n: number) => inr(Math.round(n), { sign: true, decimals: 0 });
  * The analyzer: pick a period and read what your portfolio did, why (which holdings, and how much
  * was simply the market), and how the ride went. Everything is worked out from stored prices.
  */
-export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Performance; name: string; alertDates: string[]; onSeeAlerts: () => void }) {
+export function Analyzer({ perf, name }: { perf: Performance; name: string }) {
   const periods = PERIODS.filter((p) => perf.periods[p.id]);
   const [period, setPeriod] = useState<PeriodId>(periods.some((p) => p.id === "1M") ? "1M" : (periods[0]?.id ?? "1D"));
   const [all, setAll] = useState(false);
@@ -34,7 +33,6 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
   const movers = a.contributors.filter((c) => Math.abs(c.amount) >= 1).sort((x, y) => Math.abs(y.amount) - Math.abs(x.amount));
   const shown = all ? movers : movers.slice(0, 8);
   const max = Math.max(1, ...movers.map((c) => Math.abs(c.amount)));
-  const alertsIn = alertDates.filter((d) => (a.period === "1D" ? d === a.to : d > a.from && d <= a.to)).length;
   const gap = a.changePct != null && a.niftyPct != null ? a.changePct - a.niftyPct : null;
   const mk = Math.abs(a.marketPart), own = Math.abs(a.ownPart);
 
@@ -152,11 +150,6 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
             <Tile label="Days up / down" value={`${a.upDays} / ${a.downDays}`} cls="text-text" />
           </dl>
         )}
-        <button onClick={onSeeAlerts} className="mt-4 flex w-full items-center gap-3 rounded-[14px] border border-line bg-surface-2 p-3.5 text-left text-sm transition-colors hover:bg-surface-3">
-          <Bell className="h-4 w-4 shrink-0 text-accent" />
-          <span className="flex-1 text-text">{alertsIn === 0 ? "No alerts in this period." : `${alertsIn} ${alertsIn === 1 ? "alert" : "alerts"} in this period.`} <span className="text-muted">Each one explains a single event.</span></span>
-          <span className="font-semibold text-accent">Open alerts</span>
-        </button>
       </Card>
 
       <p className="t-caption px-1">

@@ -15,7 +15,7 @@ import { classOfSymbol } from "@/lib/instruments/catalog";
 export type Portfolio = typeof schema.portfolios.$inferSelect;
 export type Holding = typeof schema.holdings.$inferSelect;
 
-const MAX_PORTFOLIOS = 6;
+export const MAX_PORTFOLIOS = 6;
 const MAX_HOLDINGS = 100;
 
 export async function listPortfolios(userId: string) {
@@ -31,17 +31,17 @@ export async function requirePortfolio(userId: string, portfolioId: string): Pro
   return p;
 }
 
-export async function createPortfolio(userId: string, input: { name: string; ownerLabel?: string | null; language?: "en" | "hi" }) {
+export async function createPortfolio(userId: string, input: { name: string }) {
   const db = await getDb();
   const existing = await listPortfolios(userId);
   if (existing.length >= MAX_PORTFOLIOS) throw badRequest(`You can track up to ${MAX_PORTFOLIOS} portfolios.`);
-  const row = { id: randomUUID(), userId, name: input.name.trim(), ownerLabel: input.ownerLabel?.trim() || null, language: input.language ?? "en", isDefault: existing.length === 0, sortOrder: existing.length };
+  const row = { id: randomUUID(), userId, name: input.name.trim(), isDefault: existing.length === 0, sortOrder: existing.length };
   await db.insert(schema.portfolios).values(row);
-  track(userId, "portfolio_created", { family: Boolean(row.ownerLabel), language: row.language });
+  track(userId, "portfolio_created", {});
   return requirePortfolio(userId, row.id);
 }
 
-export async function updatePortfolio(userId: string, portfolioId: string, patch: Partial<{ name: string; ownerLabel: string | null; language: "en" | "hi"; alertsEnabled: boolean }>) {
+export async function updatePortfolio(userId: string, portfolioId: string, patch: Partial<{ name: string }>) {
   await requirePortfolio(userId, portfolioId);
   const db = await getDb();
   await db.update(schema.portfolios).set(patch).where(and(eq(schema.portfolios.id, portfolioId), eq(schema.portfolios.userId, userId)));
