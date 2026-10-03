@@ -29,7 +29,7 @@ const TYPE: Record<string, string> = { stock_move: "Stock moves", portfolio_move
 export function SettingsView(props: {
   user: { name: string; email: string; isDemo: boolean; isTestAccount: boolean; emailVerified: boolean };
   settings: { sensitivity: "major" | "balanced" | "everything"; quietMode: boolean; emailDigest: boolean };
-  effective: { stockMove: number; portfolioMove: number; concentration: number };
+  effective: { stockMove: number; cryptoMove: number; portfolioMove: number; concentration: number };
   changes: Change[];
   targets: Target[];
   emailConfigured: boolean;
@@ -69,7 +69,7 @@ export function SettingsView(props: {
           ))}
         </div>
         <p className="t-caption mt-3">
-          Right now: stock moves of {props.effective.stockMove}%+, whole-portfolio moves of {props.effective.portfolioMove}%+, any stock above {props.effective.concentration}% of a portfolio. Results are always explained.
+          Right now: moves of {props.effective.stockMove}%+ in a stock, fund, ETF or gold ({props.effective.cryptoMove}%+ for crypto, which swings far more), whole-portfolio moves of {props.effective.portfolioMove}%+, any stock above {props.effective.concentration}% of a portfolio. Results are always explained.
         </p>
         <div className="mt-5 space-y-3">
           <SwitchRow label="Daily email digest" body={demo ? "Test accounts never send email." : !props.emailConfigured ? "Email isn't configured on this deployment yet; alerts stay in the inbox." : props.user.emailVerified ? `One calm email a day at most, to ${props.user.email}.` : "Verify your email to receive digests."} checked={s.emailDigest && !demo} disabled={demo} onChange={(v) => save({ emailDigest: v })} />

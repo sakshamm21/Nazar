@@ -7,6 +7,13 @@ export const PRESETS: Record<Sensitivity, { stock_move: number; materiality: num
   everything: { stock_move: 2.5, materiality: 0, portfolio_move: 1, concentration: 20, sectorConcentration: 35, fScoreDelta: 1, upcoming: true },
 };
 
+/**
+ * Crypto swings several percent on an ordinary day, so a move has to be much larger to be worth an
+ * alert: at least 15%, and never less than three times the bar for stocks.
+ */
+export const CRYPTO_MIN_MOVE = 15;
+export const cryptoMove = (stockMove: number) => Math.max(CRYPTO_MIN_MOVE, 3 * stockMove);
+
 /** H5 ladders: the steps a learned threshold can move up through. */
 export const LADDERS: Partial<Record<AlertType, number[]>> = {
   stock_move: [2.5, 4, 5, 7, 10],
@@ -28,6 +35,7 @@ export function effectiveSettings(sensitivity: Sensitivity, tuned: UserThreshold
   return {
     sensitivity,
     stockMove: up("stock_move", p.stock_move),
+    cryptoMove: cryptoMove(up("stock_move", p.stock_move)),
     materiality: p.materiality,
     portfolioMove: up("portfolio_move", p.portfolio_move),
     concentration: up("concentration", p.concentration),

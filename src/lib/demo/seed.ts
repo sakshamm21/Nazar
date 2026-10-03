@@ -53,6 +53,8 @@ export async function ensureTestAccounts(db: DB, opts: { force?: boolean; provid
   const m = await marker(db);
   // Already done today, for the personas as they are now defined.
   if (!opts.force && m?.runDate === today && m.status === "done" && m.stage === "accounts" && (m.stats as { version?: string })?.version === PERSONA_VERSION) return { today, rebuilt: false };
+  // Personas or rules changed since the templates were built: replay their history again.
+  const outdated = Boolean(m) && (m!.stats as { version?: string })?.version !== PERSONA_VERSION;
   // Claim the run so two instances don't rebuild at once.
   const lockedUntil = new Date(Date.now() + 300_000);
   if (m) {
@@ -76,7 +78,7 @@ export async function ensureTestAccounts(db: DB, opts: { force?: boolean; provid
     const built: string[] = [];
     if (date) {
       await backfillSessions(db, date);
-      for (const persona of Object.values(PERSONAS)) if (await buildTemplate(db, persona, date, Boolean(opts.force))) built.push(persona.id);
+      for (const persona of Object.values(PERSONAS)) if (await buildTemplate(db, persona, date, Boolean(opts.force) || outdated)) built.push(persona.id);
     }
     await resetAccounts(db);
     // Without market data the personas can't be built: leave the run open so the next call retries.

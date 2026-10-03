@@ -141,10 +141,13 @@ export const isTestEmail = (email: string) => TEST_ACCOUNTS.some((a) => a.email 
 /** Internal: the hidden account each persona's history is built on; test accounts are copies of it. */
 export const templateEmail = (persona: Persona["id"]) => `template+${persona}@nazar.internal`;
 
-/** Changes whenever the personas or accounts above change, so existing accounts are rebuilt to match. */
+/** Bump when the alert rules change in a way that should show in the personas' replayed history. */
+const HISTORY_RULES = 2; // 2: crypto alerts only on moves of 15%+
+
+/** Changes whenever the personas, accounts or history rules change, so existing accounts are rebuilt to match. */
 export const PERSONA_VERSION = (() => {
   let h = 0;
-  for (const c of JSON.stringify([PERSONAS, TEST_ACCOUNTS.map((a) => [a.email, a.name, a.persona])])) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  for (const c of JSON.stringify([HISTORY_RULES, PERSONAS, TEST_ACCOUNTS.map((a) => [a.email, a.name, a.persona])])) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return h.toString(36);
 })();
 

@@ -85,10 +85,8 @@ describe("test accounts run on live data", () => {
     expect(new Set(alerts.map((a) => a.tradeDate)).size).toBeGreaterThan(8); // spread over many sessions
     for (const a of alerts) expect(findAdvice(`${a.titleEn}\n${a.bodyEn}\n${a.titleHi}\n${a.bodyHi}`), a.titleEn).toEqual([]);
     expect(alerts.filter((a) => a.isSimulated)).toHaveLength(0);
-    // A coin's alert is explained as crypto moving, never as news about a company.
-    const coin = alerts.find((a) => a.type === "stock_move" && a.symbol?.startsWith("CRYPTO:"));
-    expect(coin, "a crypto move alert").toBeTruthy();
-    expect(["asset", "market"]).toContain((coin!.data as { reason?: { kind: string } }).reason?.kind);
+    // The fake market's coin swings up to 7% a day: routine for crypto, so it never alerts.
+    expect(alerts.filter((a) => a.type === "stock_move" && a.symbol?.startsWith("CRYPTO:"))).toHaveLength(0);
     expect(alerts.filter((a) => a.type === "stock_move" && !a.symbol?.endsWith(".NS") && (a.data as { reason?: { kind: string } }).reason?.kind === "company")).toHaveLength(0);
   });
 

@@ -4,6 +4,8 @@ import { resolveLocal } from "@/lib/importers/resolve";
 import { manualValue } from "@/lib/instruments/asset-classes";
 import { findAdvice } from "@/lib/alerts/guard";
 import { classifyReason } from "@/lib/alerts/reason";
+import { evaluate } from "@/lib/alerts/rules";
+import { effectiveSettings } from "@/lib/alerts/thresholds";
 import { REASON_LABEL, stockMoveText } from "@/lib/alerts/templates";
 import { classOfSymbol, foreignHits, getCatalog, searchCatalog } from "@/lib/instruments/catalog";
 import { getMaster } from "@/lib/instruments/master";
@@ -157,5 +159,25 @@ describe("why something that isn't a company moved", () => {
     }
     expect(stockMoveText({ assetClass: "mf", name: "Flexi Fund", changePct: -0.05, weight: 0.1, impact: -5000, reason: "asset", niftyPct: 0, sectorPct: null, sectorName: null, sectorNameHi: null, sectorIndexName: null }).body.en).toMatch(/A fund's price follows its holdings/);
     expect(REASON_LABEL.asset.en).toBe("Its own market");
+  });
+});
+
+describe("crypto has a much higher bar for alerts", () => {
+  const day = (changePct: number, assetClass?: "crypto") => ({
+    tradeDate: "2026-10-01", portfolio: { id: "p", ownerLabel: null }, niftyPct: 0.001, sectorPct: {}, recent: [],
+    holdings: [{ ...h({ symbol: assetClass ? "CRYPTO:BTC" : "A", assetClass, quantity: 10, prevClose: 100, price: 100 * (1 + changePct) }), changePct, industry: null, sectorRaw: null, healthPrev: null, nextResultsDate: null, results: null }],
+  });
+  const moves = (changePct: number, assetClass?: "crypto", sensitivity: "balanced" | "major" = "balanced") => evaluate(day(changePct, assetClass), effectiveSettings(sensitivity)).filter((c) => c.type === "stock_move");
+  it("a 9% day alerts for a stock but not for a coin; a coin needs 15%", () => {
+    expect(moves(-0.09)).toHaveLength(1);
+    expect(moves(-0.09, "crypto")).toHaveLength(0);
+    expect(moves(-0.14, "crypto")).toHaveLength(0);
+    expect(moves(-0.16, "crypto")).toHaveLength(1);
+  });
+  it("the bar is never below three times the one for stocks", () => {
+    expect(effectiveSettings("balanced").cryptoMove).toBe(15);
+    expect(effectiveSettings("major").cryptoMove).toBe(18);
+    expect(effectiveSettings("everything", { stock_move: { value: 7, muted: false } }).cryptoMove).toBe(21);
+    expect(moves(-0.17, "crypto", "major")).toHaveLength(0);
   });
 });

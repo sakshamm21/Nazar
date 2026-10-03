@@ -62,7 +62,9 @@ export function evaluate(day: DayInput, s: EffectiveSettings): Candidate[] {
     for (const h of day.holdings) {
       if (h.changePct == null || h.price == null || h.prevClose == null) continue;
       const movePct = Math.abs(h.changePct) * 100;
-      if (movePct < s.stockMove) continue;
+      // Crypto has its own, much higher bar: what is routine for a coin would be alarming for a stock.
+      const bar = h.assetClass === "crypto" ? s.cryptoMove : s.stockMove;
+      if (movePct < bar) continue;
       const impact = h.quantity * (h.price - h.prevClose);
       if (v.value && Math.abs(impact) < s.materiality * v.value) continue;
       const sec = sectorOf(h.sectorRaw, h.industry);
@@ -71,7 +73,7 @@ export function evaluate(day: DayInput, s: EffectiveSettings): Candidate[] {
       const recentResults = !!h.results && daysBetween(h.results.detectedOn, day.tradeDate) <= 2;
       const reason = classifyReason({ stockPct: h.changePct, niftyPct: day.niftyPct, sectorPct, beta: h.beta, recentResults, assetClass: h.assetClass });
       const t = stockMoveText({ assetClass: h.assetClass, name: h.name, changePct: h.changePct, weight: w.get(h.symbol) ?? 0, impact, ownerLabel: owner, reason, niftyPct: day.niftyPct, sectorPct, sectorName: sec.label, sectorNameHi: sec.labelHi, sectorIndexName: sec.indexName });
-      const critical = movePct >= 2 * s.stockMove || (v.value > 0 && Math.abs(impact) >= 0.01 * v.value);
+      const critical = movePct >= 2 * bar || (v.value > 0 && Math.abs(impact) >= 0.01 * v.value);
       out.push({
         type: "stock_move",
         symbol: h.symbol,

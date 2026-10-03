@@ -48,7 +48,7 @@ export default async function SettingsPage() {
       <SettingsView
         user={{ name: user.name, email: user.email, isDemo: user.isDemo || user.isTestAccount, isTestAccount: user.isTestAccount, emailVerified: !!user.emailVerifiedAt }}
         settings={{ sensitivity: settings.sensitivity, quietMode: settings.quietMode, emailDigest: settings.emailDigest }}
-        effective={{ stockMove: eff.stockMove, portfolioMove: eff.portfolioMove, concentration: eff.concentration }}
+        effective={{ stockMove: eff.stockMove, cryptoMove: eff.cryptoMove, portfolioMove: eff.portfolioMove, concentration: eff.concentration }}
         changes={changes.map((c) => ({ id: c.id, alertType: c.alertType, oldValue: c.oldValue, newValue: c.newValue, muted: c.muted, messageEn: c.messageEn, createdAt: c.createdAt.toISOString(), undoneAt: c.undoneAt?.toISOString() ?? null, evidence: c.evidence }))}
         targets={targets.map((t) => ({ id: t.id, symbol: t.symbol, direction: t.direction, target: t.target, triggeredAt: t.triggeredAt?.toISOString() ?? null }))}
         emailConfigured={mailConfigured()}
