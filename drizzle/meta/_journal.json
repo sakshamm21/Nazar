@@ -15,6 +15,13 @@
       "when": 1791023502793,
       "tag": "0001_asset_classes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791056940718,
+      "tag": "0002_remove_alerts_and_family",
+      "breakpoints": true
     }
   ]
 }

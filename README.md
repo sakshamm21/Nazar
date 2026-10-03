@@ -39,6 +39,7 @@ Signing in is required. See [the test accounts](#test-accounts) below.
 | **Stock page** | Price history, risk and return, and the latest quarter explained: what improved and what got worse. |
 | **Ask** | An AI research assistant with 25 tools over live market data and read-only access to your portfolio. It is the only part of Nazar that uses an AI model. |
 | **You** | Your profile, what you track at a glance, theme, password change, sign out and account deletion. |
+| **Insights** (admin only, `/insights`) | Product numbers for the owner: people who track a portfolio and came back this week, the path from sign-up to reading the analysis, which screens are used, what people track, Ask quality and cost, and whether the market data is current. |
 
 Nazar sends email for two things only: the code that confirms your address, and a password reset link.
 
@@ -168,7 +169,7 @@ Every variable is documented, one per line, in `.env.example`.
 | Command | What it does |
 |---|---|
 | `npm run dev` | Run the app locally with the test accounts |
-| `npm test` | Unit and integration tests (199 tests, about 20 seconds) |
+| `npm test` | Unit and integration tests (206 tests, about 20 seconds) |
 | `npm run test:e2e` | Playwright click-through of every hero flow, on its own database |
 | `npm run lint` · `npm run typecheck` | ESLint and TypeScript checks |
 | `npm run demo:reset` | Rebuild the local database and test accounts (stop `npm run dev` first) |
