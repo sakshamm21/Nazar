@@ -1,14 +1,14 @@
 "use client";
- 
+
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";
 import { CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
 import { AlertsView, IndicesView, MoversView, NewsView, OwnershipView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
 import { CompsView, CorrelationView, DupontView, HealthView, RiskReturnView, SipView, TechnicalsView } from "./analysis-views";
-import { EXCEL_MODEL_TOOLS } from "@/lib/tool-catalog";
-import { PRIVATE_TOOLS } from "@/lib/tool-names";
-import { trackClient } from "@/lib/track-client";
+import { EXCEL_MODEL_TOOLS } from "@/lib/ask/tool-catalog";
+import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
+import { trackClient } from "@/lib/events-client";
 
 type ViewProps = { data: any; onPick?: (s: string) => void };
 

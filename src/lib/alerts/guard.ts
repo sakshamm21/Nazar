@@ -46,7 +46,7 @@ const HI = [
 
 const HINGLISH = [/\bkharid(o|en|na|iye)\b/i, /\bbech(o|en|na|iye|do)\b/i, /\bhold kar(o|en|iye)\b/i];
 
-export const ADVICE_PATTERNS = [...EN, ...HI, ...HINGLISH];
+const ADVICE_PATTERNS = [...EN, ...HI, ...HINGLISH];
 
 export type AdviceViolation = { pattern: string; match: string };
 

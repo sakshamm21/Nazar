@@ -9,6 +9,7 @@ import { Button, buttonClass } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { cn } from "@/lib/cn";
+import { apiCall } from "@/lib/api-client";
 
 const SCENARIOS = [
   { id: "global-selloff", title: "Global slide", body: "The Nifty falls 3.2%; IT and autos are hit hardest, and one of your stocks has bad news of its own." },
@@ -28,9 +29,7 @@ export function SimulateCard({ active }: { active: boolean }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/demo/simulate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenario, email: email.trim() || undefined }) });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Couldn't run the simulation.");
+      const j = await apiCall("/api/demo/simulate", "POST", { scenario, email: email.trim() || undefined }, "Couldn't run the simulation.");
       setOpen(false);
       toast(`${j.alerts} ${j.alerts === 1 ? "alert" : "alerts"} just arrived`, {
         description: j.emailed === "sent" ? `A copy is on its way to ${email.trim()}.` : j.emailed === "not_configured" ? "Email isn't configured on this deployment, so they're in your inbox only." : "Open Alerts to see what happened and why.",

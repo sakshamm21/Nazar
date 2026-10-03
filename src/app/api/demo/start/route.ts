@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { createDemoVisitor } from "@/lib/demo/seed";
 import { api, json } from "@/lib/http";
 import { ipHash, rateLimit } from "@/lib/limits";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

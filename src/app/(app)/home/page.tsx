@@ -370,4 +370,3 @@ function HoldingsCard({ v }: { v: FullPortfolioView }) {
     </Card>
   );
 }
-

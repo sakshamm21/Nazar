@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
 import { DemoButton } from "@/components/landing/demo-button";
 import { linkClass } from "./auth-card";
-
-async function post(url: string, body: unknown) {
-  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-  const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(j.error ?? "Something went wrong."), { code: j.code as string | undefined });
-  return j;
-}
+import { ApiError, apiCall } from "@/lib/api-client";
 
 function PasswordInput({ id, value, onChange, autoComplete, placeholder }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; placeholder?: string }) {
   const [show, setShow] = useState(false);
@@ -27,7 +21,7 @@ function PasswordInput({ id, value, onChange, autoComplete, placeholder }: { id:
   );
 }
 
-/** Sign in, with one-click test accounts (Syncronify's "Try a demo account"). */
+/** Sign in, with one-click test accounts. */
 export function SignInForm({ demoAccounts }: { demoAccounts: { label: string; email: string }[] }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -40,13 +34,13 @@ export function SignInForm({ demoAccounts }: { demoAccounts: { label: string; em
     setError(null);
     setBusy(true);
     try {
-      await post("/api/auth/login", creds ?? { email, password });
+      await apiCall("/api/auth/login", "POST", creds ?? { email, password });
       router.push(params.get("next") ?? "/home");
       router.refresh();
     } catch (err) {
-      const code = (err as { code?: string }).code;
+      const code = err instanceof ApiError ? err.code : undefined;
       if (code === "EMAIL_NOT_VERIFIED") {
-        await post("/api/auth/resend", { email: creds?.email ?? email }).catch(() => null);
+        await apiCall("/api/auth/resend", "POST", { email: creds?.email ?? email }).catch(() => null);
         router.push(`/verify?email=${encodeURIComponent(creds?.email ?? email)}`);
         return;
       }
@@ -113,7 +107,7 @@ export function SignUpForm() {
         setError(null);
         setBusy(true);
         try {
-          const j = await post("/api/auth/register", { name, email, password });
+          const j = await apiCall("/api/auth/register", "POST", { name, email, password });
           const q = new URLSearchParams({ email: j.email });
           if (j.devCode) q.set("code", j.devCode);
           router.push(`/verify?${q}`);
@@ -158,7 +152,7 @@ export function VerifyForm() {
         setError(null);
         setBusy(true);
         try {
-          await post("/api/auth/verify", { email, code });
+          await apiCall("/api/auth/verify", "POST", { email, code });
           router.push("/home");
           router.refresh();
         } catch (err) {
@@ -181,7 +175,7 @@ export function VerifyForm() {
         onClick={async () => {
           setError(null);
           try {
-            const j = await post("/api/auth/resend", { email });
+            const j = await apiCall("/api/auth/resend", "POST", { email });
             setInfo(j.devCode ? `Here's your new code: ${j.devCode}` : "We sent a new code. Check your inbox (and spam).");
           } catch (err) {
             setError((err as Error).message);
@@ -209,7 +203,7 @@ export function ForgotForm() {
         setError(null);
         setBusy(true);
         try {
-          const j = await post("/api/auth/forgot", { email });
+          const j = await apiCall("/api/auth/forgot", "POST", { email });
           setDone(j.devResetUrl ? `Email isn't set up on this server. Use this link: ${j.devResetUrl}` : "If an account exists for that email, a reset link is on its way. It works for 30 minutes.");
         } catch (err) {
           setError((err as Error).message);
@@ -245,7 +239,7 @@ export function ResetForm() {
         setError(null);
         setBusy(true);
         try {
-          await post("/api/auth/reset", { token: params.get("token") ?? "", password });
+          await apiCall("/api/auth/reset", "POST", { token: params.get("token") ?? "", password });
           router.push("/home");
           router.refresh();
         } catch (err) {

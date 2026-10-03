@@ -12,7 +12,7 @@ export const isTransient = (e: unknown) =>
 export const isRateLimit = (e: unknown) => /\b429\b|Too Many Requests/i.test(String((e as { message?: string })?.message ?? e));
 
 export type Sleep = (ms: number) => Promise<void>;
-export const realSleep: Sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const realSleep: Sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export interface RetryOptions {
   attempts?: number;

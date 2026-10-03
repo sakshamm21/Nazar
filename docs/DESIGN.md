@@ -89,6 +89,8 @@ Rules:
 
 ## 6. Components
 
+Paths are relative to `src/components/`.
+
 | Component | File | Notes |
 |---|---|---|
 | `Card` | `ui/card.tsx` | Surface-1, hairline, 20px radius. `CardHeader` takes an overline and a title. |
@@ -104,7 +106,10 @@ Rules:
 | `InfoTip` | `ui/info-tip.tsx` | "What does this mean?" with plain-language glossary entries for every metric. |
 | `Sparkline`, `PriceChart` | `charts/*` | Thin 1.5px lines, a fading gradient fill, a crosshair tooltip and no gridlines. |
 | `Skeleton` | `ui/skeleton.tsx` | Content-shaped blocks, never generic bars. |
-| `EmptyState` | `ui/empty.tsx` | Quiet rings, one sentence and one action. |
+| `QuietRings` (empty states) | `rings/quiet-rings.tsx` | Quiet rings, one sentence and at most one action. |
+| `Field`, `Input`, `Select` | `ui/field.tsx` | Label, hint and error under the control. |
+| `Switch`, `Segmented` | `ui/switch.tsx` | Toggles and 2–3 option pickers (theme, language, answer style). |
+| `LocalTime` | `ui/local-time.tsx` | Times in the reader's own timezone, rendered after hydration. |
 
 ## 7. Motion
 
@@ -134,7 +139,7 @@ The **hard rule** is that Nazar never says buy, sell, hold, target price or anyt
 
 **Do:** one accent per view, generous whitespace, signs and arrows on every change, "as of" times on every number from the market, Hindi set in Noto Sans Devanagari, 44px touch targets, visible focus rings.
 
-**Don't** borrow from Syncronify's identity, or from trading-app clichés:
+**Don't** use trading-app clichés or borrowed identities:
 - no acid lime or electric violet
 - no warm cream or paper backgrounds
 - no Bricolage Grotesque, Geist or Instrument Serif

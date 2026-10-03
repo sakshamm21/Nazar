@@ -11,14 +11,17 @@ import * as schema from "./schema";
  *   nothing hangs on a socket frozen between serverless invocations; anything else uses postgres-js.
  *   Migrations run at build time (`npm run build` → scripts/migrate.ts).
  * - neither set → embedded PGlite (real Postgres compiled to WASM) in ./.data/nazar, migrated and
- *   seeded automatically, so `npm run dev` works with zero setup.
+ *   seeded with demo data automatically, so `npm run dev` works with zero setup.
  */
 export type DB = ReturnType<typeof drizzlePg<typeof schema>>;
-
-const g = globalThis as unknown as { __nazarDb?: Promise<DB> };
+export { schema };
 
 export const databaseUrl = process.env.NAZAR_DATABASE_URL || process.env.DATABASE_URL || "";
-export const MIGRATIONS_DIR = path.join(process.cwd(), "drizzle");
+const MIGRATIONS_DIR = path.join(process.cwd(), "drizzle");
+
+/** Survives hot reloads in development, so there is one connection and one seed per process. */
+const state = globalThis as unknown as { __nazarDb?: Promise<DB>; __nazarSeed?: Promise<void>; __nazarSkipSeed?: boolean };
+const seeding = new AsyncLocalStorage<boolean>();
 
 /** True when this database belongs to StockAI v1 (never migrate or write to it). */
 export async function isLegacyDatabase(db: DB): Promise<boolean> {
@@ -46,7 +49,7 @@ export async function connect(url = databaseUrl): Promise<DB> {
 /** Local PGlite folder (.data/nazar by default; e2e tests use their own via NAZAR_PGLITE_DIR). */
 export const localDir = () => path.resolve(process.cwd(), process.env.NAZAR_PGLITE_DIR || path.join(".data", "nazar"));
 
-/** PGlite database, migrated. `dir` may be "memory://" (tests, Vercel without a DB URL). */
+/** PGlite database, migrated. `dir` may be "memory://" (tests). */
 export async function createPglite(dir: string): Promise<DB> {
   const { PGlite } = await import("@electric-sql/pglite");
   const { drizzle: drizzlePglite } = await import("drizzle-orm/pglite");
@@ -55,47 +58,46 @@ export async function createPglite(dir: string): Promise<DB> {
     const { mkdirSync } = await import("node:fs");
     mkdirSync(dir, { recursive: true });
   }
-  const client = new PGlite(dir);
-  const db = drizzlePglite(client, { schema });
+  const db = drizzlePglite(new PGlite(dir), { schema });
   await migrate(db, { migrationsFolder: MIGRATIONS_DIR });
   return db as unknown as DB;
 }
 
-const gs = globalThis as unknown as { __nazarSeed?: Promise<void>; __nazarSkipSeed?: boolean };
-const seeding = new AsyncLocalStorage<boolean>();
+/** Closes a PGlite database (scripts do this before exiting; PGlite allows one process at a time). */
+export async function closeDb(db: DB) {
+  await (db as unknown as { $client: { close?: () => Promise<void> } }).$client.close?.();
+}
 
 export async function getDb(): Promise<DB> {
-  if (!g.__nazarDb) {
-    g.__nazarDb = connect().catch((e) => {
-      g.__nazarDb = undefined;
-      throw e;
-    });
-  }
-  const db = await g.__nazarDb;
+  state.__nazarDb ??= connect().catch((e) => {
+    state.__nazarDb = undefined;
+    throw e;
+  });
+  const db = await state.__nazarDb;
   // Local zero-setup: the first request seeds the demo market and test accounts (PGlite only).
   // Code running inside the seed itself calls getDb() too, so it must not wait on the seed.
-  if (!databaseUrl && !gs.__nazarSkipSeed && !seeding.getStore()) {
-    gs.__nazarSeed ??= seeding.run(true, async () => {
-      const { ensureLocalSeed } = await import("@/lib/demo/seed");
-      await ensureLocalSeed(db);
-    }).catch((e) => {
-      gs.__nazarSeed = undefined;
-      throw e;
-    });
-    await gs.__nazarSeed;
+  if (!databaseUrl && !state.__nazarSkipSeed && !seeding.getStore()) {
+    state.__nazarSeed ??= seeding
+      .run(true, async () => {
+        const { ensureDemoMarket } = await import("@/lib/demo/seed");
+        await ensureDemoMarket(db);
+      })
+      .catch((e) => {
+        state.__nazarSeed = undefined;
+        throw e;
+      });
+    await state.__nazarSeed;
   }
   return db;
 }
 
-/** Tests inject an in-memory database (and seed explicitly when they need the demo). */
-export function setDbForTests(db: DB) {
-  g.__nazarDb = Promise.resolve(db);
-  gs.__nazarSkipSeed = true;
-}
-
-export { schema };
-
 /** Scripts: use an already-open database as the app's database (seeding still runs once). */
 export function installDb(db: DB) {
-  g.__nazarDb = Promise.resolve(db);
+  state.__nazarDb = Promise.resolve(db);
+}
+
+/** Tests: inject an in-memory database (and seed explicitly when a test needs the demo). */
+export function setDbForTests(db: DB) {
+  state.__nazarDb = Promise.resolve(db);
+  state.__nazarSkipSeed = true;
 }

@@ -2,6 +2,7 @@
 import { FileSpreadsheet } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { trackClient } from "@/lib/events-client";
 
 /** Downloads the stock's risk & return model (live formulas) and health checks as one workbook. */
 export function ExcelDownload({ parts, title }: { parts: { toolName: string; data: unknown }[]; title: string }) {
@@ -13,7 +14,7 @@ export function ExcelDownload({ parts, title }: { parts: { toolName: string; dat
       onClick={async () => {
         setBusy(true);
         try {
-          void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "excel_download", props: { scope: "stock" } }) }).catch(() => {});
+          trackClient("excel_download", { scope: "stock" });
           const { downloadChatExcel } = await import("@/lib/excel");
           await downloadChatExcel(parts as { toolName: string; data: any }[], title);
         } finally {

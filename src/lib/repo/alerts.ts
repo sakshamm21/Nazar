@@ -4,7 +4,7 @@ import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import type { AlertType, Sensitivity } from "@/lib/db/schema";
 import { notFound } from "@/lib/errors";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 import { learnedText } from "@/lib/alerts/templates";
 import type { UserThresholds } from "@/lib/alerts/thresholds";
 

@@ -1,5 +1,5 @@
 /**
- * User-facing catalog of what Nazar's Ask tab can do (the "Tools" panel). Client-safe.
+ * User-facing catalog of what the Ask tab can do (the Research page). Client-safe.
  * `excel`: "model" = downloads as a live Excel model with formulas; "data" = downloads as a data sheet.
  */
 export type CatalogItem = { id: string; tools: string[]; name: string; description: string; example: string; excel: "model" | "data" | null };
@@ -13,7 +13,7 @@ export const TOOL_CATALOG: CatalogGroup[] = [
     items: [
       { id: "dcf", tools: ["runDcfValuation"], name: "DCF valuation", description: "Intrinsic value from projected free cash flow, with a growth × discount-rate sensitivity grid.", example: "Run a DCF on Infosys", excel: "model" },
       { id: "comps", tools: ["runComparableValuation"], name: "Comparable companies (comps)", description: "Values a company on peer-median P/E, EV/EBITDA, P/B and P/S, with implied share prices.", example: "Value HDFC Bank against ICICI Bank, Kotak and Axis Bank using comps", excel: "model" },
-      { id: "compare", tools: ["compareStocks"], name: "Side-by-side comparison", description: "Up to 6 stocks on any of 43 metrics, best value highlighted.", example: "Compare TCS, Infosys and HCLTech on margins and valuation", excel: "data" },
+      { id: "compare", tools: ["compareStocks"], name: "Side-by-side comparison", description: "Up to 6 stocks on any of 42 metrics, best value highlighted.", example: "Compare TCS, Infosys and HCLTech on margins and valuation", excel: "data" },
     ],
   },
   {
@@ -24,7 +24,7 @@ export const TOOL_CATALOG: CatalogGroup[] = [
       { id: "health", tools: ["getFinancialHealthScore"], name: "Financial health score", description: "Piotroski F-score (9 accounting tests) and Altman Z-score bankruptcy-risk zone.", example: "What is the financial health score of Tata Steel?", excel: "data" },
       { id: "dupont", tools: ["getDupontAnalysis"], name: "DuPont ROE analysis", description: "Splits return on equity into margin × asset turnover × leverage over 5 years.", example: "Do a DuPont analysis of Asian Paints", excel: "model" },
       { id: "statements", tools: ["getFinancialStatements"], name: "Financial statements", description: "Income statement, balance sheet and cash flow, annual or quarterly.", example: "Show Reliance's cash flow statement for the last 4 years", excel: "data" },
-      { id: "metrics", tools: ["getKeyMetrics"], name: "43 key metrics", description: "Valuation, profitability, growth, balance sheet, dividends and ownership ratios.", example: "Show all key metrics for Maruti Suzuki", excel: "data" },
+      { id: "metrics", tools: ["getKeyMetrics"], name: "42 key metrics", description: "Valuation, profitability, growth, balance sheet, dividends and ownership ratios.", example: "Show all key metrics for Maruti Suzuki", excel: "data" },
     ],
   },
   {
@@ -55,7 +55,7 @@ export const TOOL_CATALOG: CatalogGroup[] = [
       { id: "overview", tools: ["getMarketOverview"], name: "Market overview", description: "Nifty, Sensex, sector indices, India VIX and USD/INR; also US and global boards.", example: "How are Indian markets doing today?", excel: "data" },
       { id: "movers", tools: ["getIndianMarketMovers", "getMarketMovers"], name: "Top movers", description: "Nifty 50 gainers, losers, most active; US screeners too.", example: "Top Nifty 50 losers today", excel: "data" },
       { id: "news", tools: ["getNews"], name: "News", description: "Latest headlines for a company or topic.", example: "Latest news on Zomato", excel: "data" },
-      { id: "analysts", tools: ["getEarnings"], name: "Earnings", description: "Quarterly revenue and profit, EPS versus estimates, and the next results date.", example: "How did Sun Pharma's last few quarters go?", excel: "data" },
+      { id: "earnings", tools: ["getEarnings"], name: "Earnings", description: "Quarterly revenue and profit, EPS versus estimates, and the next results date.", example: "How did Sun Pharma's last few quarters go?", excel: "data" },
       { id: "company", tools: ["getCompanyProfile", "getOwnership"], name: "Company & ownership", description: "Business description, management, promoter/institutional holdings.", example: "Who owns ITC and what does it do?", excel: "data" },
     ],
   },
@@ -65,8 +65,8 @@ export const TOOL_CATALOG: CatalogGroup[] = [
     blurb: "Track what matters to you",
     items: [
       { id: "portfolio", tools: ["getMyPortfolio"], name: "Your portfolio", description: "Read-only view of your holdings from last night's checkup: today's move, P&L, risk and health.", example: "Why is my portfolio down this month?", excel: null },
-      { id: "watchlist", tools: ["getWatchlist", "addToWatchlist", "removeFromWatchlist"], name: "Watching list", description: "Stocks you follow without owning; Nazar includes them in its nightly check.", example: "Add Titan to my Watching list", excel: null },
-      { id: "alerts", tools: ["createPriceAlert", "listPriceAlerts", "deletePriceAlerts"], name: "Price alerts", description: "Tell me when a stock closes beyond a level you choose.", example: "Tell me if Reliance closes below ₹1,100", excel: null },
+      { id: "watching", tools: ["getWatchlist", "addToWatchlist", "removeFromWatchlist"], name: "Watching list", description: "Stocks you follow without owning; Nazar includes them in its nightly check.", example: "Add Titan to my Watching list", excel: null },
+      { id: "levels", tools: ["createPriceAlert", "listPriceAlerts", "deletePriceAlerts"], name: "Price levels", description: "Tell me when a stock closes beyond a level you choose.", example: "Tell me if Reliance closes below ₹1,100", excel: null },
     ],
   },
 ];

@@ -33,7 +33,7 @@ type Fixture = {
 };
 
 let fixture: Fixture | null = null;
-export function loadFixture(): Fixture {
+function loadFixture(): Fixture {
   if (!fixture) fixture = JSON.parse(readFileSync(path.join(process.cwd(), "src", "data", "demo-fixture.json"), "utf8")) as Fixture;
   return fixture;
 }
@@ -48,7 +48,7 @@ export function demoToday(now = new Date()): string {
 }
 
 /** Maps every fixture trading date onto consecutive weekdays ending at `today` (holidays compress). */
-export function dateMap(fx: Fixture, today: string): Map<string, string> {
+function dateMap(fx: Fixture, today: string): Map<string, string> {
   const all = new Set<string>();
   for (const bars of Object.values(fx.indices)) for (const [d] of bars) all.add(d);
   for (const s of Object.values(fx.symbols)) for (const [d] of s.bars) all.add(d);
@@ -64,7 +64,7 @@ export function dateMap(fx: Fixture, today: string): Map<string, string> {
 }
 
 /** Wall-clock time for a session's "checkup" (4:47 PM IST). */
-export const checkupAt = (iso: string, minutes = 0) => new Date(new Date(`${iso}T11:17:00Z`).getTime() + minutes * 60_000);
+const checkupAt = (iso: string, minutes = 0) => new Date(new Date(`${iso}T11:17:00Z`).getTime() + minutes * 60_000);
 
 async function chunked<T>(rows: T[], size: number, fn: (chunk: T[]) => Promise<unknown>) {
   for (let i = 0; i < rows.length; i += size) await fn(rows.slice(i, i + size));
@@ -108,7 +108,7 @@ export async function ensureDemoMarket(db: DB, opts: { force?: boolean; maxStale
 }
 
 /** Writes the fixture as source "demo": prices, instruments, 60 sessions of snapshots, the results event. */
-export async function seedDemoMarket(db: DB, today: string) {
+async function seedDemoMarket(db: DB, today: string) {
   const fx = loadFixture();
   const map = dateMap(fx, today);
   await db.delete(schema.priceDaily).where(eq(schema.priceDaily.source, "demo"));
@@ -203,7 +203,7 @@ function holdingsFor(list: { symbol: string; value: number; daysAgo: number }[],
 }
 
 /** Rebuilds the hidden template account that every demo visitor is cloned from. */
-export async function buildTemplate(db: DB, today: string) {
+async function buildTemplate(db: DB, today: string) {
   const fx = loadFixture();
   const map = dateMap(fx, today);
   await db.delete(schema.users).where(eq(schema.users.email, TEMPLATE_EMAIL));
@@ -275,7 +275,7 @@ async function rateReplayed(db: DB, userId: string, ids: string[], date: string,
  * Copies the template into `userId` with fresh ids (md5 of old id + new user keeps references
  * consistent without temp tables). A handful of INSERT … SELECT statements: fast on Neon's HTTP driver.
  */
-export async function cloneTemplate(db: DB, userId: string) {
+async function cloneTemplate(db: DB, userId: string) {
   const [t] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, TEMPLATE_EMAIL)).limit(1);
   if (!t) throw new Error("Demo template missing");
   const T = t.id, U = userId;
@@ -303,7 +303,7 @@ export async function cloneTemplate(db: DB, userId: string) {
 }
 
 /** Wipes a user's own data (keeps the account) — used to reset test accounts. */
-export async function wipeUserData(db: DB, userId: string) {
+async function wipeUserData(db: DB, userId: string) {
   await db.delete(schema.alertEvents).where(eq(schema.alertEvents.userId, userId));
   await db.delete(schema.thresholdChanges).where(eq(schema.thresholdChanges.userId, userId));
   await db.delete(schema.alertThresholds).where(eq(schema.alertThresholds.userId, userId));
@@ -316,8 +316,8 @@ export async function wipeUserData(db: DB, userId: string) {
   await db.execute(sql`delete from price_daily where source = ${`sim:${userId}`}`);
 }
 
-/** Public test accounts (Syncronify-style one-click sign-in). Reset to a clean demo every rebuild. */
-export async function ensureTestAccounts(db: DB) {
+/** Public test accounts (one-click sign-in). Reset to a clean state on every demo rebuild. */
+async function ensureTestAccounts(db: DB) {
   const hash = await bcrypt.hash(TEST_PASSWORD, 10);
   for (const acc of TEST_ACCOUNTS) {
     let [u] = await db.select().from(schema.users).where(eq(schema.users.email, acc.email)).limit(1);
@@ -343,9 +343,4 @@ export async function createDemoVisitor(db: DB) {
   await db.insert(schema.users).values({ id, email: `visitor-${id}@demo.nazar.internal`, name: "Aarav", isDemo: true, demoExpiresAt: new Date(Date.now() + 24 * 3600_000), emailVerifiedAt: new Date() });
   await cloneTemplate(db, id);
   return id;
-}
-
-/** Local zero-setup: demo market, template and test accounts on first run. */
-export async function ensureLocalSeed(db: DB) {
-  await ensureDemoMarket(db, { maxStaleDays: 0 });
 }

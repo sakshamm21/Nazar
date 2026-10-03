@@ -4,9 +4,7 @@
  * the no-advice guard like every alert.
  */
 import { safeText } from "@/lib/alerts/guard";
-import { dayLabel, inr as inrRaw, signedPct } from "@/lib/format";
-
-const inr = (n: number, o: { sign?: boolean } = {}) => inrRaw(Math.round(n), { ...o, decimals: 0 });
+import { dayLabel, inrWhole as inr, signedPct } from "@/lib/format";
 
 export type WeeklyInput = {
   portfolioName: string;

@@ -1,15 +1,14 @@
 import "server-only";
 import YahooFinance from "yahoo-finance2";
-import { Limiter, isTransient, withRetry } from "./data/resilience";
+import { Limiter, withRetry } from "./resilience";
 
 /**
- * Yahoo Finance data layer (from StockAI v1). Used live only by the Ask tab; the nightly pipeline
- * reaches it through `data/provider.ts`. Pages never call it: they read snapshots from Postgres.
+ * Yahoo Finance data layer. Used live only by the Ask tab; the nightly pipeline
+ * reaches it through `provider.ts`. Pages never call it: they read snapshots from Postgres.
  */
 
 const g = globalThis as unknown as { __yf?: InstanceType<typeof YahooFinance>; __yfLimiter?: Limiter };
 export const yf: any = (g.__yf ??= new YahooFinance({ suppressNotices: ["yahooSurvey", "ripHistorical"] }));
-export { isTransient };
 
 export const NV = { validateResult: false } as const;
 
@@ -137,10 +136,8 @@ export async function fxRate(from: string, to: string): Promise<number | null> {
   return q?.price ?? null;
 }
 
-export const METRIC_MODULES_LIST = METRIC_MODULES;
-
 /**
- * Pure: the 43-metric catalog from a quoteSummary payload. `fx` converts the reporting currency to
+ * Pure: the 42-metric catalog from a quoteSummary payload. `fx` converts the reporting currency to
  * the trading currency (null when they're the same or the rate is unknown).
  */
 export function metricsFromSummary(qs: any, fx: number | null) {
@@ -171,7 +168,7 @@ export function metricsFromSummary(qs: any, fx: number | null) {
     fxNote = fx == null ? `Reports in ${reporting}; FX rate unavailable, so ${reporting} amounts are omitted.` : `Reports in ${reporting}; amounts converted to ${currency} at ${fx.toFixed(4)}.`;
   }
   const values: Record<string, number | null> = Object.fromEntries(METRICS.map((m) => [m.key, value(m.key)]));
-  // Yahoo's beta for NSE stocks is unreliable (AUDIT B-7); Nazar computes beta from prices instead.
+  // Yahoo's beta for NSE stocks is unreliable; Nazar computes beta from stored prices instead.
   if (/\.(NS|BO)$/.test(qs?.price?.symbol ?? "")) values.beta = null;
   return { currency, reporting, fxNote, values };
 }
@@ -364,7 +361,7 @@ export const NIFTY50 = [
 ].map((s) => `${s}.NS`);
 
 /** Currency that a company reports its financial statements in (can differ from the trading currency, e.g. ADRs). */
-export async function fetchCurrencies(symbol: string): Promise<{ currency: string; financialCurrency: string }> {
+async function fetchCurrencies(symbol: string): Promise<{ currency: string; financialCurrency: string }> {
   const qs = await quoteSummary(symbol, ["price", "financialData"]).catch(() => null);
   const currency = qs?.price?.currency ?? "USD";
   return { currency, financialCurrency: qs?.financialData?.financialCurrency ?? currency };

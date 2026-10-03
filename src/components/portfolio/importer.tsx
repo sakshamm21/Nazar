@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { FormAlert, Select } from "@/components/ui/field";
 import { inr } from "@/lib/format";
+import { apiCall } from "@/lib/api-client";
 
 type Resolution = { status: "matched"; symbol: string; name: string; isin: string | null; via: string } | { status: "ambiguous"; candidates: { symbol: string; name: string }[] } | { status: "unmatched"; reason: string };
 type Row = { line: number; rawName: string; symbol: string | null; isin: string | null; quantity: number; avgPrice: number; buyDate: string | null; resolution: Resolution };
@@ -33,9 +34,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch(`/api/portfolios/${target}/import`, { method: "POST", body: fd });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Couldn't read that file.");
+      const j = await apiCall(`/api/portfolios/${target}/import`, "POST", fd, "Couldn't read that file.");
       setPreview(j);
       const init: Record<number, string> = {};
       for (const r of j.rows as Row[]) init[r.line] = r.resolution.status === "matched" ? r.resolution.symbol : r.resolution.status === "ambiguous" ? r.resolution.candidates[0].symbol : "";
@@ -55,9 +54,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
     if (!holdings.length) return setError("Nothing to import: every row is skipped.");
     setBusy(true);
     try {
-      const res = await fetch(`/api/portfolios/${target}/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ holdings }) });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Couldn't save.");
+      await apiCall(`/api/portfolios/${target}/holdings`, "POST", { holdings }, "Couldn't save.");
       document.cookie = `nazar_pf=${target}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
       toast(`${holdings.length} holdings imported. Nazar is taking a first look now.`);
       router.push("/home");

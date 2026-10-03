@@ -4,7 +4,7 @@ import { MODELS } from "./models";
 let cache: { at: number; ids: string[] } | null = null;
 
 /** Models from our catalog that the configured OpenAI key can actually use (cached 10 min). */
-export async function availableModelIds(): Promise<string[]> {
+async function availableModelIds(): Promise<string[]> {
   const all = MODELS.map((m) => m.id);
   const key = process.env.OPENAI_API_KEY;
   if (!key) return all;

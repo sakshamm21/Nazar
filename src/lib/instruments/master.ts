@@ -5,7 +5,7 @@ import { parseCsv } from "@/lib/importers/csv";
 /**
  * NSE equity master (src/data/nse-equity.csv, refreshed by `npm run nse:refresh`): every listed
  * equity's symbol, name and ISIN. Broker exports carry ISINs, so most rows map exactly without
- * calling Yahoo (whose name search fails on renames like Zomato → Eternal; AUDIT §3.2).
+ * calling Yahoo (whose name search fails on renames like Zomato → Eternal).
  */
 export type MasterRow = { symbol: string; name: string; isin: string };
 
@@ -27,7 +27,7 @@ export function buildIndex(rows: MasterRow[]): MasterIndex {
   return { rows, bySymbol: new Map(rows.map((r) => [r.symbol, r])), byIsin: new Map(rows.map((r) => [r.isin, r])), byName };
 }
 
-export function parseMaster(csv: string): MasterRow[] {
+function parseMaster(csv: string): MasterRow[] {
   const [header, ...lines] = parseCsv(csv);
   const col = (n: string) => header.findIndex((h) => h.trim().toUpperCase() === n);
   const s = col("SYMBOL"), n = col("NAME OF COMPANY"), i = col("ISIN NUMBER");
@@ -122,4 +122,3 @@ export const SYMBOL_ALIASES: Record<string, string> = {
 };
 
 export const toYahoo = (nseSymbol: string) => `${nseSymbol.toUpperCase()}.NS`;
-export const fromYahoo = (symbol: string) => symbol.toUpperCase().replace(/\.(NS|BO)$/, "");

@@ -28,7 +28,7 @@ export const LIMITS = {
   maxInputChars: envNum("MAX_INPUT_CHARS", 2000),
 };
 
-export function clientIp(req: Request) {
+function clientIp(req: Request) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
 }
 

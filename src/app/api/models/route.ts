@@ -1,16 +1,10 @@
-import { MODELS } from "@/lib/models";
-import { allowedModelIds } from "@/lib/openai-models";
-import { databaseUrl } from "@/lib/db";
+import { MODELS } from "@/lib/ask/models";
+import { allowedModelIds } from "@/lib/ask/openai-models";
 
 export const runtime = "nodejs";
 
+/** The Ask models this deployment's OpenAI key can use (for the model picker in Settings). */
 export async function GET() {
   const ids = await allowedModelIds();
-  return Response.json({
-    models: MODELS.filter((m) => ids.includes(m.id)),
-    status: {
-      openai: Boolean(process.env.OPENAI_API_KEY),
-      database: databaseUrl ? "postgres" : process.env.VERCEL ? "pglite-memory" : "pglite-local",
-    },
-  });
+  return Response.json({ models: MODELS.filter((m) => ids.includes(m.id)) });
 }

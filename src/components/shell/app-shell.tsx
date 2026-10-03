@@ -18,7 +18,7 @@ const NAV = [
 
 export type ShellUser = { name: string; isDemo: boolean; isTestAccount: boolean; demoExpiresAt: string | null; sim: { label: string } | null };
 
-/** Mobile: bottom tab bar. Desktop: slim sidebar (DESIGN.md §5). */
+/** Mobile: bottom tab bar. Desktop: slim sidebar (docs/DESIGN.md §5). */
 export function AppShell({ user, unread, children }: { user: ShellUser; unread: number; children: ReactNode }) {
   const path = usePathname();
   const active = (href: string) => path === href || path.startsWith(`${href}/`) || (href === "/home" && (path.startsWith("/risk") || path.startsWith("/stock") || path.startsWith("/reports")));

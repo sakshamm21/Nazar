@@ -9,7 +9,7 @@ import { sendMail } from "@/lib/email/mailer";
 import { api, json, parseBody, requireUser } from "@/lib/http";
 import { rateLimit } from "@/lib/limits";
 import { requirePortfolio } from "@/lib/repo/portfolios";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };

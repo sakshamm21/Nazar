@@ -1,44 +1,23 @@
 import "server-only";
 import { tool } from "ai";
-import { z } from "zod";
-import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, toDate, yahooCall, yf } from "./finance";
-import { analysisTools } from "./analysis-tools";
 import { eq } from "drizzle-orm";
-import { getDb, schema } from "./db";
-import { displayName } from "./market/portfolio-day";
-import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "./market/store";
-import { listAlerts } from "./repo/alerts";
-import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "./repo/portfolios";
-import { TARGETS_MAX_ACTIVE, createTarget, deleteTargets, listTargets } from "./repo/targets";
-import { buildPortfolioView } from "./views/portfolio";
-
- 
-
-async function safe<T>(fn: () => Promise<T>): Promise<T | { error: string }> {
-  try {
-    return await fn();
-  } catch (e: any) {
-    const msg = String(e?.message ?? e);
-    console.warn("[tools] data provider error:", msg.slice(0, 300));
-    if (/Not Found|No fundamentals|Quote not found|delisted/i.test(msg)) return { error: "Symbol not found or no data available." };
-    if (isTransient(e)) return { error: "Yahoo Finance is rate-limiting or temporarily unavailable. This data couldn't be loaded; try again in a minute." };
-    // Never surface raw provider output (HTML pages, stack traces) to users.
-    return { error: `The data provider returned an unexpected response${/<|\{/.test(msg) ? "" : `: ${msg.slice(0, 120)}`}.` };
-  }
-}
+import { z } from "zod";
+import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, num, quoteSummary, toDate, yahooCall, yf } from "../data/yahoo";
+import { forModel, safe } from "./tool-utils";
+import { analysisTools } from "./analysis-tools";
+import { sample } from "../analytics/stats";
+import { getDb, schema } from "../db";
+import { displayName } from "../market/portfolio-day";
+import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "../market/store";
+import { listAlerts } from "../repo/alerts";
+import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo/portfolios";
+import { TARGETS_MAX_ACTIVE, createTarget, deleteTargets, listTargets } from "../repo/targets";
+import { buildPortfolioView } from "../views/portfolio";
 
 const symbol = z.string().min(1).max(12).describe("Ticker symbol, e.g. AAPL, MSFT, RELIANCE.NS, 7203.T");
 
-/**
- * What the MODEL sees of a tool result. The UI still receives the full output (every chart point),
- * but the LLM gets a compact summary: bulky arrays re-sent on every agent step were the main
- * driver of input tokens (and therefore cost and latency).
- */
-const forModel = (fn: (o: any) => unknown) => (o: any) => ({ type: "json" as const, value: (o && typeof o === "object" && "error" in o ? o : fn(o)) as any });
-const sample = <T,>(xs: T[], n: number) => (xs.length <= n ? xs : Array.from({ length: n }, (_, i) => xs[Math.round((i * (xs.length - 1)) / (n - 1))]));
-
 /** Market-data tools: stateless, safe to share between users. */
-export const marketTools = {
+const marketTools = {
   searchTicker: tool({
     description: "Find ticker symbols for a company name or keyword. Use when the user gives a company name instead of a ticker.",
     inputSchema: z.object({ query: z.string().min(1) }),
@@ -406,7 +385,7 @@ export const marketTools = {
 };
 
 /** Tools that read the signed-in user's own data (portfolio, Watching) or manage their price alerts. */
-export function userTools(userId: string) {
+function userTools(userId: string) {
   const loadUser = async () => {
     const db = await getDb();
     const [u] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);

@@ -28,7 +28,7 @@ export type AlertDTO = {
 
 const REASON: Record<string, string> = { market: "Whole market", sector: "Sector-wide", results: "After results", company: "Company-specific" };
 
-export function analysisHref(a: AlertDTO) {
+function analysisHref(a: AlertDTO) {
   if (a.type === "portfolio_move") return "/home/today";
   if (a.type === "learned") return "/settings#learned";
   if (a.type === "concentration") return "/risk";

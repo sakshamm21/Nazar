@@ -5,15 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Chat } from "@/components/Chat";
-import type { Rating } from "@/components/Messages";
+import { Chat } from "@/components/ask/chat";
+import type { Rating } from "@/components/ask/messages";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
 import { useHydrated, useStoredPref } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
-import { PRIVATE_TOOLS } from "@/lib/tool-names";
-import { trackClient } from "@/lib/track-client";
+import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
+import { trackClient } from "@/lib/events-client";
 
 type ChatRow = { id: string; title: string; updatedAt: string };
 type Mode = "simple" | "pro";
@@ -24,7 +24,7 @@ const fetchChat = (id: string) =>
     .catch(() => null);
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-/** The Ask tab: v1's research agent, now one tab of Nazar, with portfolio-aware answers. */
+/** The Ask tab: the research agent, with portfolio-aware answers. */
 export type AskStart = { openId: string } | { newId: string; question: string | null };
 
 export function AskWorkspace({ remaining, start }: { remaining: { remaining: number; limit: number } | null; start: AskStart }) {

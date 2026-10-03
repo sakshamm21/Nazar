@@ -2,8 +2,7 @@ import "server-only";
 import { logger } from "@/lib/logger";
 
 /**
- * Email through Brevo's HTTP API (free tier: 300 emails/day) — the same approach as Syncronify's
- * mailer. Never throws: email is a side channel and must not break the request or pipeline that
+ * Email through Brevo's HTTP API (free tier: 300 emails/day). Never throws: email is a side channel and must not break the request or pipeline that
  * triggered it. Without BREVO_API_KEY + MAIL_FROM it logs a preview and reports "not configured".
  */
 export type MailInput = { to: string; subject: string; text: string; html: string };
@@ -13,7 +12,7 @@ export type MailResult = { delivered: boolean; status: "sent" | "failed" | "skip
 export const mailConfigured = () => process.env.EMAIL_DISABLED !== "1" && Boolean(process.env.BREVO_API_KEY && process.env.MAIL_FROM);
 
 /** 'Nazar <a@b.com>' → { name, email }; a bare address has no name. */
-export function parseAddress(address: string): { name?: string; email: string } {
+function parseAddress(address: string): { name?: string; email: string } {
   const m = address.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
   return m ? { name: m[1] || undefined, email: m[2].trim() } : { email: address.trim() };
 }

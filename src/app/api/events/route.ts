@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { CLIENT_EVENTS, track } from "@/lib/analytics";
-import { sessionFromRequest } from "@/lib/auth/session";
+import { CLIENT_EVENTS, track } from "@/lib/events";
+import { badRequest } from "@/lib/errors";
+import { api, json, parseBody, requireUser } from "@/lib/http";
 
 export const runtime = "nodejs";
 
@@ -10,13 +11,11 @@ const Body = z.object({
   props: z.record(z.string().max(40), z.union([z.string().max(200), z.number(), z.boolean(), z.null()])).optional(),
 });
 
-/** Client-side product events (whitelisted types only, small flat props). */
-export async function POST(req: Request) {
-  const userId = (await sessionFromRequest(req))?.userId ?? null;
-  if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
-  const body = Body.safeParse(await req.json().catch(() => null));
-  if (!body.success || !CLIENT_EVENTS.has(body.data.type)) return Response.json({ error: "Unknown event" }, { status: 400 });
-  const props = Object.fromEntries(Object.entries(body.data.props ?? {}).slice(0, 10));
-  track(userId, body.data.type, props, body.data.chatId);
-  return Response.json({ ok: true });
-}
+/** Client-side product events: allow-listed types only, small flat props. */
+export const POST = api(async (req) => {
+  const u = await requireUser(req);
+  const { type, chatId, props } = await parseBody(req, Body);
+  if (!CLIENT_EVENTS.has(type)) throw badRequest("Unknown event.");
+  track(u.id, type, Object.fromEntries(Object.entries(props ?? {}).slice(0, 10)), chatId);
+  return json({ ok: true });
+});

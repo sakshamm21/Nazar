@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { classify } from "@/lib/guard";
-import { allowedModelIds } from "@/lib/openai-models";
+import { classify } from "@/lib/ask/scope-guard";
+import { allowedModelIds } from "@/lib/ask/openai-models";
 
 export const runtime = "nodejs";
 

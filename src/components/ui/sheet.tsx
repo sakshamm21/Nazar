@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 
 /**
- * Bottom sheet on mobile, centred dialog on desktop (DESIGN.md §5). Traps focus, closes on Esc and
+ * Bottom sheet on mobile, centred dialog on desktop (docs/DESIGN.md §5). Traps focus, closes on Esc and
  * on the backdrop, restores focus to the opener, and slides in over 220ms (instant if reduced motion).
  */
 export function Sheet({ open, onClose, title, description, children, footer, wide }: { open: boolean; onClose: () => void; title: ReactNode; description?: ReactNode; children: ReactNode; footer?: ReactNode; wide?: boolean }) {

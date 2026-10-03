@@ -71,11 +71,11 @@ The text always says "likely" and shows the numbers it compared. The two-thirds 
 
 **Context.** Zero paid services and minimal outside integrations. Brevo's free tier allows 300 emails a day.
 
-**Decision.** The in-app inbox always has everything. Email is one digest per recipient per day, sent through Brevo's HTTP API with the same module pattern as Syncronify: it never throws, and logs a preview when it isn't configured. A global cap (250/day) leaves headroom for sign-up codes. Deliveries are recorded per (item, address), so retries never double-send. Family recipients must confirm by email before anything is sent to them. Telegram, WhatsApp and web push were left out: each is another integration to set up and maintain.
+**Decision.** The in-app inbox always has everything. Email is one digest per recipient per day, sent through Brevo's HTTP API by a small mailer that never throws and logs a preview when email isn't configured. A global cap (250/day) leaves headroom for sign-up codes. Deliveries are recorded per (item, address), so retries never double-send. Family recipients must confirm by email before anything is sent to them. Telegram, WhatsApp and web push were left out: each is another integration to set up and maintain.
 
 ## D-8 · Postgres + Drizzle (Neon in production, PGlite locally)
 
-**Context.** Syncronify uses MongoDB. Nazar's data is relational and time-series (portfolios → holdings → daily snapshots → alerts → feedback), and v1 already ran on Neon with Drizzle.
+**Context.** Nazar's data is relational and time-series (portfolios → holdings → daily snapshots → alerts → feedback), and v1 already ran on Neon with Drizzle.
 
 **Decision.**
 - **Postgres with generated Drizzle migrations**, applied at build time.
@@ -88,7 +88,7 @@ The text always says "likely" and shows the numbers it compared. The two-thirds 
 
 **Context.** v1 identified users by a browser fingerprint. That can't support family recipients, email digests or account recovery, and it raises privacy concerns.
 
-**Decision.** Syncronify's flow: email and password (bcrypt), a 6-digit code by email, reset by link, and a signed JWT in an httpOnly, SameSite=Lax cookie. One `authSecret()` serves sessions, signed email links (domain-separated) and IP hashing; production refuses to start without a real secret. Google sign-in was skipped on request: it is another integration with its own console and callback URLs. Reviewers get one-click test accounts instead.
+**Decision.** Email and password (bcrypt), a 6-digit code by email, reset by link, and a signed JWT in an httpOnly, SameSite=Lax cookie. One `authSecret()` serves sessions, signed email links (domain-separated) and IP hashing; production refuses to start without a real secret. Google sign-in was skipped on request: it is another integration with its own console and callback URLs. Reviewers get one-click test accounts instead.
 
 ## D-10 · An honest demo
 
@@ -103,7 +103,7 @@ The text always says "likely" and shows the numbers it compared. The two-thirds 
 
 ## D-11 · One Next.js app, not a separate API
 
-**Context.** Syncronify runs Express separately from its frontend.
+**Context.** A separate API server (for example Express) is a common split, but it would mean two deployments per app.
 
 **Decision.** Route handlers inside Next.js. Ask streams through the AI SDK inside Next, cron jobs are route handlers, and one app means one deployment (two Vercel projects in total, with the legacy app), not four.
 

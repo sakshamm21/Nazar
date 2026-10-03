@@ -1,6 +1,6 @@
 import type { AlertType, Sensitivity } from "@/lib/db/schema";
 
-/** Sensitivity presets (PLAN.md §5 H1). Moves and weights are in percent. */
+/** Sensitivity presets (docs/FEATURES.md, H1). Moves and weights are in percent. */
 export const PRESETS: Record<Sensitivity, { stock_move: number; materiality: number; portfolio_move: number; concentration: number; sectorConcentration: number; fScoreDelta: number | null; upcoming: boolean }> = {
   major: { stock_move: 6, materiality: 0.005, portfolio_move: 3, concentration: 30, sectorConcentration: 50, fScoreDelta: null, upcoming: false },
   balanced: { stock_move: 4, materiality: 0.0025, portfolio_move: 2, concentration: 25, sectorConcentration: 40, fScoreDelta: 2, upcoming: true },

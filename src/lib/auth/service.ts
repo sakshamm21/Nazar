@@ -6,10 +6,10 @@ import { getDb, schema } from "@/lib/db";
 import { emails } from "@/lib/email/templates";
 import { sendMail } from "@/lib/email/mailer";
 import { AppError, badRequest, conflict, forbidden, unauthenticated } from "@/lib/errors";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 /**
- * Email + password accounts with a 6-digit email code, ported from Syncronify's auth service:
+ * Email + password accounts with a 6-digit email code:
  * hashed codes (10-minute TTL, 5 attempts, 30s resend cooldown), hashed one-time reset links,
  * and a dev fallback that shows the code on screen when email isn't configured.
  */
@@ -18,7 +18,7 @@ const CODE_MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_S = 30;
 const RESET_TTL_MIN = 30;
 
-export const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
+const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 const otp = () => randomInt(0, 1_000_000).toString().padStart(6, "0");
 const safeEqual = (a: string, b: string) => {
   const x = Buffer.from(a), y = Buffer.from(b);
@@ -134,10 +134,4 @@ export async function resetPassword(token: string, password: string) {
     .set({ passwordHash: await bcrypt.hash(password, 10), resetTokenHash: null, resetExpiresAt: null, emailVerifiedAt: u.emailVerifiedAt ?? new Date() })
     .where(eq(schema.users.id, u.id));
   return u;
-}
-
-export async function getUser(id: string) {
-  const db = await getDb();
-  const [u] = await db.select().from(schema.users).where(eq(schema.users.id, id)).limit(1);
-  return u ?? null;
 }

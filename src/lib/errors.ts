@@ -1,4 +1,4 @@
-/** An error with an HTTP status and a stable code the UI can switch on (Syncronify's pattern). */
+/** An error with an HTTP status and a stable code the UI can switch on. */
 export class AppError extends Error {
   constructor(
     public readonly status: number,

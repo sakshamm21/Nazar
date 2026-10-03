@@ -3,9 +3,9 @@ import { randomUUID } from "crypto";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { badRequest } from "@/lib/errors";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
-/** Manual "tell me when X crosses ₹Y" alerts (v1's price alerts, P2), checked by the nightly pipeline. */
+/** "Tell me when X crosses ₹Y" price levels, checked by the nightly checkup. */
 export const TARGETS_MAX_ACTIVE = 25;
 
 export async function listTargets(userId: string) {

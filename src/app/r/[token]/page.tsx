@@ -7,7 +7,7 @@ import { buttonClass } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { verifyLink, type LinkPayload } from "@/lib/auth/links";
 import { getDb, schema } from "@/lib/db";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const metadata: Metadata = { title: "Nazar", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";

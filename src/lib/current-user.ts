@@ -1,5 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getSession } from "@/lib/auth/session";
@@ -24,6 +25,5 @@ export async function requirePageUser() {
 
 /** The portfolio the user last selected (cookie), validated against their portfolios later. */
 export async function selectedPortfolioId(): Promise<string | null> {
-  const { cookies } = await import("next/headers");
   return (await cookies()).get("nazar_pf")?.value ?? null;
 }

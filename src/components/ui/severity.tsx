@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-/** Severity by shape and colour (DESIGN.md §1): filled ring = critical, half ring = important, dot = info. */
+/** Severity by shape and colour (docs/DESIGN.md §1): filled ring = critical, half ring = important, dot = info. */
 export function SeverityIcon({ severity, size = 14, className }: { severity: "critical" | "important" | "info"; size?: number; className?: string }) {
   const label = severityLabel[severity];
   return (

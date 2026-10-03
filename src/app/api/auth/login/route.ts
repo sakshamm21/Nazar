@@ -3,7 +3,7 @@ import { login, publicUser } from "@/lib/auth/service";
 import { sessionCookie, signSession } from "@/lib/auth/session";
 import { api, json, parseBody } from "@/lib/http";
 import { ipHash, rateLimit } from "@/lib/limits";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 

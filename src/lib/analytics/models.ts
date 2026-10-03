@@ -1,7 +1,6 @@
 /**
- * The seven quant models from StockAI v1, extracted from the AI tools into pure functions so the
- * nightly pipeline, the portfolio views and the tests can all use them on stored data.
- * Logic is unchanged from v1 except where noted.
+ * The seven quant models as pure functions, so the nightly checkup, the portfolio views, the Ask
+ * tools and the tests all share one implementation working on stored data.
  */
 import type { HealthInfo } from "@/lib/db/schema";
 import { alignSeries, corr, ema, mean, median, pctReturns, periodsPerYear, round, rsi, sample, sma, stdev, xirr } from "./stats";
@@ -224,7 +223,7 @@ export function dupont(rows: Row[]) {
 /* Comparable-company valuation                                        */
 /* ------------------------------------------------------------------ */
 
-export const COMP_MULTIPLES = ["trailingPE", "forwardPE", "evToEbitda", "priceToBook", "priceToSales"] as const;
+const COMP_MULTIPLES = ["trailingPE", "forwardPE", "evToEbitda", "priceToBook", "priceToSales"] as const;
 type MetricLike = { metrics: Record<string, number | null | undefined> };
 
 export function comps(target: MetricLike, peers: MetricLike[], shares: number | null) {

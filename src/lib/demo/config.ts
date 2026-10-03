@@ -39,7 +39,7 @@ export const DEMO_INDICES = [NIFTY, ...SECTOR_INDICES];
 /** The holding whose latest real quarterly results are presented as "reported yesterday" (H4). */
 export const DEMO_RESULTS_SYMBOL = "INFY.NS";
 
-/** Public test accounts (TEST_ACCOUNTS.md), one-click on the sign-in page like Syncronify. */
+/** Public test accounts (docs/TEST_ACCOUNTS.md), one click each on the sign-in page. */
 export const TEST_PASSWORD = "nazar123";
 export const TEST_ACCOUNTS = [
   { email: "demo@nazar.dev", name: "Aarav Mehta", kind: "full" as const, label: "Investor (full demo)" },

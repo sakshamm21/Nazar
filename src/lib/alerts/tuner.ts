@@ -1,5 +1,5 @@
 /**
- * H5 — alerts that learn. Rule-based and explainable on purpose (DECISIONS.md D-6):
+ * H5 — alerts that learn. Rule-based and explainable on purpose (docs/DECISIONS.md D-5):
  *
  * Magnitude types (stock_move, portfolio_move, concentration): look at the user's last 10 rated
  * alerts of that type (90 days, only those rated since the last change). Find ladder steps T above
@@ -30,7 +30,7 @@ export type TuneInput = {
 
 export type TuneDecision = { type: AlertType; oldValue: number | null; newValue: number | null; muted: boolean; evidence: TuningEvidence };
 
-export const WINDOW = 10;
+const WINDOW = 10;
 const COOLDOWN_DAYS = 14;
 const LOOKBACK_DAYS = 90;
 

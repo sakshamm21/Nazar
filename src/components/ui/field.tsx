@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-export const inputClass = "h-11 w-full rounded-[14px] border border-line bg-surface-2 px-3.5 text-[15px] text-text placeholder:text-subtle outline-none transition-colors focus:border-accent";
+const inputClass = "h-11 w-full rounded-[14px] border border-line bg-surface-2 px-3.5 text-[15px] text-text placeholder:text-subtle outline-none transition-colors focus:border-accent";
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(inputClass, className)} {...props} />;

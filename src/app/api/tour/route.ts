@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/lib/db";
 import { api, json, parseBody, requireUser } from "@/lib/http";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 

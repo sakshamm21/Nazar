@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
 
 /** Switch between your portfolios ("Mine" / "Papa's"); remembered in a cookie (H6). */
 export function PortfolioSwitcher({ portfolios, activeId }: { portfolios: { id: string; name: string; ownerLabel: string | null; language: "en" | "hi" }[]; activeId: string | null }) {
@@ -19,7 +20,7 @@ export function PortfolioSwitcher({ portfolios, activeId }: { portfolios: { id: 
             aria-selected={on}
             onClick={() => {
               document.cookie = `nazar_pf=${p.id}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
-              void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "portfolio_switch", props: { family: Boolean(p.ownerLabel) } }) }).catch(() => {});
+              trackClient("portfolio_switch", { family: Boolean(p.ownerLabel) });
               start(() => router.refresh());
             }}
             className={cn("flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors", on ? "border-transparent bg-text text-bg" : "border-line bg-surface-1 text-muted hover:text-text")}

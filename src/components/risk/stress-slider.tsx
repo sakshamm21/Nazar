@@ -3,6 +3,7 @@ import { useState } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { adjustedBeta } from "@/lib/portfolio/math";
 import { absPct, inr, inrCompact } from "@/lib/format";
+import { trackClient } from "@/lib/events-client";
 
 type H = { symbol: string; name: string; value: number; beta: number | null };
 
@@ -43,7 +44,7 @@ export function StressSlider({ holdings }: { holdings: H[] }) {
         step={1}
         value={shock}
         onChange={(e) => setShock(Number(e.target.value))}
-        onPointerUp={() => void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "stress_slider", props: { shock } }) }).catch(() => {})}
+        onPointerUp={() => trackClient("stress_slider", { shock })}
         className="mt-5 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-3 accent-[var(--accent)]"
         aria-valuetext={`Nifty down ${shock} percent; estimated loss ${inr(Math.abs(loss))}`}
       />

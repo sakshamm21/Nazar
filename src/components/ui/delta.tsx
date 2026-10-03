@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 import { absPct, inr, inrCompact } from "@/lib/format";
 
 /**
- * A change in ₹ and/or %, always with ▲/▼ and a sign so it reads without colour (DESIGN.md §2).
+ * A change in ₹ and/or %, always with ▲/▼ and a sign so it reads without colour (docs/DESIGN.md §2).
  * `pct` is a fraction (−0.072 = −7.2%).
  */
 export function Delta({ amount, pct, compact, className, showArrow = true, size = "md" }: { amount?: number | null; pct?: number | null; compact?: boolean; className?: string; showArrow?: boolean; size?: "sm" | "md" }) {

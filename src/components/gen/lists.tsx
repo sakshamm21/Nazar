@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { ExternalLink, Search } from "lucide-react";
 import { useState } from "react";
 import { fmt, fmtLarge, money, pct, upDown } from "@/lib/format";

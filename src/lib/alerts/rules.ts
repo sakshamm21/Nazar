@@ -179,7 +179,7 @@ export function evaluate(day: DayInput, s: EffectiveSettings): Candidate[] {
       });
     }
 
-  // 7. Manual price targets (P2)
+  // 7. Price levels the user set
   for (const p of day.priceTargets ?? []) {
     const h = day.holdings.find((x) => x.symbol === p.symbol);
     const price = h?.price;

@@ -24,7 +24,7 @@ export function fmtLarge(n: number | null | undefined, prefix = "", currency?: s
 /** Money in compact form with the right symbol, e.g. $4.84T or ₹16.01 L Cr. `null` = currency unknown: no symbol. */
 export const money = (n: number | null | undefined, currency?: string | null) => (currency === null ? fmtLarge(n) : fmtLarge(n, currencySymbol(currency), currency));
 
-export function currencySymbol(c?: string) {
+function currencySymbol(c?: string) {
   const map: Record<string, string> = { USD: "$", EUR: "€", GBP: "£", GBp: "p", INR: "₹", JPY: "¥", CNY: "¥", HKD: "HK$", CAD: "C$", AUD: "A$", KRW: "₩", CHF: "CHF " };
   return c ? (map[c] ?? `${c} `) : "$";
 }
@@ -54,7 +54,7 @@ export function pct(v: number | null | undefined, alreadyPercent = false) {
   return `${x > 0 ? "+" : ""}${x.toFixed(2)}%`;
 }
 
-/** Semantic gain/loss text colour (design tokens; see DESIGN.md). */
+/** Semantic gain/loss text colour (design tokens; see docs/DESIGN.md). */
 export const upDown = (v: number | null | undefined) => (v == null || v === 0 ? "text-muted" : v > 0 ? "text-gain" : "text-loss");
 
 /* ------------------------------------------------------------------ */
@@ -70,6 +70,9 @@ export function inr(n: number | null | undefined, opts: { sign?: boolean; decima
   const sign = n < 0 ? "−" : opts.sign && n > 0 ? "+" : "";
   return `${sign}₹${s}`;
 }
+
+/** Whole rupees for prose: "₹8,412" (no paise). */
+export const inrWhole = (n: number, opts: { sign?: boolean } = {}) => inr(Math.round(n), { ...opts, decimals: 0 });
 
 /** ₹8.4K / ₹3.2 L / ₹1.25 Cr for tight spaces. */
 export function inrCompact(n: number | null | undefined, opts: { sign?: boolean } = {}) {

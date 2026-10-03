@@ -7,10 +7,10 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 
-const URL = "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv";
+const NSE_EQUITY_LIST = "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv";
 
 async function main() {
-  const res = await fetch(URL, { headers: { "user-agent": "Mozilla/5.0 (Nazar NSE master refresh)" } });
+  const res = await fetch(NSE_EQUITY_LIST, { headers: { "user-agent": "Mozilla/5.0 (Nazar NSE master refresh)" } });
   if (!res.ok) throw new Error(`NSE responded ${res.status}`);
   const text = await res.text();
   if (!text.startsWith("SYMBOL,")) throw new Error("Unexpected file format from NSE");

@@ -4,7 +4,7 @@ import { clearSessionCookie } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 import { api, json, requireUser } from "@/lib/http";
 import { remainingToday } from "@/lib/limits";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 

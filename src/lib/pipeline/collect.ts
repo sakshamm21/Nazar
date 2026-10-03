@@ -5,7 +5,7 @@ import type { DB } from "@/lib/db";
 import { schema } from "@/lib/db";
 import type { HealthInfo, QuarterRow, ResultsData } from "@/lib/db/schema";
 import { betaAndVol, buildHealth } from "@/lib/analytics/models";
-import { metricsFromSummary } from "@/lib/finance";
+import { metricsFromSummary } from "@/lib/data/yahoo";
 import { CircuitBreaker, CircuitOpenError, Limiter } from "@/lib/data/resilience";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
 import { getMaster, shortName } from "@/lib/instruments/master";
@@ -17,7 +17,7 @@ import { logger } from "@/lib/logger";
  * Collect stage of the nightly checkup. For each unique symbol, once:
  *  1. one batched quote call per 50 symbols → today's price, change and "as of" time
  *  2. incremental daily history (only days we don't have; ~400 days the first time)
- *  3. one quoteSummary call → profile, the 43 metrics, next results date, quarterly results
+ *  3. one quoteSummary call → profile, the 42 metrics, next results date, quarterly results
  *  4. annual statements only weekly or after new results → health score (Piotroski/Altman or lender check)
  *  5. beta and volatility vs the Nifty from stored prices (Yahoo's NSE beta is unreliable)
  *  6. results detection: a quarter end we haven't seen before → results_events row (H4)
@@ -58,7 +58,7 @@ async function previousSnapshot(db: DB, symbol: string, source: string, before: 
   return r ?? null;
 }
 
-export async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: string, marketDate: string, source = "live") {
+async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: string, marketDate: string, source = "live") {
   // 1. Incremental history
   const last = await lastStoredDate(db, symbol, source);
   const from = !last || last.count < 200 ? new Date(Date.now() - 400 * 86400000) : new Date(`${shiftDate(last.date, -5)}T00:00:00Z`);
@@ -121,7 +121,7 @@ export async function collectSymbol(db: DB, provider: MarketDataProvider, symbol
   return { results: newResults };
 }
 
-export async function recordResults(db: DB, symbol: string, source: string, quarters: QuarterRow[], detectedOn: string, healthBefore: number | null, healthAfter: number | null, annualHealthUpdated: boolean) {
+async function recordResults(db: DB, symbol: string, source: string, quarters: QuarterRow[], detectedOn: string, healthBefore: number | null, healthAfter: number | null, annualHealthUpdated: boolean) {
   const cur = quarters.at(-1)!;
   const prevQ = quarters.at(-2) ?? null;
   const yearAgo = quarters.find((q) => q.quarterEnd === shiftDate(cur.quarterEnd, -365) || q.quarterEnd.slice(5) === cur.quarterEnd.slice(5) && Number(q.quarterEnd.slice(0, 4)) === Number(cur.quarterEnd.slice(0, 4)) - 1) ?? null;

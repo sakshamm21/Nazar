@@ -1,4 +1,3 @@
- 
 /**
  * Client-side Excel export. Model-type tools (DCF, comps, SIP, risk, correlation, DuPont) become
  * live spreadsheets: blue cells are inputs, black cells are formulas, so users can change an
@@ -6,14 +5,14 @@
  * exceljs is loaded on demand so it never weighs down the chat page.
  */
 import type ExcelJS from "exceljs";
-import { TOOL_LABELS } from "./followups";
+import { TOOL_LABELS } from "./ask/followups";
 
 type WS = ExcelJS.Worksheet;
 type WB = ExcelJS.Workbook;
 
 const INPUT_FONT = { color: { argb: "FF1F4ED8" }, bold: true };
 const INPUT_FILL: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF7D6" } };
-const HEAD_FILL: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0B6E4E" } };
+const HEAD_FILL: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B54F0" } };
 const HEAD_FONT = { color: { argb: "FFFFFFFF" }, bold: true };
 const PCT = "0.00%";
 const NUM = "#,##0.00";
@@ -107,7 +106,7 @@ function dcf(wb: WB, d: any) {
   label(ws, `A${s + 3}`, "Plus cash, less debt"); formula(ws, `B${s + 3}`, `$B$9-$B$10`, d.breakdown?.netCash, BIG);
   label(ws, `A${s + 4}`, "Equity value", true); formula(ws, `B${s + 4}`, `B${s}+B${s + 2}+B${s + 3}`, d.breakdown?.equity, BIG, true);
   label(ws, `A${s + 5}`, "Intrinsic value per share", true); formula(ws, `B${s + 5}`, `B${s + 4}/$B$11`, d.intrinsicValue, NUM, true);
-  label(ws, `A${s + 6}`, "Upside vs current price", true); formula(ws, `B${s + 6}`, `B${s + 5}/$B$12-1`, d.upside, PCT, true);
+  label(ws, `A${s + 6}`, "Model value vs current price", true); formula(ws, `B${s + 6}`, `B${s + 5}/$B$12-1`, d.upside, PCT, true);
 
   // Sensitivity: closed-form per-share value for each (WACC, growth) pair, all live formulas.
   const t = s + 9;
@@ -137,17 +136,17 @@ function comps(wb: WB, d: any) {
   const rowsAll = [d.target, ...d.peers];
   rowsAll.forEach((r: any, i: number) => {
     const row = 5 + i;
-    ws.getCell(`A${row}`).value = i === 0 ? `${r.name} (target)` : r.name;
+    ws.getCell(`A${row}`).value = i === 0 ? `${r.name} (this company)` : r.name;
     ws.getCell(`B${row}`).value = r.symbol;
     mult.forEach((k, j) => input(ws, `${col(2 + j)}${row}`, r[k], "0.00"));
     if (i === 0) ws.getRow(row).font = { bold: true };
   });
   const p0 = 6, p1 = 5 + rowsAll.length - 1, medRow = p1 + 1;
-  label(ws, `A${medRow}`, "Peer median (excl. target)", true);
+  label(ws, `A${medRow}`, "Peer median (excluding this company)", true);
   mult.forEach((k, j) => formula(ws, `${col(2 + j)}${medRow}`, `IFERROR(MEDIAN(${col(2 + j)}${p0}:${col(2 + j)}${p1}),"")`, d.medians?.[k] ?? undefined, "0.00", true));
 
   const b = medRow + 3;
-  label(ws, `A${b - 1}`, "Target inputs (blue cells are editable)", true);
+  label(ws, `A${b - 1}`, "Company inputs (blue cells are editable)", true);
   const ins: [string, any, string][] = [
     ["EPS (TTM)", d.inputs.trailingEps, NUM], ["EPS (forward)", d.inputs.forwardEps, NUM], ["EBITDA", d.inputs.ebitda, BIG],
     ["Net debt (debt − cash)", d.netDebt, BIG], ["Book value per share", d.inputs.bookValue, NUM], ["Revenue", d.inputs.revenue, BIG],
@@ -170,9 +169,9 @@ function comps(wb: WB, d: any) {
     formula(ws, `B${row}`, `${c}${medRow}`, d.medians?.[k], "0.00");
     formula(ws, `C${row}`, `IFERROR(${f},"")`, d.implied?.[k] ?? undefined, NUM);
   });
-  label(ws, `A${m + 5}`, "Blended fair value (average of methods)", true);
+  label(ws, `A${m + 5}`, "Blended model value (average of methods)", true);
   formula(ws, `C${m + 5}`, `AVERAGEIF(C${m}:C${m + 4},">0")`, d.blended, NUM, true);
-  label(ws, `A${m + 6}`, "Upside vs current price", true);
+  label(ws, `A${m + 6}`, "Model value vs current price", true);
   formula(ws, `C${m + 6}`, `C${m + 5}/$B$${b + 7}-1`, d.upside, PCT, true);
   ws.getColumn(1).width = 42;
   for (let c = 2; c <= 7; c++) ws.getColumn(c).width = 16;
@@ -362,7 +361,7 @@ const BUILDERS: Record<string, (wb: WB, d: any) => void> = {
   compareStocks: compare,
 };
 
-export function subjectOf(d: any): string {
+function subjectOf(d: any): string {
   return d?.symbol ?? (Array.isArray(d?.symbols) ? d.symbols.map((s: any) => s?.symbol ?? s).slice(0, 3).join(" ") : d?.query ?? d?.region ?? d?.screen ?? "");
 }
 
@@ -398,7 +397,7 @@ async function save(wb: WB, filename: string) {
 export async function downloadToolExcel(toolName: string, data: any) {
   const wb = await newWorkbook();
   addTool(wb, toolName, data);
-  await save(wb, `StockAI ${TOOL_LABELS[toolName] ?? toolName} ${subjectOf(data)}.xlsx`.replace(/\s+/g, " "));
+  await save(wb, `Nazar ${TOOL_LABELS[toolName] ?? toolName} ${subjectOf(data)}.xlsx`.replace(/\s+/g, " "));
 }
 
 /** Every successful tool result in a conversation, one sheet (or model) each. Returns the count. */
@@ -419,13 +418,6 @@ export async function downloadChatExcel(parts: { toolName: string; data: any }[]
   });
   index.getColumn(2).width = 28;
   index.getColumn(3).width = 30;
-  await save(wb, `StockAI ${title || "research"}.xlsx`.slice(0, 120));
+  await save(wb, `Nazar ${title || "research"}.xlsx`.slice(0, 120));
   return parts.length;
-}
-
-/** For tests: build a workbook in memory (Node) without downloading. */
-export async function buildWorkbookForTest(parts: { toolName: string; data: any }[]) {
-  const wb = await newWorkbook();
-  parts.forEach((p) => addTool(wb, p.toolName, p.data));
-  return wb;
 }

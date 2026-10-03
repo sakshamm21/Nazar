@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { UIMessage } from "ai";
-import { SharedChat } from "@/components/SharedChat";
+import { SharedChat } from "@/components/ask/shared-chat";
 import { getDb, schema } from "@/lib/db";
 
 export const runtime = "nodejs";

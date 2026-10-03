@@ -3,14 +3,15 @@ import { randomUUID } from "crypto";
 import { getDb, schema } from "./db";
 
 /**
- * Product event types.
- * Server-side (trusted): question, guard_block, rate_limited, answer_error, share_created, feedback,
- *   signed_up, email_verified, signed_in, demo_started, portfolio_created, import_previewed,
- *   recipient_added, alert_created, alert_rated, threshold_tuned, threshold_undone, simulate,
- *   settings_changed, tour_complete/skip/restart.
- * Client-side (via /api/events, whitelisted): the ones in CLIENT_EVENTS.
+ * Product events (the /insights dashboard reads them).
+ * Server-side, trusted: signed_up, email_verified, signed_in, account_deleted, demo_started,
+ *   portfolio_created, import_previewed, recipient_added, price_target_created, alert_created,
+ *   alert_rated, threshold_tuned, threshold_undone, simulate, settings_changed, tour_complete,
+ *   tour_skip, tour_restart, and for Ask: question, guard_block, rate_limited, answer_error,
+ *   share_created, feedback.
+ * Client-side: only the types below are accepted by /api/events.
  */
-export const CLIENT_EVENTS = new Set(["app_open", "page_view", "export_pdf", "suggestion_click", "share_link_copied", "mode_change", "disclaimer_accepted", "sources_opened", "excel_download", "tools_opened", "catalog_example", "tour_step", "stress_slider", "portfolio_switch", "theme_change", "alert_opened", "landing_cta"]);
+export const CLIENT_EVENTS = new Set(["landing_cta", "tour_step", "portfolio_switch", "stress_slider", "theme_change", "excel_download", "export_pdf", "mode_change", "suggestion_click", "sources_opened", "share_link_copied"]);
 
 /** Fire-and-forget: analytics must never break or slow the product. */
 export function track(userId: string, type: string, props: Record<string, unknown> = {}, chatId?: string | null) {

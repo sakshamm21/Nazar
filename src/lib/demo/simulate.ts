@@ -5,7 +5,7 @@ import { adjustedBeta } from "@/lib/portfolio/math";
 import { NIFTY, SECTOR_INDICES, sectorOf } from "@/lib/instruments/sectors";
 import { latestTradeDate, shiftDate, snapshotsAsOf, sourcesFor, instrumentsFor } from "@/lib/market/store";
 import { evaluateUser } from "@/lib/pipeline/evaluate";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 /**
  * DEMO: "Simulate a bad day in the market". Generates a realistic next session for the visitor's

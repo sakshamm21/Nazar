@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { badRequest, notFound } from "@/lib/errors";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 /**
  * Portfolios, holdings and the Watching list. Every function takes the signed-in user's id and
@@ -13,8 +13,8 @@ import { track } from "@/lib/analytics";
 export type Portfolio = typeof schema.portfolios.$inferSelect;
 export type Holding = typeof schema.holdings.$inferSelect;
 
-export const MAX_PORTFOLIOS = 6;
-export const MAX_HOLDINGS = 100;
+const MAX_PORTFOLIOS = 6;
+const MAX_HOLDINGS = 100;
 
 export async function listPortfolios(userId: string) {
   const db = await getDb();
@@ -106,18 +106,6 @@ async function requireHolding(userId: string, holdingId: string) {
     .limit(1);
   if (!row) throw notFound("Holding not found.");
   return row.h;
-}
-
-/** Every holding across the user's portfolios (for "is this symbol mine?" checks). */
-export async function userSymbols(userId: string): Promise<string[]> {
-  const db = await getDb();
-  const rows = await db
-    .selectDistinct({ s: schema.holdings.symbol })
-    .from(schema.holdings)
-    .innerJoin(schema.portfolios, eq(schema.portfolios.id, schema.holdings.portfolioId))
-    .where(eq(schema.portfolios.userId, userId));
-  const watch = await db.select({ s: schema.watching.symbol }).from(schema.watching).where(eq(schema.watching.userId, userId));
-  return [...new Set([...rows.map((r) => r.s), ...watch.map((r) => r.s)])];
 }
 
 /* ------------------------------------------------------------------ */

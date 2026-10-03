@@ -80,7 +80,7 @@ export function parseRss(xml: string): Headline[] {
 
 const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'");
 
-export const newsEnabled = () => process.env.NEWS_ENABLED !== "0";
+const newsEnabled = () => process.env.NEWS_ENABLED !== "0";
 
 /** Fetches recent headlines for one company. Never throws: news is optional context. */
 export async function fetchCompanyNews(name: string, symbol: string, opts: { since: Date; otherCompanies: string[]; aliases?: string[]; fetchImpl?: typeof fetch }): Promise<Headline[]> {

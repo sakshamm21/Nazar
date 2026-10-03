@@ -4,8 +4,8 @@ import { FileDown } from "lucide-react";
 import Link from "next/link";
 import { Wordmark } from "@/components/rings/nazar-mark";
 import { buttonClass } from "@/components/ui/button";
-import { LocalTime } from "./LocalTime";
-import { MessageList } from "./Messages";
+import { LocalTime } from "../ui/local-time";
+import { MessageList } from "./messages";
 
 /** Read-only view of a shared Ask conversation, at /s/<shareId>. Portfolios are never shareable. */
 export function SharedChat({ title, updatedAt, messages }: { title: string; updatedAt: string; messages: UIMessage[] }) {

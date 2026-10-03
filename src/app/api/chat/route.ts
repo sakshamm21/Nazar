@@ -1,4 +1,3 @@
- 
 import { openai } from "@ai-sdk/openai";
 import {
   convertToModelMessages,
@@ -12,15 +11,15 @@ import {
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { marketOf, track } from "@/lib/analytics";
-import { sessionFromRequest } from "@/lib/auth/session";
+import { marketOf, track } from "@/lib/events";
 import { getDb, schema } from "@/lib/db";
-import { classify, GUARD_MODEL, refusalText } from "@/lib/guard";
+import { classify, GUARD_MODEL, refusalText } from "@/lib/ask/scope-guard";
+import { api, parseBody, requireUser } from "@/lib/http";
 import { LIMITS, checkAndRecord, ipHash } from "@/lib/limits";
 import { ADVICE_RULES, NAZAR_SCOPE } from "@/lib/ask/prompt";
-import { AUTO_MODEL, estimateCost, getModel, routeModel } from "@/lib/models";
-import { allowedModelIds } from "@/lib/openai-models";
-import { makeTools } from "@/lib/tools";
+import { AUTO_MODEL, estimateCost, getModel, routeModel } from "@/lib/ask/models";
+import { allowedModelIds } from "@/lib/ask/openai-models";
+import { makeTools } from "@/lib/ask/tools";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -107,27 +106,24 @@ function friendlyError(msg: string, modelId: string) {
   return "Something went wrong while generating the answer. Please try again.";
 }
 
-export async function POST(req: Request) {
-  const userId = (await sessionFromRequest(req))?.userId ?? null;
-  if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
+export const POST = api(async (req: Request) => {
+  const user = await requireUser(req);
+  const userId = user.id;
   if (!process.env.OPENAI_API_KEY) {
     return Response.json({ error: "OPENAI_API_KEY is not set. Add it to .env.local (local) or your Vercel project env vars." }, { status: 500 });
   }
 
-  const parsed = Body.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Bad request" }, { status: 400 });
-  const { id, model: requested, mode } = parsed.data;
+  const body = await parseBody(req, Body);
+  const { id, model: requested, mode } = body;
   const startedAt = Date.now();
 
   // Only plain text from the user is accepted: no forged tool results, files or system messages.
-  const text = parsed.data.message.parts.map((p) => (p.type === "text" ? (p.text ?? "") : "")).join("\n").trim();
+  const text = body.message.parts.map((p) => (p.type === "text" ? (p.text ?? "") : "")).join("\n").trim();
   if (!text) return Response.json({ error: "Empty message" }, { status: 400 });
   if (text.length > LIMITS.maxInputChars) return Response.json({ error: `Please keep questions under ${LIMITS.maxInputChars} characters (yours is ${text.length}).` }, { status: 400 });
-  const userMessage: Msg = { id: parsed.data.message.id || randomUUID(), role: "user", parts: [{ type: "text", text }] };
+  const userMessage: Msg = { id: body.message.id || randomUUID(), role: "user", parts: [{ type: "text", text }] };
 
   const db = await getDb();
-  const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
-  if (!user) return Response.json({ error: "Not signed in" }, { status: 401 });
   const [existing] = await db.select({ userId: schema.chats.userId, messages: schema.chats.messages }).from(schema.chats).where(eq(schema.chats.id, id)).limit(1);
   if (existing && existing.userId !== userId) return Response.json({ error: "Forbidden" }, { status: 403 });
 
@@ -272,4 +268,4 @@ export async function POST(req: Request) {
     },
     onFinish: ({ messages: all }) => save(all),
   });
-}
+});

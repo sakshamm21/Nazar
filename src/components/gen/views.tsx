@@ -1,13 +1,11 @@
 "use client";
- 
+
 import { useMemo, useState } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Star } from "lucide-react";
 import { fmt, fmtLarge, money, pct, upDown, type Fmt } from "@/lib/format";
-import { useActions } from "../actions";
-import { LocalTime } from "../LocalTime";
+import { LocalTime } from "../ui/local-time";
 import { Panel, Stat, chartColors as C, tooltipStyle } from "./ui";
 
 /* ---------------- Quote ---------------- */
@@ -16,18 +14,12 @@ export const marketLabel = (state?: string) =>
   !state ? null : state === "REGULAR" ? "Market open" : /PRE/.test(state) ? "Pre-market" : /POST/.test(state) ? "After hours" : "Market closed";
 
 export function QuoteView({ data }: { data: any }) {
-  const actions = useActions();
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {data.quotes.map((q: any) => {
         const range = q.fiftyTwoWeekHigh && q.fiftyTwoWeekLow ? (q.price - q.fiftyTwoWeekLow) / (q.fiftyTwoWeekHigh - q.fiftyTwoWeekLow) : null;
         return (
-          <Panel key={q.symbol} title={<span><span className="font-mono">{q.symbol}</span> · {q.name}</span>} subtitle={<>{[q.exchange, marketLabel(q.marketState)].filter(Boolean).join(" · ")}{q.asOf && <> · as of <LocalTime iso={q.asOf} timeZone={q.timeZone} options={QUOTE_TIME} /></>}</>}
-            right={actions?.watch && (
-              <button onClick={() => actions.watch!(q.symbol)} className={`no-print rounded-md p-1 ${actions.watched?.has(q.symbol) ? "text-warn" : "text-subtle hover:text-warn"}`} title={actions.watched?.has(q.symbol) ? "Remove from watchlist" : "Add to watchlist"} aria-label="Toggle watchlist">
-                <Star className="h-4 w-4" fill={actions.watched?.has(q.symbol) ? "currentColor" : "none"} />
-              </button>
-            )}>
+          <Panel key={q.symbol} title={<span><span className="font-mono">{q.symbol}</span> · {q.name}</span>} subtitle={<>{[q.exchange, marketLabel(q.marketState)].filter(Boolean).join(" · ")}{q.asOf && <> · as of <LocalTime iso={q.asOf} timeZone={q.timeZone} options={QUOTE_TIME} /></>}</>}>
             <div className="flex items-baseline gap-3">
               <div className="text-2xl font-semibold tabular-nums">{fmt(q.price, "currency", q.currency)}</div>
               <div className={`text-sm tabular-nums ${upDown(q.change)}`}>

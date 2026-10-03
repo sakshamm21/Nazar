@@ -1,22 +1,18 @@
-import { desc, eq, sql } from "drizzle-orm";
-import { sessionFromRequest } from "@/lib/auth/session";
+import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
+import { api, json, requireUser } from "@/lib/http";
 
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
-  const userId = (await sessionFromRequest(req))?.userId ?? null;
-  if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
+/** The user's Ask conversations, newest first. */
+export const GET = api(async (req) => {
+  const u = await requireUser(req);
   const db = await getDb();
   const chats = await db
     .select({ id: schema.chats.id, title: schema.chats.title, updatedAt: schema.chats.updatedAt })
     .from(schema.chats)
-    .where(eq(schema.chats.userId, userId))
+    .where(eq(schema.chats.userId, u.id))
     .orderBy(desc(schema.chats.updatedAt))
     .limit(100);
-  const [u] = await db
-    .select({ cost: sql<number>`coalesce(sum(${schema.usage.costUsd}), 0)`, tokens: sql<number>`coalesce(sum(${schema.usage.inputTokens} + ${schema.usage.outputTokens}), 0)` })
-    .from(schema.usage)
-    .where(eq(schema.usage.userId, userId));
-  return Response.json({ chats, usage: { costUsd: Number(u?.cost ?? 0), tokens: Number(u?.tokens ?? 0) } });
-}
+  return json({ chats });
+});

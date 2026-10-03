@@ -6,10 +6,7 @@
  * Voice: calm, direct, slightly warm. Facts and context, never instructions.
  */
 import type { QuarterRow } from "@/lib/db/schema";
-import { absPct, dayLabel, inr as inrRaw, inrApprox, signedPct } from "@/lib/format";
-
-/** Whole rupees in prose (no paise). */
-const inr = (n: number, o: { sign?: boolean } = {}) => inrRaw(Math.round(n), { ...o, decimals: 0 });
+import { absPct, dayLabel, inrApprox, inrWhole as inr, signedPct } from "@/lib/format";
 import type { Attribution } from "@/lib/portfolio/math";
 import type { ReasonKind } from "./reason";
 
@@ -17,7 +14,7 @@ export type Lang = "en" | "hi";
 export type Bi = { en: string; hi: string };
 
 /** "your portfolio" / "Papa's portfolio" in English; Hindi always speaks to the reader ("आपका"). */
-export const pfRef = (ownerLabel: string | null | undefined): Bi => ({
+const pfRef = (ownerLabel: string | null | undefined): Bi => ({
   en: ownerLabel ? `${ownerLabel}'s portfolio` : "your portfolio",
   hi: "आपके पोर्टफोलियो",
 });

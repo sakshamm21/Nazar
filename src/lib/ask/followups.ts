@@ -1,4 +1,3 @@
- 
 import type { UIMessage } from "ai";
 
 /**
@@ -81,9 +80,9 @@ export const TOOL_LABELS: Record<string, string> = {
   getTechnicalIndicators: "Technicals",
   getMyPortfolio: "Your portfolio",
   getWatchlist: "Your Watching list",
-  addToWatchlist: "Watchlist update",
-  removeFromWatchlist: "Watchlist update",
-  createPriceAlert: "Price alert",
-  listPriceAlerts: "Your alerts",
-  deletePriceAlerts: "Alert update",
+  addToWatchlist: "Watching list update",
+  removeFromWatchlist: "Watching list update",
+  createPriceAlert: "Price level",
+  listPriceAlerts: "Your price levels",
+  deletePriceAlerts: "Price level update",
 };

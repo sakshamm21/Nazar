@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { InsightsView } from "@/components/InsightsView";
+import { InsightsView } from "@/components/insights/insights-view";
 import { adminEmails } from "@/lib/auth/service";
 import { currentUser } from "@/lib/current-user";
 import { getInsights } from "@/lib/insights";

@@ -9,15 +9,15 @@ import { loadEnv } from "./env";
 
 async function main() {
   loadEnv();
-  const { databaseUrl, createPglite, installDb, getDb, localDir } = await import("../src/lib/db");
+  const { databaseUrl, createPglite, closeDb, installDb, getDb, localDir } = await import("../src/lib/db");
   if (!databaseUrl) {
     const t = Date.now();
     console.log("Preparing the local database with demo data…");
     const db = await createPglite(localDir());
     installDb(db);
     await getDb();
-    await (db as unknown as { $client: { close: () => Promise<void> } }).$client.close();
-    console.log(`Local database ready in ${((Date.now() - t) / 1000).toFixed(1)}s. Test accounts: demo@nazar.dev / nazar123 (see TEST_ACCOUNTS.md)`);
+    await closeDb(db);
+    console.log(`Local database ready in ${((Date.now() - t) / 1000).toFixed(1)}s. Test accounts: demo@nazar.dev / nazar123 (see docs/TEST_ACCOUNTS.md)`);
   }
   const port = process.env.PORT ?? "3000";
   const child = spawn(`npx next dev -p ${Number(port) || 3000}`, { stdio: "inherit", shell: true });

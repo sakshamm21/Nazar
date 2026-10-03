@@ -11,7 +11,7 @@ import { dropShared, fetchCompanyNews, type Headline } from "@/lib/news/google";
 import { loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { shiftDate } from "@/lib/market/store";
 import { applyTuning, getSettings, getThresholds, ratedAlerts } from "@/lib/repo/alerts";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 /**
  * Alerts stage: for each of a user's portfolios, build the day from stored snapshots, run the

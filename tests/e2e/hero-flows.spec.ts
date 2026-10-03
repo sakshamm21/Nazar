@@ -166,7 +166,7 @@ test.describe("Accounts", () => {
     await page.getByRole("button", { name: /^Import \d+ from Zerodha/ }).click();
     await page.waitForURL(/\/home/);
     await page.goto("/portfolio");
-    await expect(page.getByText("Infosys").first()).toBeVisible();
+    await expect(page.getByText("Infosys").filter({ visible: true }).first()).toBeVisible();
   });
 });
 

@@ -22,7 +22,7 @@ export const users = pgTable("users", {
   /** Per-visitor demo account ("Try the demo"): isolated, deleted after `demoExpiresAt`. */
   isDemo: boolean("is_demo").notNull().default(false),
   demoExpiresAt: ts("demo_expires_at"),
-  /** Public test account listed on the sign-in page (TEST_ACCOUNTS.md). */
+  /** Public test account listed on the sign-in page (docs/TEST_ACCOUNTS.md). */
   isTestAccount: boolean("is_test_account").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
   tourCompletedAt: ts("tour_completed_at"),
@@ -72,7 +72,7 @@ export const holdings = pgTable(
   (t) => [uniqueIndex("holdings_pf_symbol_idx").on(t.portfolioId, t.symbol)],
 );
 
-/** Stocks the user watches without owning (v1's watchlist). */
+/** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",
   {
@@ -83,7 +83,7 @@ export const watching = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.symbol] })],
 );
 
-/** Manual "tell me when X crosses ₹Y" alerts (v1's price alerts), evaluated by the nightly pipeline. */
+/** "Tell me when X crosses ₹Y" price levels, evaluated by the nightly checkup. */
 export const priceTargets = pgTable(
   "price_targets",
   {
@@ -370,7 +370,7 @@ export const pipelineRuns = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
-/* Ask (chat) — carried over from v1                                    */
+/* Ask (chat)                                                          */
 /* ------------------------------------------------------------------ */
 
 export const chats = pgTable(

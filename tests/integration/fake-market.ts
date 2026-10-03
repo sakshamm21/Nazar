@@ -1,7 +1,7 @@
 /** A deterministic fake market-data provider (stands in for Yahoo in integration tests). */
 import type { QuarterRow } from "@/lib/db/schema";
 import { istDate, type MarketDataProvider, type SymbolSummary } from "@/lib/data/provider";
-import type { Quote } from "@/lib/finance";
+import type { Quote } from "@/lib/data/yahoo";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { prevWeekday, shiftDate } from "@/lib/market/store";
 

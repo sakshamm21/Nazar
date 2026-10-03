@@ -2,12 +2,12 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { ArrowUp, Square, Wrench } from "lucide-react";
-import { NazarMark } from "@/components/rings/nazar-mark";
-import { IrisLoader } from "@/components/rings/iris";
-import { TOOL_COUNT } from "@/lib/tool-catalog";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MessageList, type Rating } from "./Messages";
-import type { FeedbackReason } from "@/lib/feedback-reasons";
+import { IrisLoader } from "@/components/rings/iris";
+import { NazarMark } from "@/components/rings/nazar-mark";
+import type { FeedbackReason } from "@/lib/ask/feedback-reasons";
+import { TOOL_COUNT } from "@/lib/ask/tool-catalog";
+import { MessageList, type Rating } from "./messages";
 
 const MAX_CHARS = 2000;
 
@@ -37,7 +37,7 @@ export function Chat({
   /** Lets the parent read the live conversation (for the whole-chat Excel export). */
   onMessages?: (m: UIMessage[]) => void;
   onOpenTools?: () => void;
-  /** A prompt injected from outside the chat (e.g. clicking a watchlist item). */
+  /** A question to send on load (e.g. "Ask about this stock" links to /ask?q=…). */
   prompt?: { text: string; nonce: number } | null;
 }) {
   const [input, setInput] = useState("");
@@ -117,7 +117,7 @@ export function Chat({
               <h1 className="t-title-1 text-text">Ask Nazar anything about your money</h1>
               <p className="mt-2 max-w-md text-sm text-muted">Questions about your portfolio, a company or the market. Nazar reads your holdings and live data, and explains in plain language. It never tells you what to do with your money.</p>
               {onOpenTools && (
-                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs text-accent hover:bg-accent-soft">
+                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs text-accent hover:brightness-110">
                   <Wrench className="h-3.5 w-3.5" /> Research tools: {TOOL_COUNT} tools incl. DCF, comps, SIP backtest · Excel
                 </button>
               )}
@@ -126,7 +126,7 @@ export function Chat({
                   <div key={g.group} className="space-y-2">
                     <div className="text-left text-[11px] font-medium uppercase tracking-wide text-subtle">{g.group}</div>
                     {g.items.map((s) => (
-                      <button key={s} onClick={() => send(s)} className="block w-full rounded-[16px] border border-line bg-surface-2 px-3.5 py-3 text-left text-sm text-text transition hover:border-accent hover:bg-surface-2">
+                      <button key={s} onClick={() => send(s)} className="block w-full rounded-[16px] border border-line bg-surface-2 px-3.5 py-3 text-left text-sm text-text transition hover:border-accent">
                         {s}
                       </button>
                     ))}
@@ -176,7 +176,7 @@ export function Chat({
             className={`max-h-40 min-h-[44px] flex-1 resize-none rounded-[16px] border bg-surface-1 px-3.5 py-2.5 text-sm text-text outline-none placeholder:text-subtle ${tooLong ? "border-loss" : "border-line focus:border-accent"}`}
           />
           {busy ? (
-            <button type="button" onClick={() => stop()} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-surface-3 text-text hover:bg-surface-3" aria-label="Stop">
+            <button type="button" onClick={() => stop()} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
               <Square className="h-4 w-4" />
             </button>
           ) : (

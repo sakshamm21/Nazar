@@ -7,9 +7,9 @@ import { readTable } from "@/lib/importers/read";
 import { resolve } from "@/lib/importers/resolve";
 import { getMaster } from "@/lib/instruments/master";
 import { ipHash, rateLimit } from "@/lib/limits";
-import { NV, yahooCall, yf } from "@/lib/finance";
+import { NV, yahooCall, yf } from "@/lib/data/yahoo";
 import { requirePortfolio } from "@/lib/repo/portfolios";
-import { track } from "@/lib/analytics";
+import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

@@ -19,7 +19,7 @@ type User = typeof schema.users.$inferSelect;
 type Portfolio = typeof schema.portfolios.$inferSelect;
 
 /** Monday of the week containing `iso`. */
-export function mondayOf(iso: string) {
+function mondayOf(iso: string) {
   const d = new Date(`${iso}T00:00:00Z`);
   const dow = (d.getUTCDay() + 6) % 7;
   return shiftDate(iso, -dow);

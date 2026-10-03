@@ -9,7 +9,7 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { buildHealth } from "../../src/lib/analytics/models";
-import { metricsFromSummary } from "../../src/lib/finance";
+import { metricsFromSummary } from "../../src/lib/data/yahoo";
 import { yahooProvider } from "../../src/lib/data/provider";
 import { DEMO_INDICES, DEMO_SYMBOLS } from "../../src/lib/demo/config";
 import { getMaster } from "../../src/lib/instruments/master";

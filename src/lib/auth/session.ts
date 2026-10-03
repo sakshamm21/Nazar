@@ -3,8 +3,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { authSecret } from "./secret";
 
 /**
- * Sessions: a signed JWT (HS256) in an httpOnly cookie — Syncronify's token approach, carried in a
- * cookie because the pages and the API share one origin here.
+ * Sessions: a signed JWT (HS256) in an httpOnly cookie. A cookie rather than a bearer token because
+ * the pages and the API share one origin.
  */
 export const SESSION_COOKIE = "nazar_session";
 const MAX_AGE_DAYS = 30;

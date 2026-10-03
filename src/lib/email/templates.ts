@@ -11,7 +11,7 @@ const C = { ink: "#0A0F1C", text: "#1B2335", muted: "#5A6478", line: "#E3E8F0", 
 
 const ring = `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="width:22px;height:22px;border-radius:50%;border:2px solid ${C.blue};text-align:center;vertical-align:middle"><div style="width:8px;height:8px;border-radius:50%;background:${C.blue};margin:0 auto"></div></td><td style="padding-left:8px;font:600 16px/1 Arial,sans-serif;color:${C.ink};letter-spacing:-0.2px">Nazar</td></tr></table>`;
 
-export function layout(opts: { lang: Lang; preheader: string; body: string; footer?: string }) {
+function layout(opts: { lang: Lang; preheader: string; body: string; footer?: string }) {
   const font = opts.lang === "hi" ? "'Noto Sans Devanagari',Mangal,Arial,sans-serif" : "Inter,Segoe UI,Arial,sans-serif";
   return `<!doctype html><html lang="${opts.lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Nazar</title></head>
 <body style="margin:0;background:${C.bg};font-family:${font};color:${C.text}">

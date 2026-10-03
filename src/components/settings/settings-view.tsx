@@ -12,6 +12,8 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Segmented, Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
+import { apiCall } from "@/lib/api-client";
 
 type Change = { id: string; alertType: string; oldValue: number | null; newValue: number | null; muted: boolean; messageEn: string; createdAt: string; undoneAt: string | null; evidence: { below: { useful: number; total: number }; above: { useful: number; total: number } } };
 type Target = { id: string; symbol: string; direction: "above" | "below"; target: number; triggeredAt: string | null };
@@ -23,13 +25,6 @@ const SENS = [
 ] as const;
 
 const TYPE: Record<string, string> = { stock_move: "Stock moves", portfolio_move: "Whole-portfolio moves", concentration: "Concentration", results_upcoming: "Upcoming results reminders" };
-
-async function call(url: string, method: string, body?: unknown) {
-  const res = await fetch(url, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
-  const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(j.error ?? "Something went wrong.");
-  return j;
-}
 
 export function SettingsView(props: {
   user: { name: string; email: string; isDemo: boolean; isTestAccount: boolean; emailVerified: boolean };
@@ -52,7 +47,7 @@ export function SettingsView(props: {
     const next = { ...s, ...patch };
     setS(next);
     try {
-      await call("/api/settings", "PATCH", patch);
+      await apiCall("/api/settings", "PATCH", patch);
       router.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -107,7 +102,7 @@ export function SettingsView(props: {
                     size="sm"
                     className="mt-3"
                     onClick={async () => {
-                      await call(`/api/thresholds/${c.id}/undo`, "POST");
+                      await apiCall(`/api/thresholds/${c.id}/undo`, "POST");
                       toast("Undone. Nazar won't adjust this kind of alert for 30 days.");
                       router.refresh();
                     }}
@@ -133,7 +128,7 @@ export function SettingsView(props: {
               value={hydrated && resolvedTheme === "light" ? "light" : "dark"}
               onChange={(t) => {
                 setTheme(t);
-                void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "theme_change", props: { theme: t } }) }).catch(() => {});
+                trackClient("theme_change", { theme: t });
               }}
               options={[
                 { value: "dark", label: "Dark" },
@@ -164,7 +159,7 @@ export function SettingsView(props: {
               variant="secondary"
               size="sm"
               onClick={async () => {
-                await call("/api/tour", "POST", { action: "restart" });
+                await apiCall("/api/tour", "POST", { action: "restart" });
                 router.push("/home?tour=1");
               }}
             >
@@ -181,7 +176,7 @@ export function SettingsView(props: {
           <Button
             variant="secondary"
             onClick={async () => {
-              await call("/api/auth/logout", "POST");
+              await apiCall("/api/auth/logout", "POST");
               router.push("/");
               router.refresh();
             }}
@@ -193,7 +188,7 @@ export function SettingsView(props: {
               variant="danger"
               onClick={async () => {
                 if (!confirm("Delete your account and all your portfolios, alerts and chats? This can't be undone.")) return;
-                await call("/api/account", "DELETE");
+                await apiCall("/api/account", "DELETE");
                 router.push("/");
                 router.refresh();
               }}
@@ -234,7 +229,7 @@ function PriceTargets({ targets }: { targets: Target[] }) {
         onSubmit={async (e) => {
           e.preventDefault();
           try {
-            await call("/api/targets", "POST", { symbol: /\./.test(symbol) ? symbol : `${symbol.trim().toUpperCase()}.NS`, direction, target: Number(target) });
+            await apiCall("/api/targets", "POST", { symbol: /\./.test(symbol) ? symbol : `${symbol.trim().toUpperCase()}.NS`, direction, target: Number(target) });
             setSymbol("");
             setTarget("");
             router.refresh();
@@ -265,7 +260,7 @@ function PriceTargets({ targets }: { targets: Target[] }) {
                 aria-label="Delete price alert"
                 className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text"
                 onClick={async () => {
-                  await call("/api/targets", "DELETE", { ids: [t.id] });
+                  await apiCall("/api/targets", "DELETE", { ids: [t.id] });
                   router.refresh();
                 }}
               >

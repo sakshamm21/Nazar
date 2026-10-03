@@ -1,27 +1,17 @@
 import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
-import { NV, cached, clean, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, yf } from "./finance";
-import { buildHealth, comps, correlationMatrix, dupont, piotroskiAltman, riskReturn, sipBacktest, technicals, FINANCIAL_RE } from "./analytics/models";
-import { round } from "./analytics/stats";
+import { NV, cached, clean, fetchMetrics, fetchQuotes, fxRate, num, quoteSummary, yf } from "../data/yahoo";
+import { forModel, safe as safeData } from "./tool-utils";
+import { buildHealth, comps, correlationMatrix, dupont, piotroskiAltman, riskReturn, sipBacktest, technicals, FINANCIAL_RE } from "../analytics/models";
+import { round } from "../analytics/stats";
 
 /**
  * Quant / modelling tools for the Ask tab. The maths lives in analytics/models.ts (pure, tested,
  * shared with the nightly pipeline); these wrappers fetch data through the cached, rate-limited
- * Yahoo layer and keep v1's output shapes so the chart views and Excel models are unchanged.
+ * Yahoo layer and return the shapes the chart views and Excel models expect.
  */
-async function safe<T>(fn: () => Promise<T>): Promise<T | { error: string }> {
-  try {
-    return await fn();
-  } catch (e: any) {
-    const msg = String(e?.message ?? e);
-    console.warn("[analysis] error:", msg.slice(0, 300));
-    if (/Not Found|No fundamentals|Quote not found|delisted|No data/i.test(msg)) return { error: "Symbol not found or not enough data for this analysis." };
-    if (isTransient(e)) return { error: "Yahoo Finance is rate-limiting or temporarily unavailable. Try again in a minute." };
-    return { error: `This analysis couldn't be completed${/<|\{/.test(msg) ? "" : `: ${msg.slice(0, 120)}`}.` };
-  }
-}
-const forModel = (fn: (o: any) => unknown) => (o: any) => ({ type: "json" as const, value: (o && typeof o === "object" && "error" in o ? o : fn(o)) as any });
+const safe = <T,>(fn: () => Promise<T>) => safeData(fn, "analysis");
 const symbol = z.string().min(1).max(20).describe("Ticker symbol, e.g. TCS.NS, AAPL, ^NSEI");
 
 const RANGE_YEARS: Record<string, number> = { "6mo": 0.5, "1y": 1, "2y": 2, "3y": 3, "5y": 5, "10y": 10, "20y": 20 };
@@ -195,5 +185,3 @@ export const analysisTools = {
     toModelOutput: forModel((o) => ({ symbol: o.symbol, last: o.last, range52w: o.range52w, signals: o.signals })),
   }),
 };
-
-

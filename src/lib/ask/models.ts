@@ -1,7 +1,7 @@
 /**
  * Cost–performance model catalog.
- * Prices are USD per 1M tokens (standard tier). Edit freely — the /api/models
- * endpoint filters this list down to the models your OpenAI key can actually use.
+ * Prices are USD per 1M tokens (standard tier). The /api/models endpoint filters this list down to
+ * the models the OpenAI key can actually use.
  */
 export type ModelTier = "economy" | "balanced" | "premium";
 
@@ -42,8 +42,7 @@ export function estimateCost(modelId: string, inputTokens = 0, outputTokens = 0)
 /**
  * "Auto" routing: pick the cheapest model that is likely good enough for the query.
  * Lookups & definitions → economy; analysis, comparisons, valuation → balanced;
- * premium ONLY when the user explicitly asks for depth. (v1 sent any question containing
- * "valuation" to premium: $0.22 and 22s for a routine "analyze X" — see the product deck.)
+ * premium only when the user explicitly asks for depth.
  */
 export function routeModel(prompt: string, available: string[]): string {
   const p = prompt.toLowerCase();

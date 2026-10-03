@@ -1,15 +1,13 @@
 {
   "name": "nazar",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Nazar: an AI portfolio watchdog for Indian retail investors",
   "scripts": {
     "dev": "tsx --conditions=react-server scripts/dev.ts",
-    "dev:next": "next dev",
     "build": "tsx --conditions=react-server scripts/migrate.ts && next build",
-    "build:local": "next build",
     "start": "next start",
-    "lint": "eslint src",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -52,7 +50,6 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22",

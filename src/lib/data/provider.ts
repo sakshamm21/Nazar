@@ -1,5 +1,5 @@
 import "server-only";
-import { NV, clean, mapQuote, num, toDate, yahooCall, yf, type Quote } from "@/lib/finance";
+import { NV, clean, mapQuote, num, toDate, yahooCall, yf, type Quote } from "@/lib/data/yahoo";
 
 /**
  * What the nightly pipeline needs from a market-data source. Yahoo is the only implementation in
@@ -35,7 +35,7 @@ export type SymbolSummary = {
 const SUMMARY_MODULES = ["price", "summaryDetail", "defaultKeyStatistics", "financialData", "calendarEvents", "earnings", "earningsHistory", "assetProfile"];
 
 /** "2Q2026" (calendar quarter) → "2026-06-30". */
-export function quarterLabelToEnd(label: string): string | null {
+function quarterLabelToEnd(label: string): string | null {
   const m = /^([1-4])Q(\d{4})$/.exec(label?.trim() ?? "");
   if (!m) return null;
   const q = Number(m[1]), y = m[2];
@@ -43,7 +43,7 @@ export function quarterLabelToEnd(label: string): string | null {
 }
 
 /** Pure: merges Yahoo's quarterly revenue/earnings chart with EPS actual vs estimate. */
-export function quartersFromSummary(qs: any): SymbolSummary["quarters"] {
+function quartersFromSummary(qs: any): SymbolSummary["quarters"] {
   const byEnd = new Map<string, SymbolSummary["quarters"][number]>();
   for (const q of qs?.earnings?.financialsChart?.quarterly ?? []) {
     const end = quarterLabelToEnd(String(q.date));
@@ -60,7 +60,7 @@ export function quartersFromSummary(qs: any): SymbolSummary["quarters"] {
   return [...byEnd.values()].sort((a, b) => a.quarterEnd.localeCompare(b.quarterEnd));
 }
 
-export function summaryFrom(qs: any): SymbolSummary {
+function summaryFrom(qs: any): SymbolSummary {
   const currency = qs?.price?.currency ?? "INR";
   return {
     raw: qs,

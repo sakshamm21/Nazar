@@ -1,16 +1,16 @@
 "use client";
- 
+
 import type { UIMessage } from "ai";
 import { ChevronRight, Database, ShieldCheck, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ToolView } from "./gen/ToolView";
-import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/feedback-reasons";
-import { TOOL_LABELS, followUps } from "@/lib/followups";
-import { getModel } from "@/lib/models";
-import { PRIVATE_TOOLS } from "@/lib/tool-names";
-import { trackClient } from "@/lib/track-client";
+import { ToolView } from "../gen/tool-view";
+import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/ask/feedback-reasons";
+import { TOOL_LABELS, followUps } from "@/lib/ask/followups";
+import { getModel } from "@/lib/ask/models";
+import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
+import { trackClient } from "@/lib/events-client";
 
 type Meta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string };
 export type Rating = "up" | "down";

@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { TOOL_CATALOG, TOOL_COUNT } from "@/lib/tool-catalog";
+import { TOOL_CATALOG, TOOL_COUNT } from "@/lib/ask/tool-catalog";
 
 export const metadata: Metadata = { title: "Research tools" };
 
-/** The Tools catalog (v1), now a secondary "Research" section of the Ask tab. */
+/** The Research catalog: every Ask tool by category, with example questions. */
 export default function ResearchPage() {
   const models = TOOL_CATALOG.flatMap((g) => g.items).filter((i) => i.excel === "model").length;
   return (

@@ -47,7 +47,6 @@ describe("the server secret", () => {
   it("production refuses to run without a real secret", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("AUTH_SECRET", "");
-    vi.stubEnv("NEXTAUTH_SECRET", "");
     expect(() => authSecret()).toThrow(/AUTH_SECRET must be set/);
     vi.stubEnv("AUTH_SECRET", "short");
     expect(() => authSecret()).toThrow();
@@ -57,7 +56,6 @@ describe("the server secret", () => {
   it("development falls back so `npm run dev` works with no setup", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("AUTH_SECRET", "");
-    vi.stubEnv("NEXTAUTH_SECRET", "");
     expect(authSecret().length).toBeGreaterThanOrEqual(32);
   });
 });

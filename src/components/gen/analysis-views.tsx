@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { Check, Minus, X } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fmt, fmtLarge, money, pct, upDown } from "@/lib/format";
@@ -88,7 +88,7 @@ export function CompsView({ data }: { data: any }) {
     <Panel title={<span><span className="font-mono">{data.symbol}</span> · Comparable company valuation</span>} subtitle={`${data.peers.length} peers${data.missingPeers?.length ? ` · no data: ${data.missingPeers.join(", ")}` : ""}${data.fxNote ? ` · ${data.fxNote}` : ""}`}>
       <div className="grid grid-cols-3 gap-3">
         <Stat label="Price" value={<span className="text-lg">{fmt(data.price, "currency", cur)}</span>} />
-        <Stat label="Blended fair value" value={<span className="text-lg">{fmt(data.blended, "currency", cur)}</span>} />
+        <Stat label="Blended model value" value={<span className="text-lg">{fmt(data.blended, "currency", cur)}</span>} />
         <Stat label="Model vs price" value={<span className="text-lg">{pct(data.upside)}</span>} tone={upDown(data.upside)} />
       </div>
       <div className="mt-4 overflow-x-auto">

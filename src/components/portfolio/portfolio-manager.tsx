@@ -13,17 +13,11 @@ import { Field, FormAlert, Input, Select } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
 import { inr } from "@/lib/format";
+import { apiCall } from "@/lib/api-client";
 
 type Pf = { id: string; name: string; ownerLabel: string | null; language: "en" | "hi" };
 type Row = { id: string; symbol: string; name: string; quantity: number; avgPrice: number; buyDate: string | null; price: number | null; value: number; pnl: number | null; pnlPct: number | null; source: string };
 type Watch = { symbol: string; name: string; price: number | null; changePct: number | null };
-
-async function call(url: string, method: string, body?: unknown) {
-  const res = await fetch(url, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
-  const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(j.error ?? "Something went wrong.");
-  return j;
-}
 
 export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo }: { portfolios: Pf[]; activeId: string | null; rows: Row[]; watching: Watch[]; isDemo: boolean }) {
   const router = useRouter();
@@ -110,7 +104,7 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
                         className="rounded-full p-2 text-subtle hover:bg-loss-soft hover:text-loss"
                         onClick={async () => {
                           if (!confirm(`Remove ${r.name} from this portfolio?`)) return;
-                          await call(`/api/holdings/${r.id}`, "DELETE");
+                          await apiCall(`/api/holdings/${r.id}`, "DELETE");
                           toast(`${r.name} removed`);
                           router.refresh();
                         }}
@@ -160,7 +154,7 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
                           className="rounded-full p-2 text-subtle hover:bg-loss-soft hover:text-loss"
                           onClick={async () => {
                             if (!confirm(`Remove ${r.name} from this portfolio?`)) return;
-                            await call(`/api/holdings/${r.id}`, "DELETE");
+                            await apiCall(`/api/holdings/${r.id}`, "DELETE");
                             toast(`${r.name} removed`);
                             router.refresh();
                           }}
@@ -195,7 +189,7 @@ function TickerSearch({ onPick }: { onPick: (r: { symbol: string; name: string; 
   useEffect(() => {
     if (q.trim().length < 2) return;
     const t = setTimeout(async () => {
-      const j = await call(`/api/search?q=${encodeURIComponent(q.trim())}`, "GET").catch(() => ({ results: [] }));
+      const j = await apiCall(`/api/search?q=${encodeURIComponent(q.trim())}`, "GET").catch(() => ({ results: [] }));
       setResults(j.results);
     }, 180);
     return () => clearTimeout(t);
@@ -252,7 +246,7 @@ function AddHoldingSheet({ open, onClose, portfolioId }: { open: boolean; onClos
               setBusy(true);
               setError(null);
               try {
-                await call(`/api/portfolios/${portfolioId}/holdings`, "POST", { holdings: [{ symbol: picked.symbol, quantity: Number(qty), avgPrice: Number(avg), buyDate: date || null, isin: picked.isin, rawName: picked.name, source: "manual" }] });
+                await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", { holdings: [{ symbol: picked.symbol, quantity: Number(qty), avgPrice: Number(avg), buyDate: date || null, isin: picked.isin, rawName: picked.name, source: "manual" }] });
                 toast(`${picked.name} added. Nazar is watching it now.`);
                 reset();
                 onClose();
@@ -325,7 +319,7 @@ function EditHoldingSheet({ row, onClose }: { row: Row | null; onClose: () => vo
           className="w-full"
           onClick={async () => {
             try {
-              await call(`/api/holdings/${row!.id}`, "PATCH", { quantity: Number(qty), avgPrice: Number(avg), buyDate: date || null });
+              await apiCall(`/api/holdings/${row!.id}`, "PATCH", { quantity: Number(qty), avgPrice: Number(avg), buyDate: date || null });
               onClose();
               router.refresh();
             } catch (e) {
@@ -373,7 +367,7 @@ function CreatePortfolioSheet({ mode, onClose }: { mode: null | "self" | "family
           className="w-full"
           onClick={async () => {
             try {
-              const j = await call("/api/portfolios", "POST", family ? { name: `${owner.trim()}'s portfolio`, ownerLabel: owner.trim(), language } : { name: name.trim() || "My portfolio", language: "en" });
+              const j = await apiCall("/api/portfolios", "POST", family ? { name: `${owner.trim()}'s portfolio`, ownerLabel: owner.trim(), language } : { name: name.trim() || "My portfolio", language: "en" });
               document.cookie = `nazar_pf=${j.portfolio.id}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
               onClose();
               router.push(family ? `/portfolio/${j.portfolio.id}/settings?new=1` : "/portfolio/import");
@@ -444,7 +438,7 @@ function WatchingCard({ watching }: { watching: Watch[] }) {
                   aria-label={`Stop watching ${w.name}`}
                   className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text"
                   onClick={async () => {
-                    await call("/api/watching", "DELETE", { symbols: [w.symbol] });
+                    await apiCall("/api/watching", "DELETE", { symbols: [w.symbol] });
                     router.refresh();
                   }}
                 >
@@ -458,7 +452,7 @@ function WatchingCard({ watching }: { watching: Watch[] }) {
       <Sheet open={open} onClose={() => setOpen(false)} title="Watch a stock">
         <TickerSearch
           onPick={async (r) => {
-            await call("/api/watching", "POST", { symbols: [r.symbol] });
+            await apiCall("/api/watching", "POST", { symbols: [r.symbol] });
             toast(`Watching ${r.name}`);
             setOpen(false);
             router.refresh();

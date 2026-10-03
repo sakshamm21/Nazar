@@ -1,5 +1,5 @@
 /**
- * "What does this mean?" — plain-language explanations for every metric Nazar shows (P1 #13).
+ * "What does this mean?": plain-language explanations for every metric Nazar shows.
  * Short, concrete, no jargon in the explanation itself, and never advice.
  */
 export type GlossaryEntry = { term: string; plain: string; example?: string };

@@ -3,13 +3,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
 
 /**
  * First-visit guided tour (7 steps, skippable, restartable from Settings). Walks H1–H6 on Home and
  * ends on "Simulate a bad day". Each step spotlights a [data-tour="…"] element; if one is missing
  * (e.g. no results this week) the step shows centred instead.
  */
-export const TOUR_STEPS = [
+const TOUR_STEPS = [
   { target: "h2", title: "Why did my portfolio move today?", body: "One line tells you how much you're up or down and which holdings caused it. Tap it for the full breakdown: market vs. your stocks." },
   { target: "h1", title: "Alerts that explain why", body: "Nazar only messages you when something important happens, with the likely reason (whole market, sector or the company itself) and what it means in rupees for you." },
   { target: "h3", title: "Hidden risks", body: "The outer ring is your portfolio's financial health; the inner ring is diversification and risk. Open it for a stress test and the stocks that secretly move together." },
@@ -62,7 +63,7 @@ export function Tour({ autoStart }: { autoStart: boolean }) {
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (el && el.offsetParent !== null) el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
     const t = setTimeout(measure, reduce ? 0 : 320);
-    void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "tour_step", props: { step } }) }).catch(() => {});
+    trackClient("tour_step", { step });
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, { passive: true });
     return () => {

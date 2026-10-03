@@ -7,16 +7,10 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Field, FormAlert, Input, Select } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
+import { apiCall } from "@/lib/api-client";
 
 type P = { id: string; name: string; ownerLabel: string | null; language: "en" | "hi"; alertsEnabled: boolean };
 type R = { email: string; confirmed: boolean; unsubscribed: boolean } | null;
-
-async function call(url: string, method: string, body?: unknown) {
-  const res = await fetch(url, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
-  const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(j.error ?? "Something went wrong.");
-  return j;
-}
 
 /** H6: whose portfolio, which language, and the family member who receives reports and major alerts. */
 export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p: P; recipient: R; isDemo: boolean; emailConfigured: boolean }) {
@@ -60,7 +54,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
             setBusy(true);
             setError(null);
             try {
-              await call(`/api/portfolios/${p.id}`, "PATCH", { name, ownerLabel: owner.trim() || null, language, alertsEnabled: alerts });
+              await apiCall(`/api/portfolios/${p.id}`, "PATCH", { name, ownerLabel: owner.trim() || null, language, alertsEnabled: alerts });
               toast("Saved");
               router.refresh();
             } catch (e) {
@@ -92,7 +86,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
             onClick={async () => {
               setError(null);
               try {
-                const j = await call(`/api/portfolios/${p.id}/recipient`, "POST", { email });
+                const j = await apiCall(`/api/portfolios/${p.id}/recipient`, "POST", { email });
                 toast(j.status === "sent" ? "We emailed them a one-click confirmation." : j.status === "demo" ? "Saved. Demo accounts never send email." : j.status === "not_configured" ? "Saved. Email isn't configured on this server, so nothing was sent." : "Saved, but the confirmation email failed. Try again later.");
                 router.refresh();
               } catch (e) {
@@ -106,7 +100,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
             <Button
               variant="ghost"
               onClick={async () => {
-                await call(`/api/portfolios/${p.id}/recipient`, "DELETE");
+                await apiCall(`/api/portfolios/${p.id}/recipient`, "DELETE");
                 setEmail("");
                 router.refresh();
               }}
@@ -127,7 +121,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
           className="mt-4"
           onClick={async () => {
             if (!confirm(`Delete "${p.name}" and everything in it?`)) return;
-            await call(`/api/portfolios/${p.id}`, "DELETE");
+            await apiCall(`/api/portfolios/${p.id}`, "DELETE");
             document.cookie = "nazar_pf=; Path=/; Max-Age=0";
             router.push("/portfolio");
             router.refresh();

@@ -1,7 +1,7 @@
 import { adjustedBeta } from "@/lib/portfolio/math";
 
 /**
- * H1 "likely reason" for a big move — deterministic and explainable (PLAN.md §5):
+ * H1 "likely reason" for a big move: deterministic and explainable (docs/DECISIONS.md D-6):
  * 1. market:  the Nifty moved ≥1% the same way and beta × Nifty explains at least ~2/3 of the stock's
  *             move (what is left over is under 35% of it)
  * 2. sector:  its Nifty sector index moved the same way by ≥60% of the stock's move
@@ -10,7 +10,7 @@ import { adjustedBeta } from "@/lib/portfolio/math";
  * All returns are fractions (−0.072 = −7.2%).
  */
 /** Largest leftover (as a share of the move) for a move to still count as "the whole market". */
-export const MARKET_RESIDUAL = 0.35;
+const MARKET_RESIDUAL = 0.35;
 
 export type ReasonKind = "market" | "sector" | "results" | "company";
 

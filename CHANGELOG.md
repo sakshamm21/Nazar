@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 · Cleanup (October 2026)
+
+- Excel exports are named "Nazar …", use Nazar's cobalt headers, and say "model value" instead of "fair value" or "upside".
+- Repository tidied: Ask code grouped under `lib/ask/`, consistent file names, one shared API client and tool helpers, unused code and v1 leftovers removed, docs moved to `docs/`.
+
 ## 2.0.0 · Nazar (October 2026)
 
 StockAI becomes **Nazar**, a portfolio watchdog. The research chat remains as the Ask tab. v1 is preserved on the `legacy` branch (tag `v1.0.0`) and deployed as its own app with its own database.
@@ -16,7 +21,7 @@ StockAI becomes **Nazar**, a portfolio watchdog. The research chat remains as th
 - **Nightly checkup:** a resumable pipeline on Vercel Cron, with snapshots, beta from stored prices, results detection, retries, a rate limiter and a circuit breaker.
 - **Email through Brevo's free tier:** sign-up codes, password resets, daily digests, weekly reports, signed one-click links (rate, confirm, unsubscribe) and a daily cap.
 - **Ask:** a read-only `getMyPortfolio` tool, so answers can use your holdings.
-- **Design:** a new design system (DESIGN.md) with dark and light themes, rings as the motif, Hindi typography and a mobile-first layout with bottom tabs. The live style guide is at `/design`.
+- **Design:** a new design system (docs/DESIGN.md) with dark and light themes, rings as the motif, Hindi typography and a mobile-first layout with bottom tabs. The live style guide is at `/design`.
 - **Tests:** 206 Vitest unit and integration tests, 15 Playwright end-to-end flows, a WCAG contrast test and a no-advice test.
 - **`/insights` v2:** the North Star is weekly users who rated an alert useful; also alert quality, H5 tuning, the activation funnel, delivery and pipeline health.
 
