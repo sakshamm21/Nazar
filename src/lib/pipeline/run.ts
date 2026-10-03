@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { marketProvider } from "@/lib/data/market";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
@@ -102,8 +102,6 @@ export async function runMaintenance() {
   const db = await getDb();
   const expired = await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.demoExpiresAt, new Date()))).returning({ id: schema.users.id });
   await db.delete(schema.rateEvents).where(lt(schema.rateEvents.createdAt, new Date(Date.now() - 48 * 3600_000)));
-  await db.execute(sql`delete from symbol_snapshots where source like 'sim:%' and source not in (select 'sim:' || id from users)`);
-  await db.execute(sql`delete from price_daily where source like 'sim:%' and source not in (select 'sim:' || id from users)`);
   const { ensureTestAccounts } = await import("@/lib/demo/seed");
   const accounts = await ensureTestAccounts(db);
   return { expiredDemoUsers: expired.length, testAccounts: accounts };

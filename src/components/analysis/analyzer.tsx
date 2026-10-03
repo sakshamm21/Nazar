@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PriceChart } from "@/components/charts/price-chart";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
 import { absPct, dayLabel, inr, inrCompact, signedPct } from "@/lib/format";
 import { GROUP_COLOR, isManualSymbol } from "@/lib/instruments/asset-classes";
 import { PERIODS, explain, type Performance, type PeriodId } from "@/lib/portfolio/performance";
@@ -41,7 +42,7 @@ export function Analyzer({ perf, name }: { perf: Performance; name: string }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div role="radiogroup" aria-label="Period" className="flex gap-1 rounded-full border border-line bg-surface-1 p-1">
           {periods.map((p) => (
-            <button key={p.id} role="radio" aria-checked={period === p.id} onClick={() => { setPeriod(p.id); setAll(false); }} className={cn("num rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors", period === p.id ? "bg-accent-soft text-accent" : "text-muted hover:text-text")}>
+            <button key={p.id} role="radio" aria-checked={period === p.id} onClick={() => { setPeriod(p.id); setAll(false); trackClient("analysis_period", { period: p.id }); }} className={cn("num rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors", period === p.id ? "bg-accent-soft text-accent" : "text-muted hover:text-text")}>
               {p.label}
             </button>
           ))}

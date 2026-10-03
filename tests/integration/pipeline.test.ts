@@ -59,9 +59,6 @@ describe("nightly checkup (fake provider)", () => {
     expect(snap.beta).toBeLessThan(1.5);
     expect(snap.lastQuarterEnd).toBeNull();
 
-    // The checkup collects and stores; it raises no alerts and sends no email.
-    expect(await db.select().from(schema.alertEvents)).toHaveLength(0);
-    expect(await db.select().from(schema.deliveries)).toHaveLength(0);
   });
 
   it("re-running is safe: the same day is not processed twice", async () => {
@@ -90,7 +87,6 @@ describe("nightly checkup (fake provider)", () => {
     expect(ev).toMatchObject({ quarterEnd: "2026-06-30", detectedOn: D2, source: "live" });
     // The quarter that was already out on day 1 is kept for the stock page, dated in the past.
     expect(events.find((e) => e.quarterEnd === "2026-03-31")).toMatchObject({ detectedOn: "2026-03-31", data: { backfilled: true } });
-    expect(await db.select().from(schema.alertEvents)).toHaveLength(0);
   });
 
   it("the circuit breaker stops a run cleanly when the provider is down", async () => {

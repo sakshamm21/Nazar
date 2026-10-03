@@ -244,8 +244,8 @@ async function buildTemplate(db: DB, persona: Persona, date: string, force: bool
 export async function cloneTemplate(db: DB, T: string, userId: string) {
   const U = userId;
   const nid = (col: string) => sql.raw(`(md5(${col} || ':' || '${U.replace(/'/g, "")}'))::uuid::text`);
-  await db.execute(sql`insert into portfolios (id, user_id, name, owner_label, language, alerts_enabled, is_default, sort_order, created_at)
-    select ${nid("id")}, ${U}, name, owner_label, language, alerts_enabled, is_default, sort_order, created_at from portfolios where user_id = ${T}`);
+  await db.execute(sql`insert into portfolios (id, user_id, name, is_default, sort_order, created_at)
+    select ${nid("id")}, ${U}, name, is_default, sort_order, created_at from portfolios where user_id = ${T}`);
   await db.execute(sql`insert into holdings (id, portfolio_id, symbol, asset_class, quantity, avg_price, buy_date, isin, raw_name, details, source, created_at, updated_at)
     select ${nid("h.id")}, ${nid("h.portfolio_id")}, case when h.symbol like 'MANUAL:%' then 'MANUAL:' || upper(${nid("h.id")}) else h.symbol end, h.asset_class, h.quantity, h.avg_price, h.buy_date, h.isin, h.raw_name, h.details, h.source, h.created_at, h.updated_at
     from holdings h join portfolios p on p.id = h.portfolio_id where p.user_id = ${T}`);
@@ -254,17 +254,9 @@ export async function cloneTemplate(db: DB, T: string, userId: string) {
 
 /** Wipes a user's own data (keeps the account). */
 async function wipeUserData(db: DB, userId: string) {
-  await db.delete(schema.alertEvents).where(eq(schema.alertEvents.userId, userId));
-  await db.delete(schema.thresholdChanges).where(eq(schema.thresholdChanges.userId, userId));
-  await db.delete(schema.alertThresholds).where(eq(schema.alertThresholds.userId, userId));
-  await db.delete(schema.alertSettings).where(eq(schema.alertSettings.userId, userId));
   await db.delete(schema.watching).where(eq(schema.watching.userId, userId));
   await db.delete(schema.portfolios).where(eq(schema.portfolios.userId, userId));
-  await db.delete(schema.priceTargets).where(eq(schema.priceTargets.userId, userId));
   await db.delete(schema.chats).where(eq(schema.chats.userId, userId));
-  await db.update(schema.users).set({ simState: null }).where(eq(schema.users.id, userId));
-  await db.execute(sql`delete from symbol_snapshots where source = ${`sim:${userId}`}`);
-  await db.execute(sql`delete from price_daily where source = ${`sim:${userId}`}`);
 }
 
 /** Puts every test account back: wiped, then copied from its persona's template (or left empty). */
@@ -276,7 +268,7 @@ async function resetAccounts(db: DB) {
       await db.insert(schema.users).values({ id: randomUUID(), email: acc.email, name: acc.name, passwordHash: hash, emailVerifiedAt: new Date(), isTestAccount: true });
       [u] = await db.select().from(schema.users).where(eq(schema.users.email, acc.email)).limit(1);
     } else {
-      await db.update(schema.users).set({ name: acc.name, passwordHash: hash, emailVerifiedAt: u.emailVerifiedAt ?? new Date(), isTestAccount: true, isDemo: false, demoExpiresAt: null, tourCompletedAt: null }).where(eq(schema.users.id, u.id));
+      await db.update(schema.users).set({ name: acc.name, passwordHash: hash, emailVerifiedAt: u.emailVerifiedAt ?? new Date(), isTestAccount: true, isDemo: false, demoExpiresAt: null }).where(eq(schema.users.id, u.id));
     }
     await wipeUserData(db, u.id);
     const [template] = acc.persona ? await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, templateEmail(acc.persona))).limit(1) : [];

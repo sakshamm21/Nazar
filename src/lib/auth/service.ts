@@ -32,7 +32,7 @@ const devOnly = <T,>(delivered: boolean, value: T): T | undefined => (!delivered
 export const appUrl = () => (process.env.APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")).replace(/\/$/, "");
 
 type UserRow = typeof schema.users.$inferSelect;
-export const publicUser = (u: UserRow) => ({ id: u.id, email: u.email, name: u.name, isDemo: u.isDemo, emailVerified: Boolean(u.emailVerifiedAt), tourCompleted: Boolean(u.tourCompletedAt), isAdmin: u.isAdmin || adminEmails().includes(u.email) });
+export const publicUser = (u: UserRow) => ({ id: u.id, email: u.email, name: u.name, isDemo: u.isDemo, emailVerified: Boolean(u.emailVerifiedAt), isAdmin: u.isAdmin || adminEmails().includes(u.email) });
 export const adminEmails = () => (process.env.ADMIN_EMAILS ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 
 async function findByEmail(email: string) {

@@ -209,8 +209,7 @@ export async function liveUniverse(db: DB): Promise<string[]> {
     .innerJoin(schema.users, eq(schema.users.id, schema.portfolios.userId))
     .where(eq(schema.users.isDemo, false));
   const watched = await db.selectDistinct({ s: schema.watching.symbol }).from(schema.watching).innerJoin(schema.users, eq(schema.users.id, schema.watching.userId)).where(eq(schema.users.isDemo, false));
-  const targets = await db.selectDistinct({ s: schema.priceTargets.symbol }).from(schema.priceTargets);
-  return [...new Set([...held, ...watched, ...targets].map((r) => r.s))].filter((s) => !isManualSymbol(s)).sort();
+  return [...new Set([...held, ...watched].map((r) => r.s))].filter((s) => !isManualSymbol(s)).sort();
 }
 
 /** Symbols with no live snapshot yet (newly imported) — fetched once right away instead of waiting for tonight. */

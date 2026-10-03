@@ -15,8 +15,8 @@ const list = (names: string[], lang: Lang) => {
   return `${names.slice(0, -1).join(", ")}${and}${names.at(-1)}`;
 };
 
-export function attributionLine(a: Attribution, ownerLabel?: string | null): Bi {
-  const subj = { en: ownerLabel ? `${ownerLabel}'s portfolio is` : "You're", hi: "आपका पोर्टफोलियो" };
+export function attributionLine(a: Attribution): Bi {
+  const subj = { en: "You're", hi: "आपका पोर्टफोलियो" };
   if (a.kind === "none") return { en: "Add holdings to see what moves your portfolio each day.", hi: "रोज़ के बदलाव देखने के लिए अपने निवेश जोड़ें।" };
   if (a.kind === "flat") return { en: "A quiet day: your portfolio barely moved.", hi: "शांत दिन: आज आपके पोर्टफोलियो में लगभग कोई बदलाव नहीं हुआ।" };
   const down = a.kind === "down";

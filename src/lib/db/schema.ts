@@ -26,10 +26,6 @@ export const users = pgTable("users", {
   /** A shared test account from the sign-in page (or a persona template): never emails, capped Ask use. */
   isTestAccount: boolean("is_test_account").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
-  tourCompletedAt: ts("tour_completed_at"),
-  uiLanguage: text("ui_language").$type<"en" | "hi">().notNull().default("en"),
-  /** Active "Simulate a bad day" scenario for demo accounts. */
-  simState: jsonb("sim_state").$type<{ date: string; scenario: string; label: string } | null>(),
   createdAt: created(),
   lastSeenAt: ts("last_seen_at").defaultNow().notNull(),
 });
@@ -44,10 +40,6 @@ export const portfolios = pgTable(
     id: text("id").primaryKey(),
     userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    /** Whose money this is, e.g. "Papa". Null = the account owner's own portfolio. */
-    ownerLabel: text("owner_label"),
-    language: text("language").$type<"en" | "hi">().notNull().default("en"),
-    alertsEnabled: boolean("alerts_enabled").notNull().default(true),
     isDefault: boolean("is_default").notNull().default(false),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: created(),
@@ -89,23 +81,6 @@ export const watching = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.symbol] })],
 );
 
-/** "Tell me when X crosses ₹Y" price levels, evaluated by the nightly checkup. */
-export const priceTargets = pgTable(
-  "price_targets",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    symbol: text("symbol").notNull(),
-    direction: text("direction").$type<"above" | "below">().notNull(),
-    target: doublePrecision("target").notNull(),
-    note: text("note"),
-    createdAt: created(),
-    triggeredAt: ts("triggered_at"),
-    triggeredPrice: doublePrecision("triggered_price"),
-  },
-  (t) => [index("price_targets_user_idx").on(t.userId)],
-);
-
 export const importBatches = pgTable("import_batches", {
   id: text("id").primaryKey(),
   portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
@@ -119,7 +94,7 @@ export const importBatches = pgTable("import_batches", {
 
 /* ------------------------------------------------------------------ */
 /* Market data — shared across users, keyed by symbol + source         */
-/* source: "live" (nightly checkup, refresh on open) | "sim:<userId>"   */
+/* source: "live" (nightly checkup, refresh on open)                    */
 /* ------------------------------------------------------------------ */
 
 export const instruments = pgTable("instruments", {
@@ -213,160 +188,14 @@ export type ResultsData = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Alerts                                                              */
+/* Jobs                                                                */
 /* ------------------------------------------------------------------ */
-
-export type AlertType = "stock_move" | "portfolio_move" | "results" | "health_change" | "concentration" | "results_upcoming" | "price_target" | "learned" | "digest";
-export type Severity = "critical" | "important" | "info";
-export type Sensitivity = "major" | "balanced" | "everything";
-
-export const alertSettings = pgTable("alert_settings", {
-  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
-  sensitivity: text("sensitivity").$type<Sensitivity>().notNull().default("balanced"),
-  quietMode: boolean("quiet_mode").notNull().default(false),
-  emailDigest: boolean("email_digest").notNull().default(true),
-  updatedAt: ts("updated_at").defaultNow().notNull(),
-});
-
-export const alertThresholds = pgTable(
-  "alert_thresholds",
-  {
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    alertType: text("alert_type").$type<AlertType>().notNull(),
-    value: doublePrecision("value"),
-    muted: boolean("muted").notNull().default(false),
-    source: text("source").$type<"tuned" | "manual">().notNull(),
-    frozenUntil: ts("frozen_until"),
-    updatedAt: ts("updated_at").defaultNow().notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.userId, t.alertType] })],
-);
-
-/** H5: every automatic threshold change, its evidence and whether the user undid it. */
-export const thresholdChanges = pgTable(
-  "threshold_changes",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    alertType: text("alert_type").$type<AlertType>().notNull(),
-    oldValue: doublePrecision("old_value"),
-    newValue: doublePrecision("new_value"),
-    muted: boolean("muted").notNull().default(false),
-    evidence: jsonb("evidence").$type<TuningEvidence>().notNull(),
-    messageEn: text("message_en").notNull(),
-    messageHi: text("message_hi").notNull(),
-    createdAt: created(),
-    undoneAt: ts("undone_at"),
-  },
-  (t) => [index("threshold_changes_user_idx").on(t.userId, t.createdAt)],
-);
-
-export type TuningEvidence = { below: { useful: number; total: number }; above: { useful: number; total: number }; window: number };
-
-export type AlertData = {
-  symbol?: string;
-  name?: string;
-  changePct?: number;
-  magnitude?: number;
-  impactInr?: number;
-  weight?: number;
-  portfolioValue?: number;
-  reason?: { kind: "market" | "sector" | "results" | "company" | "asset"; marketPct?: number | null; sectorPct?: number | null; sectorName?: string | null };
-  headlines?: { title: string; source: string; link: string; published: string }[];
-  resultsEventId?: string;
-  healthBefore?: number | null;
-  healthAfter?: number | null;
-  thresholdChangeId?: string;
-  items?: { title: string; symbol?: string }[];
-  date?: string;
-  [k: string]: unknown;
-};
-
-export const alertEvents = pgTable(
-  "alert_events",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    portfolioId: text("portfolio_id").references(() => portfolios.id, { onDelete: "cascade" }),
-    type: text("type").$type<AlertType>().notNull(),
-    symbol: text("symbol"),
-    severity: text("severity").$type<Severity>().notNull(),
-    tradeDate: date("trade_date", { mode: "string" }).notNull(),
-    dedupeKey: text("dedupe_key").notNull(),
-    titleEn: text("title_en").notNull(),
-    bodyEn: text("body_en").notNull(),
-    titleHi: text("title_hi").notNull(),
-    bodyHi: text("body_hi").notNull(),
-    data: jsonb("data").$type<AlertData>().notNull().default({}),
-    isSimulated: boolean("is_simulated").notNull().default(false),
-    createdAt: created(),
-    readAt: ts("read_at"),
-  },
-  (t) => [uniqueIndex("alert_events_dedupe_idx").on(t.userId, t.dedupeKey), index("alert_events_user_idx").on(t.userId, t.createdAt)],
-);
-
-export const alertFeedback = pgTable(
-  "alert_feedback",
-  {
-    alertId: text("alert_id").notNull().references(() => alertEvents.id, { onDelete: "cascade" }),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    rating: text("rating").$type<"up" | "down">().notNull(),
-    source: text("source").$type<"app" | "email">().notNull().default("app"),
-    createdAt: created(),
-  },
-  (t) => [primaryKey({ columns: [t.alertId, t.userId] }), index("alert_feedback_user_idx").on(t.userId, t.createdAt)],
-);
-
-/** Family members who receive a portfolio's report and major alerts by email (H6). */
-export const recipients = pgTable(
-  "recipients",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    confirmedAt: ts("confirmed_at"),
-    unsubscribedAt: ts("unsubscribed_at"),
-    createdAt: created(),
-  },
-  (t) => [uniqueIndex("recipients_pf_email_idx").on(t.portfolioId, t.email)],
-);
-
-export const deliveries = pgTable(
-  "deliveries",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
-    kind: text("kind").$type<"digest" | "report" | "simulation" | "auth" | "confirm">().notNull(),
-    itemKey: text("item_key").notNull(),
-    email: text("email").notNull(),
-    status: text("status").$type<"sent" | "failed" | "skipped_no_config" | "skipped_cap">().notNull(),
-    error: text("error"),
-    alertIds: jsonb("alert_ids").$type<string[]>().notNull().default([]),
-    createdAt: created(),
-  },
-  (t) => [uniqueIndex("deliveries_item_email_idx").on(t.itemKey, t.email), index("deliveries_created_idx").on(t.createdAt)],
-);
-
-export const reports = pgTable(
-  "reports",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
-    weekStart: date("week_start", { mode: "string" }).notNull(),
-    weekEnd: date("week_end", { mode: "string" }).notNull(),
-    content: jsonb("content").$type<Record<string, unknown>>().notNull(),
-    createdAt: created(),
-  },
-  (t) => [uniqueIndex("reports_pf_week_idx").on(t.portfolioId, t.weekStart)],
-);
 
 export const pipelineRuns = pgTable(
   "pipeline_runs",
   {
     id: text("id").primaryKey(),
-    kind: text("kind").$type<"nightly" | "weekly" | "maintenance">().notNull(),
+    kind: text("kind").$type<"nightly" | "maintenance">().notNull(),
     runDate: date("run_date", { mode: "string" }).notNull(),
     stage: text("stage").notNull(),
     cursor: integer("cursor").notNull().default(0),

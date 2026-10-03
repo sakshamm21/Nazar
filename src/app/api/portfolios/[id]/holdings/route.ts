@@ -2,6 +2,8 @@ import { after } from "next/server";
 import { z } from "zod";
 import { api, json, parseBody, requireUser } from "@/lib/http";
 import { upsertHoldings } from "@/lib/repo/portfolios";
+import { track } from "@/lib/events";
+import { classOfSymbol } from "@/lib/instruments/catalog";
 import { firstLookFor } from "@/lib/pipeline/first-look";
 
 export const runtime = "nodejs";
@@ -26,6 +28,7 @@ export const POST = api(async (req, ctx: Ctx) => {
   const { id } = await ctx.params;
   const { holdings, mode } = await parseBody(req, Body);
   const rows = await upsertHoldings(u.id, id, holdings, mode);
+  track(u.id, "holdings_added", { count: holdings.length, how: mode === "add" ? "by hand" : holdings[0].source, classes: [...new Set(holdings.map((h) => classOfSymbol(h.symbol) ?? "stock"))].join(",") });
   // New symbols get a one-time first look right away instead of waiting for tonight's checkup.
   after(() => firstLookFor(u, holdings.map((h) => h.symbol)));
   return json({ holdings: rows });

@@ -67,11 +67,6 @@ describe("test accounts run on live data", () => {
         expect(h.avgPrice, h.symbol).toBeGreaterThan(0);
       }
     }
-    // No family portfolio, nobody to email, and no alert history is built.
-    expect((await db.select().from(schema.portfolios)).every((p) => p.ownerLabel == null)).toBe(true);
-    expect(await db.select().from(schema.recipients)).toHaveLength(0);
-    expect(await db.select().from(schema.alertEvents)).toHaveLength(0);
-    expect(await db.select().from(schema.reports)).toHaveLength(0);
   });
 
   it("their recent sessions have stored prices, so charts and analysis have history on day one", async () => {

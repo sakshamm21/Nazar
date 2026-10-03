@@ -3,11 +3,12 @@ import { Home, LineChart, LogOut, MessageCircle, UserRound, Wallet } from "lucid
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Wordmark } from "@/components/rings/nazar-mark";
 import { Avatar } from "@/components/ui/avatar";
 import { apiCall } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
@@ -18,6 +19,8 @@ const NAV = [
 ];
 const MOBILE = [...NAV, { href: "/settings", label: "You", hint: "", icon: UserRound }];
 
+const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
+
 export type ShellUser = { name: string; email: string; isTestAccount: boolean };
 
 /** Mobile: bottom tab bar. Desktop: sidebar with the account, theme and sign-out always in view. */
@@ -25,6 +28,11 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
   const path = usePathname();
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
+  // One "view" per screen opened: what /insights counts as using the product.
+  const area = AREAS.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? null;
+  useEffect(() => {
+    if (area) trackClient("view", { area });
+  }, [area]);
   const active = (href: string) => path === href || path.startsWith(`${href}/`) || (href === "/portfolio" && path.startsWith("/stock")) || (href === "/analysis" && path.startsWith("/risk"));
   const signOut = async () => {
     setLeaving(true);

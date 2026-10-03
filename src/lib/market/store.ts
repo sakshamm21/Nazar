@@ -5,17 +5,15 @@ import { schema } from "@/lib/db";
 import { NIFTY } from "@/lib/instruments/sectors";
 
 /**
- * Reads market data from Postgres — pages never call a data provider. Data is keyed by `source`:
- * "live" (the nightly checkup and refresh-on-open) or "sim:<userId>" (a test account's simulated
- * bad day, which sits on top of live data for that user only). A user reads a chain of sources in
- * priority order, e.g. ["sim:abc", "live"].
+ * Reads market data from Postgres — pages never call a data provider. Data is keyed by `source`;
+ * today there is one, "live" (the nightly checkup and refresh-on-open). Functions still take a
+ * chain of sources in priority order, so another source can sit on top of it later.
  */
 export type Snapshot = typeof schema.symbolSnapshots.$inferSelect;
 export type Instrument = typeof schema.instruments.$inferSelect;
 
-export function sourcesFor(u: { id: string; simState?: { date: string } | null }): string[] {
-  return u.simState ? [`sim:${u.id}`, "live"] : ["live"];
-}
+/** The sources a user's pages read from, best first. Everyone reads the live data. */
+export const sourcesFor = (user?: { id: string }): string[] => (void user, ["live"]);
 
 /** Sources that define "today" for this user (the whole chain: a simulated day is the latest one). */
 export const dateSources = (chain: string[]) => chain;

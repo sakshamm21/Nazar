@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { trackClient } from "@/lib/events-client";
 
 type Tab = "overview" | "manage";
 const TABS = [
@@ -27,7 +28,7 @@ export function PortfolioScreen({ overview, manage, switcher, startOnManage }: {
         </div>
         <div role="tablist" aria-label="Portfolio view" className="relative flex rounded-[16px] border border-line bg-surface-1 p-1">
           {TABS.map(({ id, label, icon: Icon }) => (
-            <button key={id} role="tab" aria-selected={tab === id} onClick={() => router.replace(`/portfolio?tab=${id}`, { scroll: false })} className={cn("relative flex items-center gap-2 rounded-[12px] px-4 py-2 text-sm font-medium transition-colors", tab === id ? "text-accent-ink" : "text-muted hover:text-text")}>
+            <button key={id} role="tab" aria-selected={tab === id} onClick={() => { trackClient("portfolio_tab", { tab: id }); router.replace(`/portfolio?tab=${id}`, { scroll: false }); }} className={cn("relative flex items-center gap-2 rounded-[12px] px-4 py-2 text-sm font-medium transition-colors", tab === id ? "text-accent-ink" : "text-muted hover:text-text")}>
               {tab === id && <motion.span layoutId="pf-tab" className="absolute inset-0 rounded-[12px] bg-accent" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <Icon className="relative h-4 w-4" />
               <span className="relative">{label}</span>
