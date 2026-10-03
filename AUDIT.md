@@ -1,5 +1,7 @@
 # StockAI v1 audit (input to Nazar v2.0)
 
+> Audit of StockAI v1 as of October 2026, kept for reference. What was built from it: [PLAN.md](PLAN.md) (with an "as built" note), [FEATURES.md](FEATURES.md) and [DECISIONS.md](DECISIONS.md).
+
 *Audited 3 Oct 2026 at commit `2626a3d`. Method: read every source file (≈6,600 lines), ran typecheck and lint, ran the app locally against an isolated PGlite database, exercised every API feature over HTTP (sign-in, watchlist, price alerts, alert check, cron auth, events, chat in English, Hinglish and off-topic, feedback, share links, /insights), and stress-tested Yahoo Finance with the Nifty 50.*
 
 **Verdict:** the research engine is strong and worth keeping almost entirely: the 22 tools, 7 quant models, 43-metric catalog, Excel models, guard, limits and analytics. What has to change is everything around it. v1 is a chat product with no portfolio, no outbound channel, live Yahoo calls on page views, and an identity model that is not safe for financial data.

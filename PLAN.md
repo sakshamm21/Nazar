@@ -5,6 +5,14 @@
 
 This plan builds on [AUDIT.md](AUDIT.md).
 
+> **As built (v2.0.0).** Where the shipped app differs from this plan:
+> - **Q-A:** the repo is renamed to Nazar. **Q-B:** Google sign-in is skipped. **Q-C:** Google News is on, with a strict company-specific filter (`NEWS_ENABLED`). **Q-D:** Vitest.
+> - **Auth:** NextAuth is removed. Sessions are a jose-signed JWT in an httpOnly cookie, as in Syncronify (DECISIONS.md D-9). No `accounts` table.
+> - **Advice:** the analyst-ratings tool and `targetMeanPrice` are cut (42 metrics, not 43), and "upside" is renamed "model vs price" (D-4).
+> - **Likely reason:** "market" requires beta × Nifty to explain about two-thirds of the move, not half (D-6).
+> - **Demo:** one-click test accounts (TEST_ACCOUNTS.md) sit alongside "Try the demo".
+> - Everything else, including the hero features, is described as built in [FEATURES.md](FEATURES.md).
+
 **Revision 2 changes, from your feedback of 3 Oct 2026:**
 1. **Zero paid services.** OpenAI is the only paid API, and it's used only in the Ask tab with the existing daily budgets. Alerts, reports, Hindi text and the demo use no LLM at all. Everything else runs on free tiers (§8).
 2. **Nazar becomes the main app.** It's built and tested locally on a working branch, then merged into `main` and deployed on the existing Vercel project. The current StockAI is preserved on a `legacy` branch and deployed as its own "StockAI (legacy)" app, still using its own database (§10).

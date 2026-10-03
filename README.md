@@ -1,118 +1,99 @@
-# Stock AI — AI-Powered Equity Research Platform
+# Nazar · your portfolio watchdog
 
-A full-stack conversational equity-research assistant. Ask about any listed company and an
-agentic LLM pulls live market data through **22 research tools** (43 metrics), then streams its
-answer back as **generative UI** — interactive price charts, financial-statement bar charts,
-comparison tables, analyst-consensus visuals and a DCF model with a sensitivity grid.
+> **Nazar watches your Indian stocks every day and messages you only when something important happens, explaining what happened, why, and what it means for you in rupees.**
+> *We watch and explain; you decide.*
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Vercel AI SDK 5 · OpenAI · PostgreSQL + Drizzle ORM ·
-NextAuth.js (device-fingerprint auth) · Recharts · Tailwind CSS 4 · Yahoo Finance data.
+**Live:** __LIVE_URL__ · press **Try the demo**, no sign-up · [StockAI v1 (legacy)](__LEGACY_URL__)
 
-## Features
+Retail investors in India hold 10–20 stocks across brokers, check the app daily, and still miss what matters: a results surprise, a stock quietly becoming a third of the portfolio, five "different" holdings that all fall together. Nazar runs a checkup on every portfolio each evening after the market closes and turns it into a handful of plain-language alerts in English or Hindi. It never tells anyone to buy, sell or hold, and a test enforces that.
 
-| Area | What it does |
+| | |
 |---|---|
-| **Agentic tools** | `searchTicker`, `getQuote`, `getPriceHistory`, `getKeyMetrics`, `getFinancialStatements`, `compareStocks`, `getAnalystRatings`, `getEarnings`, `getCompanyProfile`, `getNews`, `getMarketMovers`, `getIndianMarketMovers`, `getMarketOverview`, `getOwnership`, `runDcfValuation`, plus watchlist/alert tools. The model chains and parallelises them (up to 10 steps). |
-| **43 metrics** | Valuation (P/E, PEG, EV/EBITDA…), profitability, growth, balance-sheet health, per-share, dividends, risk & ownership — see `src/lib/finance.ts`. |
-| **Generative UI** | Each tool call streams to the client as a typed part and renders a live component (skeleton while running → chart/table when done). `src/components/gen/`. |
-| **Fingerprint auth** | No sign-up. The browser computes a SHA-256 fingerprint (canvas, WebGL, screen, timezone…); NextAuth's credentials provider maps a salted hash of it to a user. Same device → same history, even after clearing cookies. |
-| **PostgreSQL** | Users, chats (full UI message history as JSONB) and per-request token usage/cost. Tables are auto-created on first run. |
-| **Indian markets** | Nifty/Sensex/sector index board, Nifty 50 gainers/losers/most-active, ₹ with crore / lakh-crore formatting, NSE-first ticker resolution. |
-| **Watchlist** | Sidebar watchlist with live prices; add via ticker box, the ★ on quote cards, or by asking ("add Infosys to my watchlist"). |
-| **Price alerts** | "Alert me if Reliance falls below ₹1,100". Checked every minute while the app is open (browser notification + toast) and daily in the background via Vercel Cron. |
-| **Share & export** | Public read-only link per chat (`/s/<id>`, noindex, revocable; private watchlist/alert output hidden). Export any chat to PDF via the print dialog. |
-| **Accounts** | Fingerprint login stays the default. Optional Google/GitHub sign-in links a device's history to a real account and syncs it across devices. |
-| **Guardrails** | A fast classifier blocks off-topic requests (coding, essays, recipes, jailbreaks) before the main model runs; strict scope + advice rules in the system prompt; server-side history (clients can't forge messages); input length cap; per-user/IP rate limits and daily $ budgets. |
-| **Analysis models** | Risk & return vs Nifty/S&P (CAGR, volatility, Sharpe, Sortino, beta, alpha, drawdown), correlation matrix, comparable-company valuation, DuPont ROE, financial health (Piotroski F-score + Altman Z), SIP backtest with XIRR, technical indicators (SMA, RSI, MACD). |
-| **Excel downloads** | Every result card downloads as Excel; DCF, comps, SIP, risk, correlation and DuPont download as **live models** (blue inputs, formula cells). The header's Excel button exports a whole chat as one workbook. Built client-side with ExcelJS, loaded on demand. |
-| **Tools catalog** | "Tools" button lists every capability by category with Excel badges and one-click example questions. |
-| **Product analytics** | `/insights` dashboard: North Star (Weekly Active Researchers), activation funnel, returning users, helpful rate, cost per answer, latency, guard block rate, tool/model/mode mix, top tickers. First-party events; raw questions are never stored in analytics. |
-| **Answer feedback** | 👍/👎 on every answer, with a reason on 👎; shown by answer style on the dashboard. |
-| **Trust & transparency** | "Based on N live data calls" under each answer expands to the exact data calls, source and freshness; quote cards show "as of" time and market state. |
-| **Simple / Pro modes** | Beginner-friendly answers that explain jargon, or dense analyst-style answers. |
-| **Hindi & Hinglish** | Answers in the language/script the user writes in. |
-| **Follow-up suggestions** | Rules-based next questions under each answer: instant and free, grounded in the tickers just discussed. |
-| **Cost-performance model selector** | Pick a model with its $/1M-token price, speed and quality — or **Auto**, which routes each question to the cheapest tier that can handle it. Only models your key can access are shown. Per-message and lifetime spend are displayed. |
+| **Hero features** | Smart alerts with a likely reason and ₹ impact · "Why did my portfolio move today?" · hidden-risk checks (stress test, correlation clusters, concentration) · results-day explainer · alerts that learn from 👍/👎 · family portfolios with Hindi reports |
+| **Demo** | "Simulate a bad day" runs the real alert engine on a generated market scenario; a 7-step guided tour; seeded with real NSE data; works with Yahoo Finance down |
+| **Quality** | 203 Vitest tests (unit + integration on real Postgres via PGlite) · 15 Playwright end-to-end flows in Edge · WCAG AA contrast test · a no-advice test over every generated sentence and every UI string |
+| **Running cost** | ₹0 apart from light OpenAI use in the Ask tab. Alerts, reports and Hindi text are deterministic templates, not LLM output |
+
+## Try it in 60 seconds
+
+1. Open __LIVE_URL__ and press **Try the demo**. You get a private 24-hour copy of a two-portfolio demo account (yours, and "Papa's" in Hindi).
+2. The tour walks through Home. Then press **Simulate a bad day**: the Nifty falls 3.2%, autos and IT fall harder, and one of your stocks has bad news of its own. Alerts arrive with the likely reason for each move and what it cost you.
+3. Open **Risk** and drag the stress slider; open **Settings** to see the threshold Nazar learned from past ratings, with the evidence and an Undo button.
+
+Prefer a fixed account? Sign in with one click on the sign-in page, or use the logins in [TEST_ACCOUNTS.md](TEST_ACCOUNTS.md).
+
+## How it works
+
+```mermaid
+flowchart LR
+  Y[Yahoo Finance] --> P[Provider + retry, limiter,<br/>circuit breaker]
+  P --> N[Nightly checkup<br/>Vercel Cron, resumable]
+  N --> DB[(Postgres<br/>snapshots, alerts)]
+  DB --> E[Alert engine<br/>rules · reasons · H5 tuner]
+  E --> G{No-advice guard}
+  G --> I[In-app inbox]
+  G --> M[Daily email digest<br/>Brevo free tier]
+  DB --> UI[Next.js app]
+  UI --> A[Ask: AI agent with<br/>read-only portfolio tool]
+```
+
+- **Pages never call Yahoo.** A nightly pipeline fetches each held symbol once, stores snapshots, computes beta and health scores from stored data, evaluates the alert rules and delivers. Pages read only from Postgres, so they are fast and keep working when Yahoo doesn't.
+- **Built for Vercel Hobby limits.** Crons run once a day per entry and functions stop at 300s, so the pipeline is a resumable state machine (lock row, cursor, 240s budget, three daily cron entries). Every write is idempotent; re-runs are safe.
+- **Explainable rules, not a black box.** "Likely reason" compares the move with the Nifty × beta and the sector index; the learning step raises a threshold only when your ratings clearly separate useful from not useful, and says so with the evidence.
+- **The demo is honest.** Real NSE prices captured into a fixture, date-shifted to "last session"; 60 sessions of history produced by replaying the real alert engine, not hand-written.
+
+The full design is in [PLAN.md](PLAN.md); the trade-offs are in [DECISIONS.md](DECISIONS.md).
+
+## Engineering highlights
+
+- **No-advice enforcement as code.** A guard with English, Hindi and Hinglish patterns runs on every alert, report and email at runtime, and a test runs it over a 90-scenario matrix of the alert engine plus every string literal in the UI.
+- **Broker imports** from Zerodha Console, Zerodha Kite, Groww and Upstox (CSV or XLSX), detected by headers and resolved to NSE symbols through ISIN, symbol, alias (e.g. ZOMATO → ETERNAL) and name matching against the NSE master list.
+- **Portfolio maths you can check**: XIRR against the same rupees in the Nifty on the same dates, attribution that names the fewest holdings explaining ≥ 60% of a day's move, Blume-adjusted beta stress tests, average-linkage correlation clusters, effective number of independent bets.
+- **Authorization tested through the real route handlers**: another user's portfolio, holding, alert, threshold or price level returns 404 and stays unchanged.
+- **Accessibility**: colour tokens tested for 4.5:1 in both themes, keyboard focus, reduced-motion support, mobile-first layout with bottom tabs, checked at 375/768/1440 px.
+
+## Stack
+
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS 4 · Drizzle ORM on Postgres (Neon in production, PGlite locally) · email + password + 6-digit code auth (bcrypt, JWT in an httpOnly cookie) · Brevo HTTP API for email · Vercel AI SDK 5 with OpenAI (Ask tab only) · Recharts · ExcelJS · pino · Vitest · Playwright.
 
 ## Run locally
 
-Requires **Node 22+**.
+Requires **Node 22+**. Works the same on Windows, macOS and Linux.
 
 ```bash
 npm install
-cp .env.example .env.local      # then paste your OPENAI_API_KEY
-npm run dev                     # http://localhost:3000
+npm run dev          # http://localhost:3000
 ```
 
-No database setup needed: without `DATABASE_URL` the app uses **PGlite** (real Postgres compiled to
-WASM) stored in `./.data/`. To use a real Postgres instead, set `DATABASE_URL` (e.g. a free
-[Neon](https://neon.tech) database) — tables are created automatically.
+That's it: with no database URL, `npm run dev` creates an embedded Postgres (PGlite) in `.data/nazar`, migrates it, and seeds the demo market and test accounts from the committed fixture, so no network is needed. Sign in with `demo@nazar.dev` / `nazar123`. Ask needs `OPENAI_API_KEY` in `.env.local`; every other variable is optional and documented one per line in [.env.example](.env.example).
 
-## Deploy (GitHub + Vercel)
+| Command | What it does |
+|---|---|
+| `npm run dev` | Local app with demo data |
+| `npm test` | 203 unit + integration tests (~15 s) |
+| `npm run test:e2e` | Playwright click-through of every hero flow in Edge/Chromium, on its own database |
+| `npm run eval:guard` | Precision/recall of the Ask on-topic classifier (needs the dev server and an OpenAI key) |
+| `npm run demo:reset` | Rebuild the local demo data |
+| `npm run pipeline:run` | Run tonight's checkup now against live Yahoo data |
+| `npm run build` | Migrate (if a database URL is set) and build for production |
 
-With `git`, `gh` and `vercel` CLIs installed and logged in:
+## Deploying your own
 
-```powershell
-# Windows
-powershell -ExecutionPolicy Bypass -File scripts\deploy.ps1          # add -Public for a public repo
-```
-```bash
-# macOS / Linux
-bash scripts/deploy.sh
-```
+1. Create a free Postgres database (Neon) and a free Brevo account with a verified sender.
+2. Import the repo on Vercel and set `NAZAR_DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, `BREVO_API_KEY`, `MAIL_FROM` and `OPENAI_API_KEY` (see `.env.example`).
+3. Deploy. The build runs migrations and seeds the demo; `vercel.json` schedules the nightly, weekly and maintenance jobs.
 
-The script commits, creates a private GitHub repo and pushes, links a Vercel project, copies
-`OPENAI_API_KEY`, `NEXTAUTH_SECRET` (auto-generated if missing) and `DATABASE_URL` from `.env.local`
-into Vercel, connects the repo for auto-deploys and ships to production.
+## Documentation
 
-**For persistent history on Vercel, add a Postgres database** (Vercel dashboard → Storage → Neon,
-which injects `DATABASE_URL`/`POSTGRES_URL`) and redeploy. Without it the app still works but uses a
-temporary in-memory database.
+| File | Contents |
+|---|---|
+| [FEATURES.md](FEATURES.md) | Every feature: what the user sees, how it works, where the code and tests are |
+| [DECISIONS.md](DECISIONS.md) | Architecture decisions and the trade-offs behind them |
+| [TEST_ACCOUNTS.md](TEST_ACCOUNTS.md) | Logins for reviewers and testers |
+| [CHANGELOG.md](CHANGELOG.md) | v2.0.0 (Nazar) and v1 (StockAI) |
+| [DESIGN.md](DESIGN.md) | Design system: tokens, type, motion, voice |
+| [AUDIT.md](AUDIT.md) · [PLAN.md](PLAN.md) | The v1 audit and the v2 build plan |
 
-Manual alternative: import the repo at vercel.com/new and set the env vars from `.env.example`.
+## Disclaimer
 
-## Configuration
-
-Everything beyond `OPENAI_API_KEY` is optional. See `.env.example` for Google/GitHub sign-in, rate limits and
-budgets (`RATE_LIMIT_PER_DAY`, `GLOBAL_DAILY_BUDGET_USD`, …), `ALLOWED_MODELS` to keep expensive models off a
-public deployment, and `GUARD_MODEL` for the scope classifier.
-
-## Evaluating the guardrail
-
-```bash
-npm run dev            # terminal 1
-npm run eval:guard     # terminal 2: 50 labelled prompts → precision / recall / false-block rate
-```
-
-## Project layout
-
-```
-src/
-  app/api/chat/route.ts        streaming agent endpoint (streamText + tools + persistence)
-  app/api/chats/…              chat history CRUD
-  app/api/models/route.ts      model catalog filtered to your OpenAI key
-  app/api/auth/[...nextauth]   NextAuth (fingerprint credentials provider)
-  app/s/[shareId]              public read-only shared chat
-  app/api/watchlist, alerts    watchlist + price-alert CRUD; alerts/check polled by the app; cron/alerts for Vercel Cron
-  app/api/account              who am I, sign-in providers, questions left today
-  lib/tools.ts                 AI tools: 15 market tools + 6 watchlist/alert tools
-  lib/analysis-tools.ts        7 quant models (risk, correlation, comps, DuPont, health score, SIP, technicals)
-  lib/excel.ts                 Excel model builder (formulas, inputs styled blue)
-  lib/tool-catalog.ts          the user-facing Tools catalog
-  lib/guard.ts                 scope classifier + refusal copy
-  lib/limits.ts                rate limits and daily budgets
-  lib/finance.ts               Yahoo Finance data layer + 43-metric catalog
-  lib/models.ts                model prices, tiers and Auto routing
-  lib/db/                      Drizzle schema + Postgres/PGlite connection
-  lib/fingerprint.ts           browser fingerprinting
-  components/gen/              generative-UI components (charts, tables, DCF)
-```
-
-## Notes
-
-- Market data comes from Yahoo Finance's unofficial API (via `yahoo-finance2`) and may be delayed
-  or occasionally rate-limited from cloud IPs.
-- Edit model IDs/prices in `src/lib/models.ts` as OpenAI's lineup changes.
-- Fingerprint auth is convenience-grade identity, not strong authentication — identical devices can
-  collide. Swap in any NextAuth provider if you need real accounts.
-- Nothing here is investment advice.
+Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data comes from Yahoo Finance via nightly checks and may be delayed or occasionally wrong.
