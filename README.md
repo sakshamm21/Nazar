@@ -11,7 +11,7 @@ Retail investors in India hold 10–20 stocks across brokers, check the app dail
 |---|---|
 | **Hero features** | Smart alerts with a likely reason and ₹ impact · "Why did my portfolio move today?" · hidden-risk checks (stress test, correlation clusters, concentration) · results-day explainer · alerts that learn from 👍/👎 · family portfolios with Hindi reports |
 | **Demo** | "Simulate a bad day" runs the real alert engine on a generated market scenario; a 7-step guided tour; seeded with real NSE data; works with Yahoo Finance down |
-| **Quality** | 203 Vitest tests (unit + integration on real Postgres via PGlite) · 15 Playwright end-to-end flows in Edge · WCAG AA contrast test · a no-advice test over every generated sentence and every UI string |
+| **Quality** | 206 Vitest tests (unit + integration on real Postgres via PGlite) · 15 Playwright end-to-end flows in Edge · WCAG AA contrast test · a no-advice test over every generated sentence and every UI string |
 | **Running cost** | ₹0 apart from light OpenAI use in the Ask tab. Alerts, reports and Hindi text are deterministic templates, not LLM output |
 
 ## Try it in 60 seconds
@@ -70,7 +70,7 @@ That's it: with no database URL, `npm run dev` creates an embedded Postgres (PGl
 | Command | What it does |
 |---|---|
 | `npm run dev` | Local app with demo data |
-| `npm test` | 203 unit + integration tests (~15 s) |
+| `npm test` | 206 unit + integration tests (~15 s) |
 | `npm run test:e2e` | Playwright click-through of every hero flow in Edge/Chromium, on its own database |
 | `npm run eval:guard` | Precision/recall of the Ask on-topic classifier (needs the dev server and an OpenAI key) |
 | `npm run demo:reset` | Rebuild the local demo data |

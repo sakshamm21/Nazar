@@ -17,7 +17,7 @@ StockAI becomes **Nazar**, a portfolio watchdog. The research chat remains as th
 - **Email through Brevo's free tier:** sign-up codes, password resets, daily digests, weekly reports, signed one-click links (rate, confirm, unsubscribe) and a daily cap.
 - **Ask:** a read-only `getMyPortfolio` tool, so answers can use your holdings.
 - **Design:** a new design system (DESIGN.md) with dark and light themes, rings as the motif, Hindi typography and a mobile-first layout with bottom tabs. The live style guide is at `/design`.
-- **Tests:** 203 Vitest unit and integration tests, 15 Playwright end-to-end flows, a WCAG contrast test and a no-advice test.
+- **Tests:** 206 Vitest unit and integration tests, 15 Playwright end-to-end flows, a WCAG contrast test and a no-advice test.
 - **`/insights` v2:** the North Star is weekly users who rated an alert useful; also alert quality, H5 tuning, the activation funnel, delivery and pipeline health.
 
 ### Changed
