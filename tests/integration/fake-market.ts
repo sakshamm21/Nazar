@@ -10,11 +10,28 @@ const PROFILE: Record<string, { base: number; beta: number; k: number; sector: s
   "INFY.NS": { base: 1500, beta: 0.8, k: 2, sector: "Technology", industry: "Information Technology Services", name: "Infosys Limited" },
   "HDFCBANK.NS": { base: 950, beta: 0.9, k: 3, sector: "Financial Services", industry: "Banks - Regional", name: "HDFC Bank Limited" },
 };
+/**
+ * Symbols a test opts in to a generated profile of their own (any stock, fund, ETF or metal).
+ * Stocks swing enough to trip small-move alerts; funds and metals move gently.
+ */
+export const GENERIC = new Set<string>();
+const SECTORS = [["Financial Services", "Banks - Regional"], ["Technology", "Information Technology Services"], ["Consumer Cyclical", "Auto Manufacturers"], ["Consumer Defensive", "Household Products"], ["Energy", "Oil & Gas"]] as const;
+function generic(s: string) {
+  let h = 0;
+  for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const calm = s.startsWith("MF:") || s.startsWith("CMD:");
+  const [sector, industry] = SECTORS[h % SECTORS.length];
+  return { base: 60 + (h % 1900), beta: calm ? 0.5 : 0.7 + (h % 7) / 10, k: h % 13, swing: calm ? 0.004 : 0.07, sector: calm || !s.endsWith(".NS") ? null : sector, industry: calm || !s.endsWith(".NS") ? null : industry, name: s };
+}
 const ord = (iso: string) => Math.round(new Date(`${iso}T00:00:00Z`).getTime() / 86400000);
 const market = (t: number) => 0.04 * Math.sin(t / 11) + 0.02 * Math.sin(t / 3.1);
 const closeOn = (s: string, iso: string) => {
   const t = ord(iso);
   if (s === NIFTY) return 25000 * Math.exp(market(t));
+  if (GENERIC.has(s) && !PROFILE[s]) {
+    const g = generic(s);
+    return g.base * Math.exp(g.beta * market(t) + g.swing * Math.sin(t / 1.7 + g.k));
+  }
   if (s.startsWith("^") || s.endsWith(".NS") && !PROFILE[s]) return 50000 * Math.exp(market(t));
   const p = PROFILE[s];
   return p.base * Math.exp(p.beta * market(t) + 0.015 * Math.sin(t / 2.3 + p.k));
@@ -60,7 +77,7 @@ export function fakeMarket() {
     async summary(symbol): Promise<SymbolSummary> {
       state.calls.summary++;
       if (state.broken.has(symbol)) throw new Error("Not Found: no data for symbol");
-      const p = PROFILE[symbol];
+      const p = PROFILE[symbol] ?? (GENERIC.has(symbol) ? generic(symbol) : undefined);
       return { raw: {}, name: p?.name ?? symbol, sector: p?.sector ?? null, industry: p?.industry ?? null, currency: "INR", reportingCurrency: "INR", marketCap: 1e12, nextResultsDate: null, exDividendDate: null, quarters: state.quarters[symbol] ?? [] };
     },
     async annualFundamentals() {

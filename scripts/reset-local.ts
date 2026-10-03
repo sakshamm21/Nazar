@@ -1,5 +1,5 @@
 /**
- * Deletes the local PGlite database and rebuilds it with fresh demo data: `npm run demo:reset`.
+ * Deletes the local PGlite database and rebuilds the test accounts from live data: `npm run demo:reset`.
  * (Stop `npm run dev` first; PGlite allows one process at a time.)
  */
 import { rmSync } from "node:fs";
@@ -14,7 +14,7 @@ async function main() {
   installDb(db);
   await getDb();
   await closeDb(db);
-  console.log("Local database rebuilt with fresh demo data.");
+  console.log("Local database rebuilt; test accounts built from live market data.");
   process.exit(0);
 }
 

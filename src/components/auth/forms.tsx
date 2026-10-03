@@ -1,11 +1,11 @@
 "use client";
-import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
 import { Field, FormAlert, Input } from "@/components/ui/field";
-import { DemoButton } from "@/components/landing/demo-button";
 import { linkClass } from "./auth-card";
 import { ApiError, apiCall } from "@/lib/api-client";
 
@@ -21,8 +21,8 @@ function PasswordInput({ id, value, onChange, autoComplete, placeholder }: { id:
   );
 }
 
-/** Sign in, with one-click test accounts. */
-export function SignInForm({ demoAccounts }: { demoAccounts: { label: string; email: string }[] }) {
+/** Sign in, with the one-tap test accounts. */
+export function SignInForm({ testAccounts, password: testPassword }: { testAccounts: { label: string; blurb: string; email: string }[]; password: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState(params.get("email") ?? "");
@@ -70,22 +70,36 @@ export function SignInForm({ demoAccounts }: { demoAccounts: { label: string; em
           Sign in
         </Button>
       </form>
-      {demoAccounts.length > 0 && (
-        <div className="mt-7 rounded-[16px] border border-line bg-surface-2 p-4">
-          <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted">
-            <Sparkles className="h-3.5 w-3.5 text-accent" /> Fast access: test accounts (password nazar123)
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {demoAccounts.map((a) => (
-              <Button key={a.email} type="button" variant="secondary" size="sm" disabled={busy} onClick={() => { setEmail(a.email); setPassword("nazar123"); void submit(undefined, { email: a.email, password: "nazar123" }); }}>
-                {a.label}
-              </Button>
+      {testAccounts.length > 0 && (
+        <>
+          <div className="my-6 flex items-center gap-3 text-[12px] uppercase tracking-[0.1em] text-subtle" aria-hidden>
+            <span className="h-px flex-1 bg-line" /> or try a test account <span className="h-px flex-1 bg-line" />
+          </div>
+          <ul className="space-y-2">
+            {testAccounts.map((a, i) => (
+              <li key={a.email}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setEmail(a.email);
+                    setPassword(testPassword);
+                    void submit(undefined, { email: a.email, password: testPassword });
+                  }}
+                  className={`${i === 0 ? "nz-ring " : "border border-line "}group flex w-full items-center gap-3 rounded-[18px] bg-surface-2 px-4 py-3 text-left transition-colors hover:bg-surface-3 disabled:opacity-60`}
+                >
+                  <Avatar name={a.label.split(",")[0].split(" (")[0]} size={36} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-semibold text-text">{a.label}</span>
+                    <span className="mt-0.5 block text-[13px] leading-5 text-muted">{a.blurb}</span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-accent transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </li>
             ))}
-          </div>
-          <div className="mt-3 border-t border-line pt-3">
-            <DemoButton size="md" className="w-full" label="Or try a private demo, no sign-in" />
-          </div>
-        </div>
+          </ul>
+          <p className="t-caption mt-3 text-center">One tap signs you in. Live market data; shared, and put back every night.</p>
+        </>
       )}
     </>
   );

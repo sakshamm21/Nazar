@@ -15,7 +15,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <NazarMark size={26} />
-      <span className="font-[family-name:var(--font-display)] text-[19px] font-semibold tracking-[-0.02em] text-text">Nazar</span>
+      <span className="font-[family-name:var(--font-display)] text-[21px] font-extrabold lowercase tracking-[-0.04em] text-text">nazar</span>
     </span>
   );
 }

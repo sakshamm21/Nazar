@@ -1,13 +1,12 @@
 "use client";
 import type { UIMessage } from "ai";
-import { Check, Copy, FileDown, FileSpreadsheet, History, Link2, Plus, Share2, Trash2, Wrench } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Check, Copy, FileDown, FileSpreadsheet, History, Link2, Plus, Share2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Chat } from "@/components/ask/chat";
 import type { Rating } from "@/components/ask/messages";
-import { Button, buttonClass } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import type { AskContext } from "./ask-start";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
 import { useHydrated, useStoredPref } from "@/lib/client-store";
@@ -27,8 +26,7 @@ const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.r
 /** The Ask tab: the research agent, with portfolio-aware answers. */
 export type AskStart = { openId: string } | { newId: string; question: string | null };
 
-export function AskWorkspace({ remaining, start }: { remaining: { remaining: number; limit: number } | null; start: AskStart }) {
-  const router = useRouter();
+export function AskWorkspace({ remaining, start, context }: { remaining: { remaining: number; limit: number } | null; start: AskStart; context: AskContext }) {
   const [chats, setChats] = useState<ChatRow[]>([]);
   const [chatId, setChatId] = useState("newId" in start ? start.newId : "");
   const [initial, setInitial] = useState<UIMessage[] | null>("newId" in start ? [] : null);
@@ -101,10 +99,10 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
 
   const historyList = (
     <div className="space-y-1">
-      <Button variant="secondary" size="sm" className="mb-2 w-full" onClick={fresh}>
-        <Plus className="h-4 w-4" /> New question
+      <Button size="sm" className="mb-3 w-full" onClick={fresh}>
+        <Plus className="h-4 w-4" /> New conversation
       </Button>
-      {chats.length === 0 && <p className="px-2 py-2 text-sm text-subtle">No questions yet.</p>}
+      {chats.length === 0 && <p className="px-2 py-2 text-sm text-subtle">Your conversations are kept here so you can come back to them.</p>}
       {chats.map((c) => (
         <div key={c.id} className={cn("group flex items-center rounded-[12px]", c.id === chatId ? "bg-surface-2" : "hover:bg-surface-2")}>
           <button onClick={() => open(c.id)} className="min-w-0 flex-1 truncate px-3 py-2 text-left text-sm text-text">
@@ -127,17 +125,18 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
   );
 
   return (
-    <div className="flex h-[calc(100dvh-12.5rem)] gap-6 lg:h-[calc(100dvh-7rem)]">
+    <div className="flex h-[calc(100dvh-13.5rem)] gap-6 lg:h-[calc(100dvh-7rem)]">
       <aside className="no-print hidden w-60 shrink-0 overflow-y-auto lg:block">
-        <div className="t-overline mb-2 px-1">Your questions</div>
+        <div className="t-overline mb-2 px-1">Conversations</div>
         {historyList}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface-1 print-expand">
         <div className="no-print flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2.5 sm:px-4">
-          <div className="flex items-center gap-2">
-            <button onClick={() => setHistoryOpen(true)} className="rounded-[10px] p-2 text-muted hover:bg-surface-2 lg:hidden" aria-label="Question history">
+          <div className="flex min-w-0 items-center gap-2">
+            <button onClick={() => setHistoryOpen(true)} className="rounded-full p-2 text-muted hover:bg-surface-2 lg:hidden" aria-label="Your conversations">
               <History className="h-5 w-5" />
             </button>
+            {hasMessages && <span className="hidden min-w-0 max-w-[220px] truncate text-sm font-semibold text-text md:block">{title}</span>}
             <Segmented
               label="Answer style"
               value={mode}
@@ -152,12 +151,13 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
               size="sm"
             />
           </div>
-          <div className="flex items-center gap-1.5">
-            {remaining && <span className="num hidden text-[12px] text-subtle sm:inline">{remaining.remaining}/{remaining.limit} left today</span>}
-            <Link href="/ask/research" className={buttonClass("ghost", "sm")} title="Research tools">
-              <Wrench className="h-4 w-4" />
-              <span className="hidden sm:inline">Tools</span>
-            </Link>
+          <div className="flex items-center gap-1">
+            {hasMessages && (
+              <Button variant="ghost" size="sm" onClick={fresh} title="Start a new conversation">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New</span>
+              </Button>
+            )}
             {hasMessages && (
               <>
                 <Button variant="ghost" size="sm" onClick={exportExcel} title="Download every analysis in this conversation as one Excel workbook">
@@ -197,7 +197,8 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
               model={model}
               mode={mode}
               onMessages={onMessages}
-              onOpenTools={() => router.push("/ask/research")}
+              context={context}
+              remaining={remaining}
               prompt={prompt}
               onFinished={() => {
                 history.replaceState(null, "", `/ask?c=${chatId}`);
@@ -207,7 +208,7 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
           )}
         </div>
       </div>
-      <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Your questions">
+      <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Conversations">
         {historyList}
       </Sheet>
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} chatId={chatId} shareId={shareId} onChange={setShareId} />

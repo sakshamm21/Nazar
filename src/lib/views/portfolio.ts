@@ -4,10 +4,11 @@ import { getDb, schema } from "@/lib/db";
 import { correlationMatrix, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { attributionLine, marketSplitLine } from "@/lib/alerts/templates";
 import { effectiveSettings } from "@/lib/alerts/thresholds";
+import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
-import { attribution, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
+import { assetAllocation, attribution, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { getSettings, getThresholds, listThresholdChanges, unreadCount } from "@/lib/repo/alerts";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
 
@@ -46,7 +47,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   const v = valuation(states);
   const w = weights(states);
   const attr = attribution(states, day.niftyPct);
-  const symbols = holdingsRows.map((h) => h.symbol);
+  const symbols = holdingsRows.map((h) => h.symbol).filter((s) => !isManualSymbol(s));
   const hist = await priceHistory(db, [...symbols, NIFTY], sources, shiftDate(tradeDate, -400), tradeDate);
   const nifty = hist.get(NIFTY) ?? new Map<string, number>();
   const niftyOn = (d: string) => {
@@ -92,6 +93,10 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
       return {
         symbol: h.symbol,
         name: h.name,
+        assetClass: h.assetClass,
+        category: h.category,
+        /** Deposits, property and the like have no detail page. */
+        href: isManualSymbol(h.symbol) ? null : `/stock/${encodeURIComponent(h.symbol)}`,
         sector: h.sectorLabel,
         quantity: h.quantity,
         avgPrice: h.avgPrice,
@@ -132,7 +137,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     health,
     innerRing: inner,
     risk: { portfolioBeta: stress10.portfolioBeta, stress10: { loss: stress10.loss, lossPct: stress10.lossPct }, diversification: div, concentration: conc },
-    sectors: sectorAllocation(states),
+    sectors: sectorAllocation(states.filter((h) => (h.assetClass ?? "stock") === "stock")),
+    allocation: assetAllocation(states),
     cards,
     attention,
     staleCount: cards.filter((c) => c.stale).length,

@@ -3,7 +3,7 @@
 > **Nazar watches your Indian stocks every day and tells you only when something important happens: what happened, why, and what it means for you in rupees.**
 > *We watch and explain; you decide.*
 
-**Live app:** https://nazar-watch.vercel.app (press **Try the demo**, no sign-up needed)
+**Live app:** https://nazar-watch.vercel.app (press **Sign in**, then pick a test account)
 
 **Earlier version:** [StockAI (legacy)](https://stockai-legacy.vercel.app), on the [`legacy`](https://github.com/sakshamm21/Nazar/tree/legacy) branch.
 
@@ -20,11 +20,11 @@ Nazar runs a checkup on every portfolio each evening after the market closes. It
 
 ## Try it in a minute
 
-1. Open the live app and press **Try the demo**. You get a private 24-hour copy of a demo account with two portfolios: "My portfolio", and "Papa's portfolio" with reports in Hindi. A short guided tour shows you around.
+1. Open the live app, press **Sign in**, then **Aarav, the investor**. He has two portfolios: "My portfolio" (14 stocks plus funds, ETFs, a REIT, gold and deposits), and "Papa's portfolio" with reports in Hindi. A short guided tour shows you around.
 2. Press **Simulate a bad day**. The Nifty falls 3.2%, autos and IT fall harder, and one of your stocks has bad news of its own. Alerts arrive, each with the likely reason for the move and what it cost you.
-3. Open **Risk** and drag the stress-test slider. Then open **Settings** to see the alert threshold Nazar learned from past 👍/👎 ratings, with the evidence and an Undo button.
+3. Open **Risk** and drag the stress-test slider. Then open **You** to see your profile and the alert threshold Nazar learned from past 👍/👎 ratings, with the evidence and an Undo button.
 
-Prefer a fixed login? Use one of the [test accounts](#test-accounts) below.
+Signing in is required: there is no anonymous demo. See [the test accounts](#test-accounts) below.
 
 ## Features
 
@@ -36,37 +36,42 @@ Prefer a fixed login? Use one of the [test accounts](#test-accounts) below.
 | **H4** | Results-day explainer | What improved and what got worse in the latest quarter, in plain words, with the company's health score stated honestly. |
 | **H5** | Alerts that learn | 👍/👎 on alerts. When small alerts keep getting 👎, Nazar raises the threshold, tells you why with the evidence, and lets you undo it. |
 | **H6** | Family portfolios in Hindi | Track a parent's portfolio separately. A confirmed family member gets a Sunday report and the important alerts by email, in Hindi. |
-| | Demo | "Try the demo" with no sign-up, "Simulate a bad day", a guided tour, real NSE data that works even when the data provider is down. |
-| | Portfolios | Import from Zerodha, Groww or Upstox (CSV/Excel), add stocks by hand, keep a "Watching" list, set price levels. |
-| | Ask | An AI research assistant with 28 tools over live market data and read-only access to your portfolio. It is the only part of Nazar that uses an AI model. |
+| | Test accounts | Five, one tap each on the sign-in page, all on live data: two investors, two savers and an empty one. "Simulate a bad day" and a guided tour. |
+| | Profile | Your name, email, what you track at a glance, password change and account deletion, under **You**. |
+| | Portfolios | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Import from Zerodha, Groww or Upstox (CSV/Excel), keep a "Watching" list, set price levels. Prices refresh when you open the app. |
+| | Ask | An AI research assistant with 28 tools over live market data and read-only access to your portfolio. It opens with a guided start: how it works, and example questions by topic that name your own holdings. It is the only part of Nazar that uses an AI model. |
 
 ## How it works
 
 ```mermaid
 flowchart LR
-  Y[Yahoo Finance] --> P[Data provider<br/>retries · rate limit · circuit breaker]
+  Y[Yahoo Finance · AMFI NAVs] --> P[Data provider<br/>retries · rate limit · circuit breaker]
   P --> N[Nightly checkup<br/>Vercel Cron, resumable]
   N --> DB[(Postgres<br/>prices, snapshots, alerts)]
   DB --> E[Alert engine<br/>rules · likely reason · learning]
   E --> G{No-advice check}
   G --> I[In-app inbox]
   G --> M[Daily email digest<br/>Brevo]
+  P --> R[Refresh on open<br/>at most every 15 min]
+  R --> DB
   DB --> UI[Next.js app]
   UI --> A[Ask: AI agent with<br/>read-only portfolio tool]
 ```
 
-- **Pages never call the market-data provider.** Each evening the checkup does the following for every stock someone holds:
+- **Pages never call the market-data provider.** Each evening the checkup does the following for everything someone holds:
   1. fetches its data once;
   2. stores a snapshot;
   3. computes beta and a financial-health score from the stored data;
   4. runs the alert rules;
   5. delivers the alerts.
 
-  Pages read only from the database, so they are fast and keep working when Yahoo Finance doesn't.
+  Pages read only from the database, so they are fast and keep showing the last known prices when a data source is down.
 - **Built for free-tier limits.** Vercel's free plan runs each cron job once a day and stops functions at 300 seconds. So the checkup is a resumable state machine: it keeps a lock, a cursor and a 240-second budget, and three evening runs each continue where the last one stopped. Every write is idempotent, so a re-run never duplicates an alert or an email.
+- **Every asset class from free sources.** Exchange-traded assets come from Yahoo; mutual fund NAVs from AMFI's daily file (history from mfapi.in); gold and silver per gram from the international price and USD/INR plus import duty. Deposits, provident funds, property and cash have no price feed, so they hold the value the user entered and grow at the rate the user gave.
+- **Refresh on open.** Opening the app makes one batched quote call for that user's holdings, at most every 15 minutes, stored exactly as the nightly checkup stores it. Pages still read only from the database, and alerts are still decided once a day.
 - **Explainable rules, not a black box.** The "likely reason" compares a stock's move with the Nifty × its beta and with its sector index. The learning step raises a threshold only when your ratings clearly separate useful alerts from the rest.
 - **No advice, enforced.** Alerts and reports come from fixed templates, not from an AI model, so every sentence is reproducible and testable. A guard with English, Hindi and Hinglish patterns checks every alert, report and email before it is saved or sent.
-- **An honest demo.** Real NSE prices are captured into a file and date-shifted so the latest session is always recent. The demo's 60 sessions of alert history were produced by replaying the real alert engine, not written by hand.
+- **No captured or hand-written market data.** The test accounts are ordinary accounts on the same live sources as everyone else. When one is first built, the real alert engine is replayed over the last 45 real market sessions and the real tuner learns from the persona's ratings, so its history is genuine. Only "Simulate a bad day" is generated, and it is labelled as a simulation everywhere it appears.
 
 - **Functions run next to the database.** The free Neon database is in AWS us-east-1, so Vercel functions run in `iad1` too. A page pays the long hop to India once per request instead of once per query.
 - **Deliberately not built.** Analyst ratings and target prices (they are recommendations), dividend alerts (Yahoo's NSE dividend dates are unreliable), live intraday prices (a daily watchdog, not a trading screen), and Telegram, WhatsApp or push notifications (more outside services to run).
@@ -76,9 +81,9 @@ flowchart LR
 | Area | Choice |
 |---|---|
 | App | Next.js 16 (App Router), React 19, TypeScript |
-| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Sora, Inter, IBM Plex Mono, Noto Sans Devanagari |
+| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Syne, Fraunces, Figtree, Space Grotesk, IBM Plex Mono, Noto Sans Devanagari |
 | Data | PostgreSQL with Drizzle ORM: Neon in production, PGlite (Postgres in WebAssembly) for local development and tests |
-| Market data | Yahoo Finance via `yahoo-finance2`, the NSE equity list, Google News RSS |
+| Market data | Yahoo Finance via `yahoo-finance2`, AMFI NAVs, mfapi.in, the NSE equity and ETF lists, Google News RSS |
 | Auth | Email and password (bcrypt), a 6-digit email code, a signed session cookie (JWT) |
 | Email | Brevo HTTP API (free tier) |
 | AI | Vercel AI SDK with OpenAI, in the Ask tab only |
@@ -107,22 +112,22 @@ src/
     market/               Reading stored prices and snapshots for a portfolio and a day
     importers/            Broker file parsers (Zerodha, Groww, Upstox) and NSE symbol resolution
     reports/              Weekly reports (EN/HI)
-    demo/                 Demo data, per-visitor demo accounts, "Simulate a bad day"
+    demo/                 Test accounts (personas on live data) and "Simulate a bad day"
     ask/                  The Ask assistant: tools, prompt, topic filter, model catalog
     auth/  email/  db/    Accounts and sessions, email templates and sending, schema and connection
     repo/  views/         Data access per user, and view models for pages
-  data/                   NSE equity list and the demo fixture (real captured prices)
+  data/                   Search lists: NSE equities, ETFs, REITs and InvITs, and AMFI mutual fund schemes
 drizzle/                  Database migrations
-scripts/                  Local dev, migrations, demo reset, pipeline run, data refresh, guard evaluation
+scripts/                  Local dev, migrations, local reset, pipeline run, list refresh, guard evaluation
 tests/
   unit/                   Pure logic: alerts, maths, importers, news filter, auth, contrast, no-advice
-  integration/            Real SQL on in-memory Postgres: pipeline, authorization, demo, first look
+  integration/            Real SQL on in-memory Postgres: pipeline, authorization, test accounts, assets, first look
   e2e/                    Browser click-through of every hero flow
 ```
 
 ## Design
 
-Dark ink-navy by default with a porcelain light theme and a single cobalt accent. Concentric rings, after the *nazar* amulet, are the only brand shape, and each one has a job:
+Dark ink-navy by default with a porcelain light theme, a cobalt accent, and a pink-to-cyan gradient kept for the one word or number that matters on a screen. Concentric rings, after the *nazar* amulet, are the only brand shape, and each one has a job:
 - the logo;
 - the portfolio-health gauge (outer ring: financial health, inner ring: diversification);
 - the "Nazar is watching" status;
@@ -130,23 +135,25 @@ Dark ink-navy by default with a porcelain light theme and a single cobalt accent
 - calm empty states;
 - alert severity, shown by shape as well as colour.
 
-Type is Sora for headings, Inter for text, IBM Plex Mono for numbers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
+Type has four voices: Syne for headings, Fraunces italic for the emphasised word in a headline, Figtree for text and Space Grotesk for every number, with IBM Plex Mono for tickers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
 
 ## Test accounts
 
-Each account also has a one-click button on the sign-in page. The password for all of them is `nazar123`.
+Signing in is required. The sign-in page lists five test accounts, one tap each (password `nazar123` for all).
 
-| Email | What it is |
+| Account | What it holds |
 |---|---|
-| `demo@nazar.dev` | The full demo: two portfolios ("My portfolio" with 14 stocks, "Papa's portfolio" in Hindi), 60 sessions of alert history, a learned threshold and weekly reports |
-| `tester1@nazar.dev` | A second copy of the full demo |
-| `new@nazar.dev` | An empty account on live market data, for trying imports and onboarding |
-| `tester2@nazar.dev` | A second empty account |
+| `demo@nazar.dev` · Aarav, the investor | 14 stocks, three mutual funds, two ETFs, a REIT, a Sovereign Gold Bond, an FD, PPF and EPF; plus "Papa's portfolio" in Hindi (stocks, a fund, jewellery, a post office deposit, savings) |
+| `riya@nazar.dev` · Riya, the saver | Five mutual funds, three ETFs, a REIT, gold, silver, three stocks, an FD, PPF, EPF, NPS, a bond and an emergency fund |
+| `tester1@nazar.dev` · Kabir | A separate copy of the investor |
+| `tester2@nazar.dev` · Meera | A separate copy of the saver |
+| `new@nazar.dev` · Isha | Empty, for building a portfolio from scratch |
 
 Things to know:
-- These accounts are shared and reset to a clean state every night.
-- Demo accounts never send email.
-- **Try the demo** on the landing page creates a private 24-hour copy of the demo instead (up to 15 per network per day).
+- They run on live data like any account: prices refresh when you open the app and every evening.
+- Each has about 45 sessions of real alert history, a learned threshold, weekly reports and "Simulate a bad day".
+- They are shared, and put back to their starting state once a day.
+- Their names and passwords can't be changed, they can't be deleted, and they never send email.
 
 ## Run it locally
 
@@ -157,9 +164,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 and sign in with `demo@nazar.dev` / `nazar123`.
+Open http://localhost:3000, press **Sign in** and pick a test account.
 
-No database or API keys are needed. Without a database URL, `npm run dev` creates an embedded Postgres in `.data/nazar`, applies the migrations, and loads the demo market and test accounts from the committed data file. To enable optional features, copy `.env.example` to `.env.local`:
+No database or API keys are needed, only an internet connection. Without a database URL, `npm run dev` creates an embedded Postgres in `.data/nazar`, applies the migrations, and builds the test accounts from live market data (about a minute the first time). To enable optional features, copy `.env.example` to `.env.local`:
 
 | Feature | Variable |
 |---|---|
@@ -172,15 +179,15 @@ Every variable is documented, one per line, in `.env.example`.
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Run the app locally with demo data |
-| `npm test` | Unit and integration tests (206 tests, about 15 seconds) |
+| `npm run dev` | Run the app locally with the test accounts |
+| `npm test` | Unit and integration tests (228 tests, about 20 seconds) |
 | `npm run test:e2e` | Playwright click-through of every hero flow, on its own database |
 | `npm run lint` · `npm run typecheck` | ESLint and TypeScript checks |
-| `npm run demo:reset` | Rebuild the local demo data (stop `npm run dev` first) |
+| `npm run demo:reset` | Rebuild the local database and test accounts (stop `npm run dev` first) |
 | `npm run pipeline:run` | Run the nightly checkup now, against live market data |
 | `npm run eval:guard` | Measure the Ask topic filter's precision and recall (needs `npm run dev` and an OpenAI key) |
 | `npm run db:generate` | Create a migration after changing `src/lib/db/schema.ts` |
-| `npm run demo:capture` · `npm run nse:refresh` | Refresh the demo data file and the NSE equity list from their sources |
+| `npm run nse:refresh` · `npm run catalog:refresh` | Refresh the search lists: NSE equities, and ETFs, REITs and mutual funds |
 
 ## Testing
 
@@ -195,7 +202,7 @@ Every variable is documented, one per line, in `.env.example`.
 - **Integration tests** run the real SQL on an in-memory Postgres:
   - the full nightly checkup against a fake market, including re-runs, market holidays, new results and a provider outage;
   - authorization through the real API routes: another user's data always returns 404 and is never changed;
-  - the demo, built and simulated with the network switched off.
+  - the test accounts: built on a fake live market, holding every asset class, put back nightly, and simulated.
 - **The no-advice test** checks the alert engine across 90 scenarios, every template, the weekly reports and emails in both languages, and every user-visible string in the code.
 - **End-to-end tests** drive a real browser through the tour, Simulate, every hero feature, sign-up with a broker import, the mobile tabs and an Ask answer.
 
@@ -203,8 +210,8 @@ Every variable is documented, one per line, in `.env.example`.
 
 1. Create a free Postgres database (for example on Neon) and a free Brevo account with a verified sender.
 2. Import the repository on Vercel and set at least `NAZAR_DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, `BREVO_API_KEY`, `MAIL_FROM` and `OPENAI_API_KEY`.
-3. Deploy. The build applies migrations and loads the demo data. `vercel.json` schedules the nightly checkup (weekday evenings IST), the Sunday reports and the nightly maintenance.
+3. Deploy. The build applies migrations and builds the test accounts from live data. `vercel.json` schedules the nightly checkup (weekday evenings IST), the Sunday reports and the nightly maintenance.
 
 ## Disclaimer
 
-Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data comes from Yahoo Finance and may be delayed or occasionally wrong.
+Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data comes from Yahoo Finance and AMFI and may be delayed or occasionally wrong.

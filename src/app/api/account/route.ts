@@ -3,7 +3,7 @@ import { publicUser } from "@/lib/auth/service";
 import { clearSessionCookie } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 import { api, json, requireUser } from "@/lib/http";
-import { remainingToday } from "@/lib/limits";
+import { ipHash, remainingToday } from "@/lib/limits";
 import { track } from "@/lib/events";
 
 export const runtime = "nodejs";
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 /** Who am I, and how many Ask questions are left today. */
 export const GET = api(async (req) => {
   const u = await requireUser(req);
-  return json({ user: publicUser(u), limits: await remainingToday(u.id, u.isDemo) });
+  return json({ user: publicUser(u), limits: await remainingToday(u.id, u.isDemo || u.isTestAccount, ipHash(req)) });
 });
 
 /** Delete my account and everything in it (portfolios, alerts, chats). */

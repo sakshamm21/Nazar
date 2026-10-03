@@ -4,13 +4,15 @@ import { sessionCookie, signSession } from "@/lib/auth/session";
 import { api, json, parseBody } from "@/lib/http";
 import { ipHash, rateLimit } from "@/lib/limits";
 import { track } from "@/lib/events";
+import { isTestEmail } from "@/lib/demo/config";
 
 export const runtime = "nodejs";
 
 export const POST = api(async (req) => {
   const { email, password } = await parseBody(req, LoginBody);
   await rateLimit(`auth:login:${ipHash(req)}`, 30, 15 * 60_000, "Too many sign-in attempts. Please wait 15 minutes.");
-  await rateLimit(`auth:login:${email}`, 10, 15 * 60_000, "Too many sign-in attempts for this account. Please wait 15 minutes.");
+  // The test account is shared by every visitor, so only the per-network limit applies to it.
+  if (!isTestEmail(email)) await rateLimit(`auth:login:${email}`, 10, 15 * 60_000, "Too many sign-in attempts for this account. Please wait 15 minutes.");
   const u = await login(email, password);
   track(u.id, "signed_in", { testAccount: u.isTestAccount });
   const res = json({ user: publicUser(u) });

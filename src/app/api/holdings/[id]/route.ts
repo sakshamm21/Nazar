@@ -1,10 +1,13 @@
 import { z } from "zod";
-import { api, json, parseBody, requireUser } from "@/lib/http";
+import { api, json, requireUser } from "@/lib/http";
+import { ManualAsset } from "@/lib/portfolio/manual-schema";
 import { deleteHolding, updateHolding } from "@/lib/repo/portfolios";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
 
+/** A manual asset is edited as a whole ({ manual }); a market holding by quantity, average price and date. */
+const Manual = z.object({ manual: ManualAsset });
 const Patch = z.object({
   quantity: z.number().positive().max(1e9).optional(),
   avgPrice: z.number().positive().max(1e8).optional(),
@@ -14,7 +17,8 @@ const Patch = z.object({
 export const PATCH = api(async (req, ctx: Ctx) => {
   const u = await requireUser(req);
   const { id } = await ctx.params;
-  await updateHolding(u.id, id, await parseBody(req, Patch));
+  const body = await req.json().catch(() => null);
+  await updateHolding(u.id, id, body && typeof body === "object" && "manual" in body ? Manual.parse(body) : Patch.parse(body));
   return json({ ok: true });
 });
 

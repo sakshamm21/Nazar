@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { HeroValue } from "@/components/home/hero-value";
 import { PortfolioSwitcher } from "@/components/home/portfolio-switcher";
 import { SimulateCard } from "@/components/home/simulate-card";
+import { AllocationBar, AssetIcon } from "@/components/portfolio/asset-ui";
 import { Tour } from "@/components/home/tour";
 import { Sparkline } from "@/components/charts/sparkline";
 import { QuietRings } from "@/components/rings/quiet-rings";
@@ -20,6 +21,7 @@ import { SeverityIcon } from "@/components/ui/severity";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { getDb, schema } from "@/lib/db";
 import { absPct, dayLabel, inr, inrCompact, istTime, signedPct } from "@/lib/format";
+import { ASSET_META, shortCode } from "@/lib/instruments/asset-classes";
 import { cn } from "@/lib/cn";
 import { buildPortfolioView, type AttentionItem, type FullPortfolioView } from "@/lib/views/portfolio";
 
@@ -86,7 +88,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-5 lg:space-y-6">
       <Suspense>
-        <Tour autoStart={user.isDemo && !user.tourCompletedAt && !user.simState} />
+        <Tour autoStart={false} shared={user.isTestAccount && !user.simState && !view.empty} />
       </Suspense>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -110,9 +112,10 @@ export default async function HomePage() {
         {/* Right column */}
         <div className="contents lg:col-span-4 lg:block lg:space-y-6">
           <div className="order-3"><HealthCard v={v} /></div>
-          {user.isDemo && <div className="order-4"><SimulateCard active={Boolean(user.simState)} /></div>}
+          {user.isTestAccount && <div className="order-4"><SimulateCard active={Boolean(user.simState)} /></div>}
           <div className="order-5"><FamilyCard family={family.map((p) => ({ id: p.id, label: p.ownerLabel!, language: p.language, report: reports.find((r) => r.portfolioId === p.id) ?? null, recipient: recipients.find((r) => r.portfolioId === p.id) ?? null }))} /></div>
-          <div className="order-7"><SectorsCard v={v} /></div>
+          {v.allocation.length > 1 && <div className="order-7"><AllocationCard v={v} /></div>}
+          {v.sectors.length > 0 && <div className="order-7"><SectorsCard v={v} /></div>}
         </div>
       </div>
     </div>
@@ -157,7 +160,7 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
         </Stat>
         <Stat label="Invested">
           <div className="num text-[15px] font-medium text-text">{inrCompact(v.valuation.invested)}</div>
-          <div className="num text-[12px] text-subtle">{v.cards.length} stocks</div>
+          <div className="num text-[12px] text-subtle">{v.cards.length} holdings</div>
         </Stat>
       </dl>
     </Card>
@@ -311,10 +314,21 @@ function FamilyCard({ family }: { family: { id: string; label: string; language:
   );
 }
 
+function AllocationCard({ v }: { v: FullPortfolioView }) {
+  return (
+    <Card className="p-5 sm:p-6">
+      <CardHeader overline="Allocation" title="What you own" />
+      <div className="mt-4">
+        <AllocationBar slices={v.allocation} format={inrCompact} />
+      </div>
+    </Card>
+  );
+}
+
 function SectorsCard({ v }: { v: FullPortfolioView }) {
   return (
     <Card className="p-5 sm:p-6">
-      <CardHeader overline="Allocation" title="Where your money is" right={<InfoTip k="sector" />} />
+      <CardHeader overline="Stocks by sector" title="Where your stock money is" right={<InfoTip k="sector" />} />
       <ul className="mt-4 space-y-3">
         {v.sectors.slice(0, 7).map((s) => (
           <li key={s.sector}>
@@ -338,23 +352,26 @@ const valWord = { cheaper: "Cheaper than peers", similar: "In line with peers", 
 function HoldingsCard({ v }: { v: FullPortfolioView }) {
   return (
     <Card className="p-5 sm:p-6">
-      <CardHeader overline="Holdings" title={`${v.cards.length} stocks`} right={<Link href="/portfolio" className="text-sm font-medium text-accent">Manage</Link>} />
-      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+      <CardHeader overline="Holdings" title={`${v.cards.length} holdings`} right={<Link href="/portfolio" className="text-sm font-medium text-accent">Manage</Link>} />
+      <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {v.cards.map((c) => (
-          <li key={c.symbol}>
-            <Link href={`/stock/${encodeURIComponent(c.symbol)}`} className="block rounded-[16px] border border-line bg-surface-2/60 p-4 transition-colors hover:bg-surface-2">
+          <li key={c.symbol} className="min-w-0">
+            <Link href={c.href ?? "/portfolio"} className="block h-full rounded-[16px] border border-line bg-surface-2/60 p-4 transition-colors hover:bg-surface-2">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate font-medium text-text">{c.name}</div>
-                  <div className="font-mono text-[12px] text-subtle">
-                    {c.symbol.replace(/\.NS$/, "")} · {absPct(c.weight, 0)}
+                <div className="flex min-w-0 items-start gap-2.5">
+                  {c.assetClass !== "stock" && <AssetIcon assetClass={c.assetClass} size="sm" />}
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-text">{c.name}</div>
+                    <div className="truncate text-[12px] text-subtle">
+                      {c.assetClass === "stock" ? <span className="font-mono">{shortCode(c.symbol)}</span> : ASSET_META[c.assetClass].label} · {absPct(c.weight, 0)}
+                    </div>
                   </div>
                 </div>
-                <Sparkline values={c.sparkline} width={72} height={28} />
+                {c.sparkline.length > 1 && <Sparkline values={c.sparkline} width={72} height={28} />}
               </div>
-              <div className="mt-3 flex items-baseline justify-between gap-2">
+              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
                 <span className="num text-[15px] font-medium text-text">{inr(c.value)}</span>
-                {c.dayImpact != null ? <Delta amount={c.dayImpact} pct={c.changePct} size="sm" compact /> : <span className="t-caption">no price today</span>}
+                {c.href == null ? <Delta amount={c.pnl} pct={c.pnlPct} size="sm" compact showArrow={false} /> : c.dayImpact != null ? <Delta amount={c.dayImpact} pct={c.changePct} size="sm" compact /> : c.price == null ? <span className="t-caption">no price today</span> : null}
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {c.health != null && <Chip tone={c.health >= 70 ? "gain" : c.health >= 45 ? "neutral" : "loss"}>Health {c.health}</Chip>}

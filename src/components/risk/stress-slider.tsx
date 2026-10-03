@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
-import { adjustedBeta } from "@/lib/portfolio/math";
+import { isManualClass, type AssetClass } from "@/lib/instruments/asset-classes";
+import { betaOf } from "@/lib/portfolio/math";
 import { absPct, inr, inrCompact } from "@/lib/format";
 import { trackClient } from "@/lib/events-client";
 
-type H = { symbol: string; name: string; value: number; beta: number | null };
+type H = { symbol: string; name: string; value: number; beta: number | null; assetClass?: AssetClass };
 
 /** H3a: drag the Nifty fall from −5% to −30% and see the estimated ₹ loss, holding by holding. */
 export function StressSlider({ holdings }: { holdings: H[] }) {
@@ -13,21 +14,21 @@ export function StressSlider({ holdings }: { holdings: H[] }) {
   const total = holdings.reduce((a, h) => a + h.value, 0);
   // The React compiler memoizes this; it is cheap anyway (≤ 100 holdings).
   const rows = holdings
-    .map((h) => ({ ...h, b: adjustedBeta(h.beta), loss: -h.value * adjustedBeta(h.beta) * (shock / 100) }))
+    .map((h) => ({ ...h, b: betaOf(h), loss: -h.value * betaOf(h) * (shock / 100) }))
     .sort((a, b) => a.loss - b.loss);
   const loss = rows.reduce((a, r) => a + r.loss, 0);
   const pBeta = total ? rows.reduce((a, r) => a + r.value * r.b, 0) / total : 1;
-  const unknown = holdings.filter((h) => h.beta == null).length;
+  const unknown = holdings.filter((h) => h.beta == null && !isManualClass(h.assetClass)).length;
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="text-sm text-muted">If the Nifty 50 fell</div>
-          <div className="num font-[family-name:var(--font-display)] text-[40px] font-semibold leading-none tracking-[-0.02em] text-text">{shock}%</div>
+          <div className="num text-[40px] font-bold leading-none tracking-[-0.035em] text-text">{shock}%</div>
         </div>
         <div className="text-right">
           <div className="text-sm text-muted">your portfolio might lose about</div>
-          <div className="num font-[family-name:var(--font-display)] text-[32px] font-semibold leading-none tracking-[-0.02em] text-loss">−{inrCompact(Math.abs(loss))}</div>
+          <div className="num text-[32px] font-bold leading-none tracking-[-0.035em] text-loss">−{inrCompact(Math.abs(loss))}</div>
           <div className="num mt-1 text-sm text-subtle">
             {absPct(loss / (total || 1))} of {inrCompact(total)}
           </div>

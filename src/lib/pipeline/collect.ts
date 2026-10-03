@@ -4,13 +4,16 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { DB } from "@/lib/db";
 import { schema } from "@/lib/db";
 import type { HealthInfo, QuarterRow, ResultsData } from "@/lib/db/schema";
+import type { AssetClass } from "@/lib/instruments/asset-classes";
 import { betaAndVol, buildHealth } from "@/lib/analytics/models";
 import { metricsFromSummary } from "@/lib/data/yahoo";
 import { CircuitBreaker, CircuitOpenError, Limiter } from "@/lib/data/resilience";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
+import { isManualSymbol, isSyntheticSymbol } from "@/lib/instruments/asset-classes";
+import { catalogItem, classOfSymbol } from "@/lib/instruments/catalog";
 import { getMaster, shortName } from "@/lib/instruments/master";
 import { NIFTY, isIndex, sectorOf } from "@/lib/instruments/sectors";
-import { priceHistory, shiftDate } from "@/lib/market/store";
+import { latestTradeDate, priceHistory, shiftDate, snapshotsAsOf } from "@/lib/market/store";
 import { logger } from "@/lib/logger";
 
 /**
@@ -25,22 +28,37 @@ import { logger } from "@/lib/logger";
  */
 export type CollectStats = { quotes: number; processed: number; failed: number; stale: string[]; results: number; marketDate: string | null; circuitOpen: boolean };
 
+/**
+ * Stores one batch of quotes as today's price and snapshot per symbol. Safe to run any number of
+ * times a day (the nightly checkup, a first look, or a refresh when someone opens the app): every
+ * write is an upsert, and a new day's snapshot starts from the previous day's beta, health and
+ * metrics so the portfolio reads correctly before the full nightly collect has run.
+ */
 export async function collectQuotes(db: DB, provider: MarketDataProvider, symbols: string[], source = "live") {
-  const quotes = await provider.quotes(symbols);
-  let marketDate: string | null = null;
+  const quotes = (await provider.quotes(symbols)).filter((q) => q.price != null);
+  const dateOf = (q: (typeof quotes)[number]) => (q.asOf ? istDate(new Date(q.asOf)) : istDate(new Date()));
+  const niftyQuote = quotes.find((q) => q.symbol === NIFTY);
+  const marketDate = niftyQuote ? dateOf(niftyQuote) : null;
+  // Fund NAVs and metal prices have no exchange session of their own: they belong to the market's.
+  const session = marketDate ?? (await latestTradeDate(db, [source])) ?? istDate(new Date());
+  const earlier = await snapshotsAsOf(db, quotes.map((q) => q.symbol), session, [source], true);
   for (const q of quotes) {
-    if (q.price == null) continue;
-    const tradeDate = q.asOf ? istDate(new Date(q.asOf)) : istDate(new Date());
-    if (q.symbol === NIFTY) marketDate = tradeDate;
-    await db.insert(schema.priceDaily).values({ symbol: q.symbol, date: tradeDate, source, close: q.price, volume: q.volume }).onConflictDoUpdate({ target: [schema.priceDaily.symbol, schema.priceDaily.date, schema.priceDaily.source], set: { close: q.price, volume: q.volume } });
-    const changePct = q.changePercent != null ? q.changePercent / 100 : q.previousClose ? q.price / q.previousClose - 1 : null;
-    const base = { price: q.price, prevClose: q.previousClose, changePct, marketCap: q.marketCap, asOf: q.asOf ? new Date(q.asOf) : null, fetchedAt: new Date(), status: "ok" as const };
+    const price = q.price!;
+    const pinned = isSyntheticSymbol(q.symbol);
+    const tradeDate = pinned ? session : dateOf(q);
+    const before = earlier.get(q.symbol);
+    await db.insert(schema.priceDaily).values({ symbol: q.symbol, date: dateOf(q), source, close: price, volume: q.volume }).onConflictDoUpdate({ target: [schema.priceDaily.symbol, schema.priceDaily.date, schema.priceDaily.source], set: { close: price, volume: q.volume } });
+    // A pinned price moves against what Nazar showed for the previous session, so a NAV that hasn't been published yet reads as no change rather than yesterday's change again.
+    const prevClose = pinned ? (before?.price ?? q.previousClose) : q.previousClose;
+    const changePct = !pinned && q.changePercent != null ? q.changePercent / 100 : prevClose ? price / prevClose - 1 : null;
+    const base = { price, prevClose, changePct, marketCap: q.marketCap ?? before?.marketCap ?? null, asOf: q.asOf ? new Date(q.asOf) : null, fetchedAt: new Date(), status: "ok" as const };
+    const carried = before && before.tradeDate < tradeDate ? { metrics: before.metrics, beta: before.beta, vol1y: before.vol1y, health: before.health, nextResultsDate: before.nextResultsDate && before.nextResultsDate >= tradeDate ? before.nextResultsDate : null, lastQuarterEnd: before.lastQuarterEnd, quarterly: before.quarterly } : {};
     await db
       .insert(schema.symbolSnapshots)
-      .values({ symbol: q.symbol, tradeDate, source, ...base })
+      .values({ symbol: q.symbol, tradeDate, source, ...carried, ...base })
       .onConflictDoUpdate({ target: [schema.symbolSnapshots.symbol, schema.symbolSnapshots.tradeDate, schema.symbolSnapshots.source], set: base });
   }
-  return { count: quotes.length, marketDate, priced: new Set(quotes.filter((q) => q.price != null).map((q) => q.symbol)) };
+  return { count: quotes.length, marketDate, priced: new Set(quotes.map((q) => q.symbol)) };
 }
 
 async function lastStoredDate(db: DB, symbol: string, source: string) {
@@ -68,10 +86,12 @@ async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: strin
     if (chunk.length) await db.insert(schema.priceDaily).values(chunk).onConflictDoNothing();
   }
   if (isIndex(symbol)) return { results: false };
+  const assetClass = classOfSymbol(symbol) ?? "stock";
+  if (assetClass !== "stock") return collectFund(db, provider, symbol, assetClass, marketDate, source);
 
   // 2. Profile, metrics, calendar, quarters
   const sum = await provider.summary(symbol);
-  const master = getMaster().bySymbol.get(symbol.replace(/\.(NS|BO)$/, ""));
+  const master = symbol.endsWith(".NS") ? getMaster().bySymbol.get(symbol.slice(0, -3)) : undefined;
   const sec = sectorOf(sum.sector, sum.industry);
   const name = master?.name ?? sum.name ?? symbol;
   await db
@@ -101,6 +121,9 @@ async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: strin
 
   // 5. Results detection (never on the first fetch, so onboarding doesn't fire old results)
   if (newResults && latestQuarter) await recordResults(db, symbol, source, sum.quarters, marketDate, prev?.health?.score ?? null, health?.score ?? null, health?.periods?.at(-1) !== prev?.health?.periods?.at(-1));
+  // First fetch: keep the latest quarter so the stock page can explain it. It is dated at its quarter
+  // end, long past, so it never raises a "results are out" alert.
+  else if (!prev?.lastQuarterEnd && sum.quarters.length >= 2) await recordResults(db, symbol, source, sum.quarters, latestQuarter!.quarterEnd, null, health?.score ?? null, false, true);
 
   const set = {
     metrics: { ...metrics, __healthOn: healthOn ?? null } as Record<string, number | null>,
@@ -121,11 +144,27 @@ async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: strin
   return { results: newResults };
 }
 
-async function recordResults(db: DB, symbol: string, source: string, quarters: QuarterRow[], detectedOn: string, healthBefore: number | null, healthAfter: number | null, annualHealthUpdated: boolean) {
+/**
+ * ETFs, mutual funds, REITs and gold have no company accounts: store the name and category, and
+ * the beta and volatility from their own price history. No health score, results or metrics.
+ */
+async function collectFund(db: DB, provider: MarketDataProvider, symbol: string, assetClass: AssetClass, marketDate: string, source: string) {
+  const item = catalogItem(symbol);
+  const name = item?.name ?? (await provider.summary(symbol).catch(() => null))?.name ?? symbol;
+  const row = { name, shortName: name, assetClass, category: item?.sub ?? null, isin: item?.isin ?? null, sector: null, industry: null, isFinancial: false, updatedAt: new Date() };
+  await db.insert(schema.instruments).values({ symbol, ...row }).onConflictDoUpdate({ target: schema.instruments.symbol, set: row });
+  const hist = await priceHistory(db, [symbol, NIFTY], [source], shiftDate(marketDate, -400));
+  const bv = hist.get(symbol) && hist.get(NIFTY) ? betaAndVol(hist.get(symbol)!, hist.get(NIFTY)!) : { beta: null, vol: null };
+  const set = { beta: bv.beta, vol1y: bv.vol, health: null, fetchedAt: new Date(), status: "ok" as const };
+  await db.update(schema.symbolSnapshots).set(set).where(and(eq(schema.symbolSnapshots.symbol, symbol), eq(schema.symbolSnapshots.tradeDate, marketDate), eq(schema.symbolSnapshots.source, source)));
+  return { results: false };
+}
+
+async function recordResults(db: DB, symbol: string, source: string, quarters: QuarterRow[], detectedOn: string, healthBefore: number | null, healthAfter: number | null, annualHealthUpdated: boolean, backfilled = false) {
   const cur = quarters.at(-1)!;
   const prevQ = quarters.at(-2) ?? null;
   const yearAgo = quarters.find((q) => q.quarterEnd === shiftDate(cur.quarterEnd, -365) || q.quarterEnd.slice(5) === cur.quarterEnd.slice(5) && Number(q.quarterEnd.slice(0, 4)) === Number(cur.quarterEnd.slice(0, 4)) - 1) ?? null;
-  const data: ResultsData = { current: cur, previous: prevQ, yearAgo, annualHealthUpdated };
+  const data: ResultsData = { current: cur, previous: prevQ, yearAgo, annualHealthUpdated, ...(backfilled ? { backfilled } : {}) };
   await db.insert(schema.resultsEvents).values({ id: randomUUID(), symbol, source, quarterEnd: cur.quarterEnd, detectedOn, data, healthBefore, healthAfter }).onConflictDoNothing();
 }
 
@@ -171,11 +210,12 @@ export async function liveUniverse(db: DB): Promise<string[]> {
     .where(eq(schema.users.isDemo, false));
   const watched = await db.selectDistinct({ s: schema.watching.symbol }).from(schema.watching).innerJoin(schema.users, eq(schema.users.id, schema.watching.userId)).where(eq(schema.users.isDemo, false));
   const targets = await db.selectDistinct({ s: schema.priceTargets.symbol }).from(schema.priceTargets);
-  return [...new Set([...held, ...watched, ...targets].map((r) => r.s))].sort();
+  return [...new Set([...held, ...watched, ...targets].map((r) => r.s))].filter((s) => !isManualSymbol(s)).sort();
 }
 
 /** Symbols with no live snapshot yet (newly imported) — fetched once right away instead of waiting for tonight. */
 export async function missingLive(db: DB, symbols: string[]): Promise<string[]> {
+  symbols = symbols.filter((s) => !isManualSymbol(s));
   if (!symbols.length) return [];
   const have = await db.selectDistinct({ s: schema.symbolSnapshots.symbol }).from(schema.symbolSnapshots).where(and(inArray(schema.symbolSnapshots.symbol, symbols), eq(schema.symbolSnapshots.source, "live")));
   const set = new Set(have.map((h) => h.s));

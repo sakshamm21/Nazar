@@ -62,7 +62,7 @@ export async function deliverForUser(user: User, alerts: Alert[], tradeDate: str
       kind: "alert",
       severity: a.severity,
       simulated: a.isSimulated,
-      owner: { email: user.email, emailVerified: !!user.emailVerifiedAt, isDemo: user.isDemo, emailDigest: settings.emailDigest, quietMode: settings.quietMode, language: user.uiLanguage },
+      owner: { email: user.email, emailVerified: !!user.emailVerifiedAt, isDemo: user.isDemo || user.isTestAccount, emailDigest: settings.emailDigest, quietMode: settings.quietMode, language: user.uiLanguage },
       portfolio: { alertsEnabled: p?.alertsEnabled ?? true, language: p?.language ?? "en" },
       recipients: recs.filter((r) => r.portfolioId === a.portfolioId).map((r) => ({ email: r.email, confirmed: !!r.confirmedAt, unsubscribed: !!r.unsubscribedAt })),
     });

@@ -1,11 +1,19 @@
 import { expect, test, type Page } from "@playwright/test";
 import path from "node:path";
 
-/** Starts an isolated 24-hour demo from the landing page, exactly like a visitor would. */
-async function startDemo(page: Page) {
-  await page.goto("/");
-  await page.getByRole("button", { name: /Try the demo, no sign-up/ }).first().click();
+/**
+ * Signs in with the investor test account, exactly like a visitor would. The account is shared, so
+ * each test first clears any simulated day a previous test left behind. (Whether the tour has been
+ * seen is remembered per browser, and every test starts with a fresh one.)
+ */
+async function startDemo(page: Page, who: RegExp = /Aarav, the investor/) {
+  await page.goto("/signin");
+  await page.getByRole("button", { name: who }).click();
   await page.waitForURL(/\/home/);
+  if (await page.getByText(/Simulated bad day/).count()) {
+    await page.request.post("/api/demo/reset");
+    await page.reload();
+  }
 }
 
 /** A new demo always opens the tour once the page has settled (later on a slow network); close it. */
@@ -21,8 +29,11 @@ async function skipTour(page: Page) {
 test.describe("Landing", () => {
   test("pitch, six hero features and the demo button", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Your stocks,\s*watched/ })).toBeVisible();
-    await expect(page.getByText("Nazar watches your stocks every day")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Your money,\s*watched/ })).toBeVisible();
+    await expect(page.getByText("Nazar watches everything you own every day")).toBeVisible();
+    // Signing in is the only way in: no anonymous demo.
+    await expect(page.getByRole("button", { name: /Try the demo/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Sign in", exact: true }).first()).toBeVisible();
     for (const t of ["Alerts that explain why", "Why did I move today?", "Hidden-risk checks", "Results, explained", "Alerts that learn", "Family portfolios, in Hindi"]) await expect(page.getByRole("heading", { name: t })).toBeVisible();
     await expect(page.getByText(/No tips, no predictions, ever/)).toBeVisible();
   });
@@ -39,9 +50,7 @@ test.describe("Demo: guided tour and Simulate a bad day", () => {
       await expect(dialog.getByText(`Step ${i} of 7`)).toBeVisible();
     }
     await expect(dialog.getByRole("heading", { name: "Now, try a bad day" })).toBeVisible();
-    const saved = page.waitForResponse((r) => r.url().endsWith("/api/tour") && r.ok());
     await dialog.getByRole("button", { name: "Got it" }).click();
-    await saved;
     await expect(page.getByText("Step 1 of 7")).toHaveCount(0);
     // It doesn't come back on reload once completed.
     await page.reload();
@@ -54,7 +63,7 @@ test.describe("Demo: guided tour and Simulate a bad day", () => {
     await expect(page.locator('[data-tour="h2"]')).toContainText(/You're (down|up)|A quiet day/);
     await expect(page.getByRole("heading", { name: "What needs your attention" })).toBeVisible();
     await expect(page.getByText("Nazar adjusted your alerts")).toBeVisible();
-    await expect(page.getByText(/reported results/).first()).toBeVisible();
+    await expect(page.getByText("What you own")).toBeVisible(); // allocation across asset types
     await expect(page.getByText("Health and hidden risk")).toBeVisible();
     await expect(page.getByRole("tab", { name: /Papa's/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Simulate a bad day in the market" })).toBeVisible();
@@ -95,7 +104,7 @@ test.describe("Hero features", () => {
     const slider = page.getByRole("slider", { name: /Nifty fall/ });
     await slider.fill("20");
     await expect(page.getByText("20%", { exact: true })).toBeVisible();
-    await expect(page.getByText(/You own \d+ stocks, but/)).toBeVisible();
+    await expect(page.getByText(/You own \d+ market-priced holdings, but/)).toBeVisible();
     await expect(page.getByText("Moves together").first()).toBeVisible();
   });
 
@@ -107,10 +116,14 @@ test.describe("Hero features", () => {
   });
 
   test("H5: learned threshold with evidence, and Undo", async ({ page }) => {
+    // Undo changes the account for everyone until tonight, so it is done on the second investor.
+    await page.request.post("/api/auth/logout");
+    await startDemo(page, /Kabir/);
     await page.goto("/settings");
     await expect(page.getByText(/You found small-move alerts less useful/)).toBeVisible();
     await expect(page.getByText(/Evidence:/).first()).toBeVisible();
-    await page.getByRole("button", { name: "Undo" }).first().click();
+    const undo = page.getByRole("button", { name: "Undo" }).first();
+    if (await undo.isVisible()) await undo.click(); // an earlier run today may already have undone it
     await expect(page.getByText("Undone").first()).toBeVisible();
   });
 
@@ -138,11 +151,61 @@ test.describe("Hero features", () => {
 });
 
 test.describe("Accounts", () => {
-  test("one-click test account sign-in", async ({ page }) => {
+  test("one-tap test accounts: the investor's profile, and the saver's mix of assets", async ({ page }) => {
     await page.goto("/signin");
-    await page.getByRole("button", { name: "Investor (full demo)" }).click();
+    for (const name of [/Aarav, the investor/, /Riya, the saver/, /Isha, brand new/]) await expect(page.getByRole("button", { name })).toBeVisible();
+    await page.getByRole("button", { name: /Aarav, the investor/ }).click();
     await page.waitForURL(/\/home/);
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/ })).toBeVisible();
+    await page.goto("/settings");
+    await expect(page.getByRole("heading", { name: /Hey,\s*Aarav/ })).toBeVisible();
+    await expect(page.getByText("Shared test account", { exact: true })).toBeVisible();
+
+    // The saver: funds, ETFs, gold and deposits, all valued.
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.goto("/signin");
+    await page.getByRole("button", { name: /Riya, the saver/ }).click();
+    await page.waitForURL(/\/home/);
+    await page.goto("/portfolio");
+    for (const group of ["Mutual funds", "ETFs", "Gold & silver", "Retirement", "Fixed income", "Stocks"]) await expect(page.getByRole("heading", { name: group })).toBeVisible();
+    await expect(page.getByText("price on its way")).toHaveCount(0);
+  });
+
+  test("Ask opens with a guided start built from the account's own holdings", async ({ page }) => {
+    await startDemo(page);
+    await skipTour(page);
+    await page.goto("/ask");
+    await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
+    await expect(page.getByText("Nazar fetches live data")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?" })).toBeVisible();
+    await page.getByRole("tab", { name: "One company" }).click();
+    await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
+    await expect(page.getByLabel("Your question")).toBeVisible();
+  });
+
+  test("the app is closed to signed-out visitors", async ({ page }) => {
+    for (const p of ["/home", "/portfolio", "/alerts", "/settings"]) {
+      await page.goto(p);
+      await page.waitForURL(/\/signin/);
+    }
+  });
+
+  test("build a portfolio across asset classes", async ({ page }) => {
+    await startDemo(page);
+    await page.goto("/portfolio");
+    await expect(page.getByRole("heading", { name: "Fixed income" })).toBeVisible(); // the test account's deposit
+    await page.getByRole("button", { name: "Add assets" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Search").fill("parag parikh flexi");
+    await expect(dialog.getByRole("option", { name: /Parag Parikh Flexi Cap Fund - Direct - Growth/ })).toBeVisible();
+    await dialog.getByRole("tab", { name: "Deposits, PF & more" }).click();
+    await dialog.getByRole("button", { name: /Cash and savings/ }).click();
+    await dialog.getByLabel("Name").fill("Emergency fund");
+    await dialog.getByLabel("Amount (₹)").fill("150000");
+    await dialog.getByRole("button", { name: "Add to portfolio" }).click();
+    await expect(page.getByText("Emergency fund")).toBeVisible();
+    await page.getByRole("button", { name: "Remove Emergency fund" }).click();
+    await expect(page.getByText("Emergency fund removed")).toBeVisible();
   });
 
   test("sign up with a code, then import a Zerodha file", async ({ page }) => {
@@ -175,7 +238,7 @@ test.describe("Mobile @mobile", () => {
     await startDemo(page);
     await skipTour(page);
     const nav = page.getByRole("navigation", { name: "Main" }).last();
-    for (const [label, url] of [["Alerts", /\/alerts/], ["Portfolio", /\/portfolio/], ["Settings", /\/settings/], ["Home", /\/home/]] as const) {
+    for (const [label, url] of [["Alerts", /\/alerts/], ["Portfolio", /\/portfolio/], ["You", /\/settings/], ["Home", /\/home/]] as const) {
       await nav.getByRole("link", { name: label }).click();
       await page.waitForURL(url);
     }

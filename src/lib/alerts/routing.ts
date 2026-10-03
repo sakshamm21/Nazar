@@ -25,6 +25,8 @@ export type RouteInput = {
 export function route(r: RouteInput): RouteTarget[] {
   const out: RouteTarget[] = [{ channel: "inbox" }];
   if (!r.portfolio.alertsEnabled && r.kind === "alert") return out;
+  // `isDemo` here means "an account that never sends email" (shared test accounts): inbox only.
+  if (r.owner.isDemo) return out;
   const ownerCanEmail = r.owner.emailVerified && !r.owner.isDemo && r.owner.emailDigest;
   if (ownerCanEmail) {
     const quietBlocks = r.kind === "alert" && r.owner.quietMode && r.severity !== "critical";

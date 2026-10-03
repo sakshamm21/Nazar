@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AskWorkspace } from "@/components/ask/ask-workspace";
-import { requirePageUser } from "@/lib/current-user";
-import { remainingToday } from "@/lib/limits";
+import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
+import { buildPortfolioView } from "@/lib/views/portfolio";
+import { headers } from "next/headers";
+import { ipHashOf, remainingToday } from "@/lib/limits";
 
 export const metadata: Metadata = { title: "Ask" };
 
@@ -13,9 +15,12 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   // Decided on the server so the first render and hydration agree: an existing conversation (?c=)
   // loads on the client; otherwise a new one starts, optionally with a question from ?q= (e.g. "Ask about this").
   const start = c ? { openId: c.slice(0, 64) } : { newId: randomUUID(), question: q?.slice(0, 500) || null };
+  // The start screen's example questions name the user's two largest stocks.
+  const view = await buildPortfolioView(user, await selectedPortfolioId());
+  const stocks = view.empty ? [] : view.cards.filter((c) => c.assetClass === "stock").map((c) => c.name);
   return (
     <Suspense>
-      <AskWorkspace remaining={await remainingToday(user.id, user.isDemo)} start={start} />
+      <AskWorkspace context={{ stock: stocks[0] ?? null, second: stocks[1] ?? null, hasPortfolio: !view.empty }} remaining={await remainingToday(user.id, user.isTestAccount, ipHashOf(await headers()))} start={start} />
     </Suspense>
   );
 }

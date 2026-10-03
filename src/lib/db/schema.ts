@@ -1,3 +1,4 @@
+import type { AssetClass, ManualDetails } from "@/lib/instruments/asset-classes";
 import { boolean, date, doublePrecision, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 const ts = (name: string) => timestamp(name, { withTimezone: true });
@@ -19,10 +20,10 @@ export const users = pgTable("users", {
   verifySentAt: ts("verify_sent_at"),
   resetTokenHash: text("reset_token_hash"),
   resetExpiresAt: ts("reset_expires_at"),
-  /** Per-visitor demo account ("Try the demo"): isolated, deleted after `demoExpiresAt`. */
+  /** Legacy: an anonymous 24-hour demo visitor. Nothing creates these any more. */
   isDemo: boolean("is_demo").notNull().default(false),
   demoExpiresAt: ts("demo_expires_at"),
-  /** Public test account listed on the sign-in page. */
+  /** A shared test account from the sign-in page (or a persona template): never emails, capped Ask use. */
   isTestAccount: boolean("is_test_account").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
   tourCompletedAt: ts("tour_completed_at"),
@@ -59,12 +60,17 @@ export const holdings = pgTable(
   {
     id: text("id").primaryKey(),
     portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    /** "INFY.NS", "MF:<AMFI scheme code>", "CMD:GOLD24", or "MANUAL:<id>" for assets without a price feed. */
     symbol: text("symbol").notNull(),
+    assetClass: text("asset_class").$type<AssetClass>().notNull().default("stock"),
+    /** Units held. Manual assets hold 1 unit whose average price is the amount invested. */
     quantity: doublePrecision("quantity").notNull(),
     avgPrice: doublePrecision("avg_price").notNull(),
     buyDate: date("buy_date", { mode: "string" }),
     isin: text("isin"),
     rawName: text("raw_name"),
+    /** Manual assets only: the value the user entered and how it grows. */
+    details: jsonb("details").$type<ManualDetails | null>(),
     source: text("source").$type<"manual" | "zerodha" | "groww" | "upstox" | "generic" | "screenshot">().notNull().default("manual"),
     createdAt: created(),
     updatedAt: ts("updated_at").defaultNow().notNull(),
@@ -113,7 +119,7 @@ export const importBatches = pgTable("import_batches", {
 
 /* ------------------------------------------------------------------ */
 /* Market data — shared across users, keyed by symbol + source         */
-/* source: "live" (nightly pipeline) | "demo" (fixture) | "sim:<userId>" */
+/* source: "live" (nightly checkup, refresh on open) | "sim:<userId>"   */
 /* ------------------------------------------------------------------ */
 
 export const instruments = pgTable("instruments", {
@@ -121,6 +127,9 @@ export const instruments = pgTable("instruments", {
   isin: text("isin"),
   name: text("name").notNull(),
   shortName: text("short_name"),
+  assetClass: text("asset_class").$type<AssetClass>().notNull().default("stock"),
+  /** Fund category or ETF underlying, e.g. "Flexi Cap Fund". */
+  category: text("category"),
   sector: text("sector"),
   industry: text("industry"),
   isFinancial: boolean("is_financial").notNull().default(false),
@@ -199,6 +208,8 @@ export type ResultsData = {
   previous: QuarterRow | null;
   yearAgo: QuarterRow | null;
   annualHealthUpdated: boolean;
+  /** The latest quarter as it stood when Nazar first saw the stock: explained on the stock page, but never announced as news. */
+  backfilled?: boolean;
 };
 
 /* ------------------------------------------------------------------ */

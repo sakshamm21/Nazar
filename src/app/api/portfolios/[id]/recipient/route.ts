@@ -32,7 +32,7 @@ export const POST = api(async (req, ctx: Ctx) => {
   const recId = randomUUID();
   await db.insert(schema.recipients).values({ id: recId, userId: u.id, portfolioId: p.id, email });
   let status: "sent" | "not_configured" | "failed" | "demo" = "demo";
-  if (!u.isDemo) {
+  if (!u.isDemo && !u.isTestAccount) {
     const url = `${appUrl()}/r/${signLink({ a: "confirm", rec: recId }, 14)}`;
     const mail = emails.recipientConfirm({ ownerName: u.name, portfolioName: p.ownerLabel ? `${p.ownerLabel}'s portfolio` : p.name, url, lang: p.language });
     const r = await sendMail({ to: email, ...mail });

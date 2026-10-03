@@ -16,6 +16,8 @@ import { requirePageUser } from "@/lib/current-user";
 import { getDb, schema } from "@/lib/db";
 import { riskReturn, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { healthLine, quarterName, resultsPoints } from "@/lib/alerts/templates";
+import { ASSET_META, isManualSymbol } from "@/lib/instruments/asset-classes";
+import { catalogItem, classOfSymbol } from "@/lib/instruments/catalog";
 import { NIFTY, sectorOf } from "@/lib/instruments/sectors";
 import { absPct, dayLabel, inr, inrCompact } from "@/lib/format";
 import { displayName } from "@/lib/market/portfolio-day";
@@ -41,6 +43,9 @@ const METRIC_ROWS: { key: string; label: string; fmt: "x" | "pct" | "inr"; tip?:
 export default async function StockPage({ params }: { params: Promise<{ symbol: string }> }) {
   const user = await requirePageUser();
   const symbol = decodeURIComponent((await params).symbol).toUpperCase();
+  if (isManualSymbol(symbol)) notFound();
+  const assetClass = classOfSymbol(symbol) ?? "stock";
+  const company = assetClass === "stock";
   const db = await getDb();
   const sources = sourcesFor(user);
   const date = await latestTradeDate(db, dateSources(sources));
@@ -50,8 +55,8 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   if (!snap) {
     return (
       <div className="mx-auto max-w-3xl space-y-4">
-        <h1 className="t-title-1 text-text">{symbol.replace(/\.NS$/, "")}</h1>
-        <Card className="p-6 text-sm text-muted">Nazar hasn&apos;t checked this stock yet. Add it to a portfolio or your Watching list and it&apos;ll appear after the next check.</Card>
+        <h1 className="t-title-1 text-text">{catalogItem(symbol)?.name ?? symbol.replace(/\.NS$/, "")}</h1>
+        <Card className="p-6 text-sm text-muted">Nazar hasn&apos;t checked this yet. Add it to a portfolio or your Watching list and it&apos;ll appear within a minute or two.</Card>
       </div>
     );
   }
@@ -107,13 +112,18 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="t-overline">
-            {sec.label} · <span className="font-mono normal-case tracking-normal">{symbol}</span>
+            {company ? sec.label : (i?.category ?? ASSET_META[assetClass].label)}
+            {assetClass !== "mf" && assetClass !== "gold" && (
+              <>
+                {" "}· <span className="font-mono normal-case tracking-normal">{symbol}</span>
+              </>
+            )}
           </div>
           <h1 className="t-title-1 mt-1 text-text">{name}</h1>
           <div className="mt-1 flex flex-wrap items-baseline gap-x-3">
-            <span className="num font-[family-name:var(--font-display)] text-[28px] font-semibold text-text">{inr(snap.price, { decimals: 2 })}</span>
+            <span className="num text-[28px] font-semibold text-text">{inr(snap.price, { decimals: 2 })}</span>
             {snap.tradeDate === date && <Delta pct={snap.changePct} />}
-            <span className="t-caption">as of {dayLabel(snap.tradeDate, "en")} close</span>
+            <span className="t-caption">{assetClass === "mf" ? "latest NAV" : assetClass === "gold" ? "indicative price per gram" : `as of ${dayLabel(snap.tradeDate, "en")} close`}</span>
           </div>
         </div>
         <div className="flex gap-2">
@@ -133,7 +143,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
               <div key={h.id} className="text-sm">
                 <div className="t-caption">{p.ownerLabel ? `${p.ownerLabel}'s portfolio` : p.name}</div>
                 <div className="num text-text">
-                  {h.quantity} shares · {inr(value)}
+                  {h.quantity.toLocaleString("en-IN", { maximumFractionDigits: 3 })} {ASSET_META[assetClass].unit} · {inr(value)}
                 </div>
                 <Delta amount={value - h.quantity * h.avgPrice} pct={(snap.price ?? h.avgPrice) / h.avgPrice - 1} size="sm" compact showArrow={false} />
               </div>
@@ -142,15 +152,15 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
         </Card>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
-        <div className="space-y-5 lg:col-span-8 lg:space-y-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
+        <div className="min-w-0 space-y-5 lg:col-span-8 lg:space-y-6">
           <Card className="p-5 sm:p-6">
             <StockChart points={points} />
           </Card>
 
           {r && (
             <Card className="scroll-mt-24 p-5 sm:p-6" id="results">
-              <CardHeader overline={`Results · reported ${dayLabel(r.detectedOn, "en")}`} title={`${quarterName(r.quarterEnd).en} results, explained`} right={<InfoTip k="results" />} />
+              <CardHeader overline={r.data.backfilled ? "Latest reported quarter" : `Results · reported ${dayLabel(r.detectedOn, "en")}`} title={`${quarterName(r.quarterEnd).en} results, explained`} right={<InfoTip k="results" />} />
               <ResultsLists improved={pts.filter((p) => p.good)} worse={pts.filter((p) => !p.good)} health={healthLine({ healthBefore: r.healthBefore, healthAfter: r.healthAfter, annualHealthUpdated: r.data.annualHealthUpdated })} />
               <QuarterBars quarters={(snap.quarterly ?? []).slice(-5)} />
             </Card>
@@ -170,8 +180,8 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
           )}
         </div>
 
-        <div className="space-y-5 lg:col-span-4 lg:space-y-6">
-          <Card className="p-5 sm:p-6">
+        <div className="min-w-0 space-y-5 lg:col-span-4 lg:space-y-6">
+          {company && <Card className="p-5 sm:p-6">
             <CardHeader overline="Financial health" title={health?.score != null ? `${health.score} / 100` : "Not scored"} right={<InfoTip k="health" />} />
             {healthSeries.length > 2 && (
               <div className="mt-3 flex items-center justify-between gap-3 text-[12px] text-subtle">
@@ -194,21 +204,33 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
             </ul>
             {health?.kind === "lender" && <p className="t-caption mt-3">Banks and lenders get a simplified lender check; Piotroski and Altman don&apos;t apply to their balance sheets.</p>}
             {health?.altmanZone && <p className="mt-3 text-sm text-muted">Altman Z: <span className="text-text">{health.altmanZ?.toFixed(2)} ({health.altmanZone} zone)</span></p>}
-          </Card>
+          </Card>}
 
           <Card className="p-5 sm:p-6">
-            <CardHeader overline="Risk and valuation" title="At a glance" />
+            <CardHeader overline={company ? "Risk and valuation" : "Risk"} title="At a glance" />
             <dl className="mt-4 space-y-2.5 text-sm">
               <Row label="Beta vs Nifty" tip="beta" value={snap.beta != null ? snap.beta.toFixed(2) : "—"} />
               <Row label="Volatility (1y)" value={snap.vol1y != null ? absPct(snap.vol1y, 0) : "—"} />
               <Row label="Max fall from peak (1y)" value={rr ? absPct(rr.stats.maxDrawdown, 0) : "—"} />
               <Row label="Trend" tip="trend" value={trend.label === "unknown" ? "—" : trend.label[0].toUpperCase() + trend.label.slice(1)} />
-              <Row label="Valuation vs peers" tip="valuation" value={val.label === "unknown" ? "—" : val.label === "similar" ? "In line" : val.label === "cheaper" ? "Cheaper" : "Pricier"} />
+              {company && <Row label="Valuation vs peers" tip="valuation" value={val.label === "unknown" ? "—" : val.label === "similar" ? "In line" : val.label === "cheaper" ? "Cheaper" : "Pricier"} />}
               {snap.nextResultsDate && <Row label="Next results" value={dayLabel(snap.nextResultsDate, "en")} />}
             </dl>
           </Card>
 
-          <Card className="p-5 sm:p-6">
+          {!company && (
+            <Card className="p-5 sm:p-6">
+              <CardHeader overline="About" title={ASSET_META[assetClass].label} />
+              <p className="mt-3 text-sm text-muted">
+                {assetClass === "mf"
+                  ? "The NAV comes from AMFI, which publishes it once a day, usually late in the evening. Today's NAV therefore shows up the next morning."
+                  : assetClass === "gold"
+                    ? "Valued from the international price and the rupee-dollar rate, plus India's import duty. A jeweller's rate also adds GST and making charges, and a Sovereign Gold Bond can trade a little above or below this."
+                    : "Priced like a share on the NSE. It holds a basket of assets, so company checks such as the health score and results don't apply."}
+              </p>
+            </Card>
+          )}
+          {company && <Card className="p-5 sm:p-6">
             <CardHeader overline="Numbers" title="Key metrics" />
             <dl className="mt-4 space-y-2.5 text-sm">
               {METRIC_ROWS.map((k) => (
@@ -216,7 +238,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
               ))}
             </dl>
             <p className="t-caption mt-4">From Yahoo Finance at the last check. <Chip className="ml-1">Not advice</Chip></p>
-          </Card>
+          </Card>}
         </div>
       </div>
     </div>

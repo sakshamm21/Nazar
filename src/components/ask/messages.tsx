@@ -5,6 +5,7 @@ import { ChevronRight, Database, ShieldCheck, ThumbsDown, ThumbsUp } from "lucid
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { NazarMark } from "@/components/rings/nazar-mark";
 import { ToolView } from "../gen/tool-view";
 import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/ask/feedback-reasons";
 import { TOOL_LABELS, followUps } from "@/lib/ask/followups";
@@ -38,11 +39,14 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
         return (
           <div key={m.id} className={m.role === "user" ? "my-5 flex justify-end print-avoid-break" : "my-5"}>
             {m.role === "user" ? (
-              <div className="user-bubble max-w-[85%] rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm text-accent-ink">
+              <div className="user-bubble max-w-[85%] rounded-[22px] rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink">
                 {m.parts.map((p, i) => (p.type === "text" ? <span key={i} className="whitespace-pre-wrap">{p.text}</span> : null))}
               </div>
             ) : (
               <div>
+                <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
+                  <NazarMark size={18} /> Nazar
+                </div>
                 {m.parts.map((p: any, i) => {
                   if (p.type === "text") return <div key={i} className="prose-ask"><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
                   if (typeof p.type === "string" && p.type.startsWith("tool-")) {

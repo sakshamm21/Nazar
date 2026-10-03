@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useHydrated } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
 
 /**
@@ -13,6 +14,8 @@ export function Sheet({ open, onClose, title, description, children, footer, wid
   const reduce = useReducedMotion();
   const panel = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // A sheet that starts open must not render during hydration: the server had no document to portal into.
+  const hydrated = useHydrated();
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
@@ -43,7 +46,7 @@ export function Sheet({ open, onClose, title, description, children, footer, wid
     };
   }, [open, onClose]);
 
-  if (typeof document === "undefined") return null;
+  if (!hydrated) return null;
   return createPortal(
     <AnimatePresence>
       {open && (

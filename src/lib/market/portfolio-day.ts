@@ -1,20 +1,59 @@
 import "server-only";
 import type { DB } from "@/lib/db";
 import type { schema } from "@/lib/db";
+import { ASSET_META, groupOf, isManualSymbol, manualValue, type AssetClass } from "@/lib/instruments/asset-classes";
+import { catalogItem } from "@/lib/instruments/catalog";
 import { DISPLAY_NAMES, shortName } from "@/lib/instruments/master";
 import { NIFTY, SECTOR_INDICES, sectorOf } from "@/lib/instruments/sectors";
 import type { DayHolding } from "@/lib/alerts/rules";
-import { instrumentsFor, latestResults, snapshotsAsOf, type Instrument, type Snapshot } from "./store";
+import { instrumentsFor, latestResults, shiftDate, snapshotsAsOf, type Instrument, type Snapshot } from "./store";
 
 type HoldingRow = typeof schema.holdings.$inferSelect;
 
+/**
+ * A manual asset (deposit, provident fund, property, cash…) as one unit whose price is its value
+ * today: what the user entered plus interest since. It has no snapshot, beta, health or results.
+ */
+function manualRow(h: HoldingRow, date: string, prevWeight: number | null) {
+  const label: string = groupOf(h.assetClass);
+  return {
+    symbol: h.symbol,
+    name: h.rawName || ASSET_META[h.assetClass].label,
+    assetClass: h.assetClass,
+    category: ASSET_META[h.assetClass].label as string | null,
+    sector: label,
+    sectorLabel: label,
+    sectorRaw: null,
+    industry: null,
+    isFinancial: false,
+    quantity: 1,
+    avgPrice: h.avgPrice,
+    buyDate: h.buyDate,
+    price: manualValue(h.assetClass, h.details, h.avgPrice, date) as number | null,
+    prevClose: manualValue(h.assetClass, h.details, h.avgPrice, shiftDate(date, -1)) as number | null,
+    changePct: null,
+    beta: null,
+    health: null,
+    healthPrev: null,
+    altmanZone: null,
+    altmanZonePrev: null,
+    healthAnnualChanged: false,
+    nextResultsDate: null,
+    results: null,
+    prevWeight,
+    snapshot: null,
+    stale: false,
+    instrument: null,
+  };
+}
+
 export function displayName(symbol: string, inst?: Instrument | null): string {
-  return DISPLAY_NAMES[symbol] ?? inst?.shortName ?? (inst?.name ? shortName(inst.name) : symbol.replace(/\.(NS|BO)$/, ""));
+  return DISPLAY_NAMES[symbol] ?? inst?.shortName ?? (inst?.name ? shortName(inst.name) : (catalogItem(symbol)?.name ?? symbol.replace(/\.(NS|BO)$/, "")));
 }
 
 export type PortfolioDay = {
   tradeDate: string;
-  holdings: (DayHolding & { snapshot: Snapshot | null; stale: boolean; sectorLabel: string; instrument: Instrument | null })[];
+  holdings: (DayHolding & { snapshot: Snapshot | null; stale: boolean; sectorLabel: string; category: string | null; assetClass: AssetClass; instrument: Instrument | null })[];
   niftyPct: number | null;
   nifty: Snapshot | null;
   sectorPct: Record<string, number | null>;
@@ -26,7 +65,7 @@ export type PortfolioDay = {
  * holding, names/sectors, the latest results event, and the market (Nifty + sector indices).
  */
 export async function loadPortfolioDay(db: DB, holdings: HoldingRow[], date: string, sources: string[]): Promise<PortfolioDay> {
-  const symbols = [...new Set(holdings.map((h) => h.symbol))];
+  const symbols = [...new Set(holdings.map((h) => h.symbol).filter((s) => !isManualSymbol(s)))];
   const all = [...symbols, NIFTY, ...SECTOR_INDICES];
   const [today, prev, inst, results] = await Promise.all([
     snapshotsAsOf(db, all, date, sources),
@@ -42,22 +81,28 @@ export async function loadPortfolioDay(db: DB, holdings: HoldingRow[], date: str
   }
 
   // Previous-day weights, for concentration crossings.
-  const prevVal = new Map(holdings.map((h) => [h.symbol, h.quantity * (prev.get(h.symbol)?.price ?? today.get(h.symbol)?.prevClose ?? h.avgPrice)]));
+  const prevVal = new Map(holdings.map((h) => [h.symbol, isManualSymbol(h.symbol) ? manualValue(h.assetClass, h.details, h.avgPrice, shiftDate(date, -1)) : h.quantity * (prev.get(h.symbol)?.price ?? today.get(h.symbol)?.prevClose ?? h.avgPrice)]));
   const prevTotal = [...prevVal.values()].reduce((a, b) => a + b, 0);
 
   const rows = holdings.map((h) => {
+    if (isManualSymbol(h.symbol)) return manualRow(h, date, prevTotal ? (prevVal.get(h.symbol) ?? 0) / prevTotal : null);
     const snap = today.get(h.symbol) ?? null;
     const p = prev.get(h.symbol) ?? null;
     const i = inst.get(h.symbol) ?? null;
     const sec = sectorOf(i?.sector, i?.industry);
     const fresh = snap?.tradeDate === date;
+    const assetClass: AssetClass = h.assetClass ?? i?.assetClass ?? "stock";
+    // Sectors describe companies; a fund or gold sits under its asset group instead.
+    const sectorLabel: string = assetClass === "stock" ? sec.label : groupOf(assetClass);
     const r = results.get(h.symbol);
     const lastPeriod = (x: Snapshot | null) => x?.health?.periods?.at(-1) ?? null;
     return {
       symbol: h.symbol,
       name: displayName(h.symbol, i),
-      sector: sec.label,
-      sectorLabel: sec.label,
+      assetClass,
+      category: i?.category ?? catalogItem(h.symbol)?.sub ?? null,
+      sector: sectorLabel,
+      sectorLabel,
       sectorRaw: i?.sector ?? null,
       industry: i?.industry ?? null,
       isFinancial: sec.financial,

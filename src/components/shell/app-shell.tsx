@@ -1,10 +1,11 @@
 "use client";
-import { Bell, Home, MessageCircle, Settings2, Wallet } from "lucide-react";
+import { Bell, Home, MessageCircle, UserRound, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Wordmark } from "@/components/rings/nazar-mark";
+import { Avatar } from "@/components/ui/avatar";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
@@ -13,7 +14,7 @@ const NAV = [
   { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/ask", label: "Ask", icon: MessageCircle },
   { href: "/portfolio", label: "Portfolio", icon: Wallet },
-  { href: "/settings", label: "Settings", icon: Settings2 },
+  { href: "/settings", label: "You", icon: UserRound },
 ];
 
 export type ShellUser = { name: string; isDemo: boolean; isTestAccount: boolean; demoExpiresAt: string | null; sim: { label: string } | null };
@@ -34,28 +35,39 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
         </Link>
         <nav className="mt-8 space-y-1" aria-label="Main">
           {NAV.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[15px] font-medium transition-colors", active(href) ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text")}>
+            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors", active(href) ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text")}>
               <Icon className="h-[18px] w-[18px]" />
               {label}
               {href === "/alerts" && unread > 0 && <span className="num ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-ink">{unread > 99 ? "99+" : unread}</span>}
             </Link>
           ))}
         </nav>
-        <div className="mt-auto px-3">
-          <div className="t-caption truncate">{user.isDemo && !user.isTestAccount ? "Demo account" : user.name}</div>
-          <Link href="/ask/research" className="mt-2 block text-[13px] text-muted hover:text-text">Research tools</Link>
+        <div className="mt-auto space-y-2">
+          <Link href="/ask/research" className="block px-4 text-[13px] text-muted hover:text-text">Research tools</Link>
+          <Link href="/settings" className="flex items-center gap-2.5 rounded-[18px] border border-line bg-surface-1 p-2.5 transition-colors hover:bg-surface-2">
+            <Avatar name={user.name} size={36} />
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-text">{user.name}</span>
+              <span className="block truncate text-[12px] text-subtle">{user.isTestAccount ? "Test account" : "Profile and settings"}</span>
+            </span>
+          </Link>
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
         {user.sim && <SimBanner label={user.sim.label} />}
-        {!user.sim && user.isDemo && !user.isTestAccount && <DemoRibbon />}
+        {!user.sim && user.isTestAccount && <DemoRibbon />}
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/90 px-4 py-3 backdrop-blur lg:hidden">
           <Link href="/home" aria-label="Nazar home">
             <Wordmark />
           </Link>
-          <Link href="/ask/research" className="text-[13px] text-muted">Research</Link>
+          <span className="flex items-center gap-3">
+            <Link href="/ask/research" className="text-[13px] text-muted">Research</Link>
+            <Link href="/settings" aria-label="Your profile">
+              <Avatar name={user.name} size={32} />
+            </Link>
+          </span>
         </header>
         <main id="main" className="mx-auto w-full max-w-[1120px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
           {children}
@@ -111,7 +123,7 @@ function SimBanner({ label }: { label: string }) {
 function DemoRibbon() {
   return (
     <div className="border-b border-line bg-surface-1 px-4 py-2 text-center text-[13px] text-muted">
-      This is a private demo built from real NSE prices, with dates shifted to today. It resets in 24 hours.{" "}
+      You&apos;re in a shared test account on live market data. It is put back to its starting state every night.{" "}
       <Link href="/signup" className="font-medium text-accent">
         Create your own
       </Link>

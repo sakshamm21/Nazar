@@ -7,6 +7,7 @@ import { Delta } from "@/components/ui/delta";
 import { InfoTip } from "@/components/ui/info-tip";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { absPct, dayLabel, inr, signedPct } from "@/lib/format";
+import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { buildPortfolioView, type FullPortfolioView } from "@/lib/views/portfolio";
 
 export const metadata: Metadata = { title: "Why did my portfolio move today?" };
@@ -61,9 +62,13 @@ export default async function TodayPage() {
             return (
               <li key={r.symbol}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <Link href={`/stock/${encodeURIComponent(r.symbol)}`} className="font-medium text-text hover:underline">
-                    {r.name}
-                  </Link>
+                  {isManualSymbol(r.symbol) ? (
+                    <span className="font-medium text-text">{r.name}</span>
+                  ) : (
+                    <Link href={`/stock/${encodeURIComponent(r.symbol)}`} className="font-medium text-text hover:underline">
+                      {r.name}
+                    </Link>
+                  )}
                   <Delta amount={r.amount} pct={r.pct} size="sm" />
                 </div>
                 <div className="mt-1.5 flex h-2 w-full overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${r.name}: ${inr(r.amount, { sign: true })}, of which about ${absPct(mkt, 0)} explained by the market`}>

@@ -5,6 +5,7 @@ import { api, json, requireUser } from "@/lib/http";
 import { parseHoldings } from "@/lib/importers/brokers";
 import { readTable } from "@/lib/importers/read";
 import { resolve } from "@/lib/importers/resolve";
+import { getCatalog } from "@/lib/instruments/catalog";
 import { getMaster } from "@/lib/instruments/master";
 import { ipHash, rateLimit } from "@/lib/limits";
 import { NV, yahooCall, yf } from "@/lib/data/yahoo";
@@ -40,7 +41,11 @@ export const POST = api(async (req, ctx: Ctx) => {
     return (r?.quotes ?? []).filter((x: any) => x.symbol).map((x: any) => ({ symbol: x.symbol, name: x.longname ?? x.shortname ?? x.symbol, type: x.quoteType }));
   };
   const rows = [];
-  for (const row of parsed.rows) rows.push({ ...row, resolution: await resolve(index, row, search) });
+  for (const row of parsed.rows) {
+    // Mutual funds aren't exchange-listed: their ISIN maps straight to the AMFI scheme.
+    const fund = row.isin ? getCatalog().byIsin.get(row.isin) : null;
+    rows.push({ ...row, resolution: fund?.assetClass === "mf" ? ({ status: "matched", symbol: fund.symbol, name: fund.name, isin: row.isin, via: "isin" } as const) : await resolve(index, row, search) });
+  }
   const unmatched = rows.filter((r) => r.resolution.status !== "matched");
   const db = await getDb();
   await db.insert(schema.importBatches).values({ id: randomUUID(), portfolioId: id, broker: parsed.broker, filename: file.name.slice(0, 120), rowCount: rows.length, matched: rows.length - unmatched.length, unmatched: unmatched.map((r) => ({ name: r.rawName, reason: r.resolution.status })) });

@@ -1,21 +1,14 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { ArrowUp, Square, Wrench } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { IrisLoader } from "@/components/rings/iris";
-import { NazarMark } from "@/components/rings/nazar-mark";
 import type { FeedbackReason } from "@/lib/ask/feedback-reasons";
-import { TOOL_COUNT } from "@/lib/ask/tool-catalog";
+import { AskStart, type AskContext } from "./ask-start";
 import { MessageList, type Rating } from "./messages";
 
 const MAX_CHARS = 2000;
-
-const SUGGESTIONS: { group: string; items: string[] }[] = [
-  { group: "Your portfolio", items: ["Why is my portfolio down this month?", "Which of my holdings is riskiest, and why?"] },
-  { group: "Understand", items: ["Explain Infosys's latest results in simple words", "How diversified am I really?"] },
-  { group: "Markets & learning", items: ["How are Indian markets doing today?", "Mere portfolio mein sabse risky share kaunsa hai? Hinglish mein samjhao"] },
-];
 
 export function Chat({
   chatId,
@@ -26,7 +19,8 @@ export function Chat({
   onFinished,
   prompt,
   onMessages,
-  onOpenTools,
+  context,
+  remaining,
 }: {
   chatId: string;
   initialMessages: UIMessage[];
@@ -36,7 +30,10 @@ export function Chat({
   onFinished: () => void;
   /** Lets the parent read the live conversation (for the whole-chat Excel export). */
   onMessages?: (m: UIMessage[]) => void;
-  onOpenTools?: () => void;
+  /** What the examples on the start screen are built from. */
+  context: AskContext;
+  /** Questions left today when this conversation was opened (counted down as the user asks). */
+  remaining?: { remaining: number; limit: number } | null;
   /** A question to send on load (e.g. "Ask about this stock" links to /ask?q=…). */
   prompt?: { text: string; nonce: number } | null;
 }) {
@@ -85,7 +82,8 @@ export function Chat({
   }, [messages, onMessages]);
 
   useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    // Only follow a conversation: the start screen should open at its top.
+    if (messages.length) bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, status]);
 
   const send = (text: string) => {
@@ -106,42 +104,21 @@ export function Chat({
   }, [prompt]);
 
   const tooLong = input.length > MAX_CHARS;
+  const asked = messages.filter((m) => m.role === "user").length - initialMessages.filter((m) => m.role === "user").length;
+  const left = remaining ? Math.max(0, remaining.remaining - asked) : null;
 
   return (
     <div className="flex h-full flex-col print-expand">
       <div className="flex-1 overflow-y-auto print-expand">
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-6">
-          {messages.length === 0 && (
-            <div className="no-print flex flex-col items-center pt-[12vh] text-center">
-              <NazarMark size={44} className="mb-4" />
-              <h1 className="t-title-1 text-text">Ask Nazar anything about your money</h1>
-              <p className="mt-2 max-w-md text-sm text-muted">Questions about your portfolio, a company or the market. Nazar reads your holdings and live data, and explains in plain language. It never tells you what to do with your money.</p>
-              {onOpenTools && (
-                <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs text-accent hover:brightness-110">
-                  <Wrench className="h-3.5 w-3.5" /> Research tools: {TOOL_COUNT} tools incl. DCF, comps, SIP backtest · Excel
-                </button>
-              )}
-              <div className="mt-8 grid w-full gap-4 sm:grid-cols-3">
-                {SUGGESTIONS.map((g) => (
-                  <div key={g.group} className="space-y-2">
-                    <div className="text-left text-[11px] font-medium uppercase tracking-wide text-subtle">{g.group}</div>
-                    {g.items.map((s) => (
-                      <button key={s} onClick={() => send(s)} className="block w-full rounded-[16px] border border-line bg-surface-2 px-3.5 py-3 text-left text-sm text-text transition hover:border-accent">
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {messages.length === 0 && <AskStart context={context} mode={mode} onPick={send} />}
 
           <MessageList messages={messages} onPick={send} chatId={chatId} ratings={ratings} onRate={rate} showFollowUps={!busy} />
 
           {status === "submitted" && (
             <div className="no-print my-5 flex items-center gap-2 text-sm text-muted">
               <IrisLoader size={18} label="Thinking" />
-              Thinking…
+              Reading your question and choosing what to look up…
             </div>
           )}
 
@@ -154,9 +131,10 @@ export function Chat({
         </div>
       </div>
 
-      <div className="no-print border-t border-line bg-bg/90 backdrop-blur">
+      <div className="no-print border-t border-line bg-surface-1">
+        <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4">
         <form
-          className="mx-auto flex max-w-3xl items-end gap-2 px-4 py-3"
+          className={`flex items-end gap-2 rounded-[26px] border bg-surface-2 p-1.5 pl-4 transition-colors focus-within:border-accent ${tooLong ? "border-loss" : "border-line"}`}
           onSubmit={(e) => {
             e.preventDefault();
             send(input);
@@ -172,21 +150,30 @@ export function Chat({
               }
             }}
             rows={1}
-            placeholder="Ask about your portfolio, a stock or the market…"
-            className={`max-h-40 min-h-[44px] flex-1 resize-none rounded-[16px] border bg-surface-1 px-3.5 py-2.5 text-sm text-text outline-none placeholder:text-subtle ${tooLong ? "border-loss" : "border-line focus:border-accent"}`}
+            aria-label="Your question"
+            placeholder={messages.length ? "Ask a follow-up…" : "Ask about your portfolio, a company, a fund or the market…"}
+            className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-[15px] text-text outline-none placeholder:text-subtle"
           />
           {busy ? (
-            <button type="button" onClick={() => stop()} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
+            <button type="button" onClick={() => stop()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
               <Square className="h-4 w-4" />
             </button>
           ) : (
-            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
+            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
               <ArrowUp className="h-5 w-5" />
             </button>
           )}
         </form>
-        <div className="pb-2 text-center text-[11px] text-subtle">
-          {tooLong ? <span className="text-loss">{input.length} / {MAX_CHARS} characters: please shorten your question.</span> : "Nazar explains; you decide. Market data via Yahoo Finance, may be delayed."}
+        </div>
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-5 pb-2.5 pt-1.5 text-[11px] text-subtle">
+          {tooLong ? (
+            <span className="text-loss">{input.length} / {MAX_CHARS} characters: please shorten your question.</span>
+          ) : (
+            <>
+              <span>Enter to send · Shift + Enter for a new line{left != null ? ` · ${left} of ${remaining!.limit} questions left today` : ""}</span>
+              <span>Nazar explains; you decide. Data via Yahoo Finance, may be delayed.</span>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/lib/db";
+import { forbidden } from "@/lib/errors";
 import { api, json, parseBody, requireUser } from "@/lib/http";
 import { getSettings, getThresholds, listThresholdChanges, updateSettings } from "@/lib/repo/alerts";
 import { effectiveSettings } from "@/lib/alerts/thresholds";
@@ -25,6 +26,8 @@ export const GET = api(async (req) => {
 export const PATCH = api(async (req) => {
   const u = await requireUser(req);
   const { uiLanguage, name, ...alert } = await parseBody(req, Patch);
+  // The shared test account keeps its name, or one visitor's edit would greet everyone else.
+  if (name && u.isTestAccount) throw forbidden("The test account's name can't be changed. Create your own account to set yours.");
   if (uiLanguage || name) {
     const db = await getDb();
     await db.update(schema.users).set({ ...(uiLanguage ? { uiLanguage } : {}), ...(name ? { name } : {}) }).where(eq(schema.users.id, u.id));

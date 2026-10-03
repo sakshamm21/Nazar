@@ -1,124 +1,160 @@
 /**
- * The demo works with Yahoo down: everything is built from the committed fixture with the network
- * blocked. Checks the template (real engine replay + H5 learning), the public test accounts,
- * per-visitor isolation, and "Simulate a bad day" + reset.
+ * Test accounts are ordinary accounts on live data: nothing is captured or hand-written. Here the
+ * "live" source is the deterministic fake market, and the checks cover how a persona is built (the
+ * real alert engine replayed over recent sessions, then the real tuner), that the accounts hold
+ * every asset class, the nightly put-back, isolation between copies, and "Simulate a bad day".
  */
 import bcrypt from "bcryptjs";
-import { and, eq, ne } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { and, eq, inArray, ne } from "drizzle-orm";
+import { beforeAll, describe, expect, it } from "vitest";
 import { schema, type DB } from "@/lib/db";
 import { findAdvice } from "@/lib/alerts/guard";
-import { liveUniverse } from "@/lib/pipeline/collect";
-import { createDemoVisitor, demoToday, ensureDemoMarket } from "@/lib/demo/seed";
-import { DEMO_MINE, DEMO_PAPA, TEMPLATE_EMAIL, TEST_ACCOUNTS, TEST_PASSWORD } from "@/lib/demo/config";
+import { route } from "@/lib/alerts/routing";
+import { istDate } from "@/lib/data/provider";
+import { PERSONAS, PERSONA_SYMBOLS, TEST_ACCOUNTS, TEST_PASSWORD, templateEmail } from "@/lib/demo/config";
+import { createCopy, ensureTestAccounts } from "@/lib/demo/seed";
 import { resetSimulation, simulate } from "@/lib/demo/simulate";
-import { latestTradeDate } from "@/lib/market/store";
-import { memoryDb } from "./harness";
+import { groupOf } from "@/lib/instruments/asset-classes";
+import { latestTradeDate, prevWeekday } from "@/lib/market/store";
+import { liveUniverse } from "@/lib/pipeline/collect";
+import { fakeMarket, GENERIC } from "./fake-market";
+import { makeUser, memoryDb } from "./harness";
 
 let db: DB;
-let templateId: string;
+let investor: string, saver: string;
+const m = fakeMarket();
 const userByEmail = async (email: string) => (await db.select().from(schema.users).where(eq(schema.users.email, email)))[0];
-const count = async (table: typeof schema.alertEvents | typeof schema.holdings | typeof schema.reports, where: Parameters<ReturnType<DB["select"]>["from"]>[0] extends never ? never : any) =>
-  (await db.select().from(table as any).where(where)).length;
+const holdingsOf = async (userId: string) => {
+  const pfs = await db.select({ id: schema.portfolios.id }).from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
+  return pfs.length ? db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, pfs.map((p) => p.id))) : [];
+};
+const wanted = (id: keyof typeof PERSONAS) => PERSONAS[id].portfolios.reduce((a, p) => a + p.holdings.length + p.manual.length, 0);
 
 beforeAll(async () => {
   db = await memoryDb();
-  // Yahoo (and everything else) is "down" for this whole file.
-  vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network disabled in demo tests"); }));
-  const r = await ensureDemoMarket(db);
-  expect(r).toMatchObject({ today: demoToday(), rebuilt: true });
-  templateId = (await userByEmail(TEMPLATE_EMAIL)).id;
+  for (const s of PERSONA_SYMBOLS) GENERIC.add(s);
+  m.state.day = prevWeekday(istDate(new Date()));
+  const r = await ensureTestAccounts(db, { provider: m.provider });
+  expect(r).toMatchObject({ rebuilt: true, built: ["investor", "saver"] });
+  investor = (await userByEmail(templateEmail("investor"))).id;
+  saver = (await userByEmail(templateEmail("saver"))).id;
 }, 300_000);
 
-afterAll(() => vi.unstubAllGlobals());
+describe("test accounts run on live data", () => {
+  it("everything is priced from the live source, and their symbols are part of the nightly checkup", async () => {
+    expect(await latestTradeDate(db, ["live"])).toBe(m.state.day);
+    expect(await db.select().from(schema.symbolSnapshots).where(ne(schema.symbolSnapshots.source, "live"))).toHaveLength(0);
+    expect(await liveUniverse(db)).toEqual(expect.arrayContaining(PERSONA_SYMBOLS));
+  });
 
-describe("demo market (offline, from the fixture)", () => {
-  it("is dated so the latest session is the last weekday before today, and never touches live data", async () => {
-    expect(await latestTradeDate(db, ["demo"])).toBe(demoToday());
-    expect(await db.select().from(schema.symbolSnapshots).where(ne(schema.symbolSnapshots.source, "demo"))).toHaveLength(0);
-    expect(await liveUniverse(db)).toEqual([]); // demo holdings never enter the live checkup
-    expect(fetch).not.toHaveBeenCalled();
-  });
-  it("rebuilding is idempotent within a day", async () => {
-    expect(await ensureDemoMarket(db)).toMatchObject({ rebuilt: false });
-  });
-});
-
-describe("the demo account (template)", () => {
-  it("has both portfolios, Papa's in Hindi with a confirmed family recipient", async () => {
-    const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, templateId));
-    expect(pfs.map((p) => [p.name, p.language]).sort()).toEqual([["My portfolio", "en"], ["Papa's portfolio", "hi"]]);
-    const papa = pfs.find((p) => p.ownerLabel === "Papa")!;
-    expect(await count(schema.holdings, eq(schema.holdings.portfolioId, papa.id))).toBe(DEMO_PAPA.length);
-    expect(await count(schema.holdings, eq(schema.holdings.portfolioId, pfs.find((p) => !p.ownerLabel)!.id))).toBe(DEMO_MINE.length);
-    const [rec] = await db.select().from(schema.recipients).where(eq(schema.recipients.portfolioId, papa.id));
-    expect(rec.confirmedAt).not.toBeNull();
-  });
-  it("has 60 sessions of real-engine alerts, every one advice-free in both languages", async () => {
-    const alerts = await db.select().from(schema.alertEvents).where(eq(schema.alertEvents.userId, templateId));
-    expect(alerts.length).toBeGreaterThan(40);
-    expect(new Set(alerts.map((a) => a.type))).toEqual(expect.objectContaining({}));
-    for (const t of ["stock_move", "portfolio_move", "results", "learned"]) expect(alerts.some((a) => a.type === t), t).toBe(true);
-    for (const a of alerts) expect(findAdvice(`${a.titleEn}\n${a.bodyEn}\n${a.titleHi}\n${a.bodyHi}`), a.titleEn).toEqual([]);
-    expect(alerts.filter((a) => a.isSimulated)).toHaveLength(0);
-  });
-  it("learned from its ratings (H5): small-move alerts raised to 5%", async () => {
-    const changes = await db.select().from(schema.thresholdChanges).where(eq(schema.thresholdChanges.userId, templateId));
-    const sm = changes.find((c) => c.alertType === "stock_move")!;
-    expect(sm).toMatchObject({ oldValue: 2.5, newValue: 5, muted: false });
-    expect(sm.messageEn).toBe("You found small-move alerts less useful, so I'll only alert you for moves above 5%.");
-    expect(sm.evidence.below.useful / sm.evidence.below.total).toBeLessThanOrEqual(0.4);
-  });
-  it("has weekly reports, Papa's in Hindi, advice-free", async () => {
-    const reports = await db.select().from(schema.reports).where(eq(schema.reports.userId, templateId));
-    expect(reports.length).toBeGreaterThanOrEqual(2);
-    for (const r of reports) expect(findAdvice(JSON.stringify(r.content))).toEqual([]);
-    expect(JSON.stringify(reports.map((r) => r.content))).toMatch(/साप्ताहिक रिपोर्ट/);
-  });
-});
-
-describe("public test accounts", () => {
-  it("full accounts are demo clones; empty ones are real accounts on live data with email off", async () => {
-    const templateAlerts = await count(schema.alertEvents, eq(schema.alertEvents.userId, templateId));
+  it("are real accounts with the public password; persona accounts are full copies, the new user is empty", async () => {
     for (const acc of TEST_ACCOUNTS) {
       const u = await userByEmail(acc.email);
       expect(await bcrypt.compare(TEST_PASSWORD, u.passwordHash!)).toBe(true);
-      expect(u).toMatchObject({ isTestAccount: true, isDemo: acc.kind === "full", demoExpiresAt: null });
-      const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, u.id));
-      if (acc.kind === "full") {
-        expect(pfs).toHaveLength(2);
-        expect(await count(schema.alertEvents, eq(schema.alertEvents.userId, u.id))).toBe(templateAlerts);
-      } else {
-        expect(pfs).toHaveLength(0);
-        const [s] = await db.select().from(schema.alertSettings).where(eq(schema.alertSettings.userId, u.id));
-        expect(s.emailDigest).toBe(false);
+      expect(u).toMatchObject({ name: acc.name, isTestAccount: true, isDemo: false, demoExpiresAt: null });
+      const held = await holdingsOf(u.id);
+      if (acc.persona) {
+        expect(held).toHaveLength(wanted(acc.persona));
+        expect(await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, u.id))).toHaveLength(PERSONAS[acc.persona].portfolios.length);
+      } else expect(held).toHaveLength(0);
+      const [s] = await db.select().from(schema.alertSettings).where(eq(schema.alertSettings.userId, u.id));
+      expect(s.emailDigest).toBe(false);
+    }
+  });
+
+  it("the investor and the saver each hold every kind of asset, all of it priced", async () => {
+    for (const email of ["demo@nazar.dev", "riya@nazar.dev"]) {
+      const held = await holdingsOf((await userByEmail(email)).id);
+      expect(new Set(held.map((h) => h.assetClass)), email).toEqual(expect.objectContaining(new Set()));
+      for (const c of ["stock", "mf", "etf", "reit", "gold", "fd", "ppf", "epf"]) expect(held.some((h) => h.assetClass === c), `${email} ${c}`).toBe(true);
+      expect(new Set(held.map((h) => groupOf(h.assetClass))).size).toBeGreaterThanOrEqual(7);
+      for (const h of held) {
+        expect(h.quantity, h.symbol).toBeGreaterThan(0);
+        expect(h.avgPrice, h.symbol).toBeGreaterThan(0);
       }
     }
+    const papa = (await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, investor))).find((p) => p.ownerLabel === "Papa")!;
+    expect(papa.language).toBe("hi");
+    expect((await db.select().from(schema.recipients).where(eq(schema.recipients.portfolioId, papa.id)))[0].confirmedAt).not.toBeNull();
+  });
+
+  it("their history is the real alert engine replayed over recent sessions, advice-free in both languages", async () => {
+    const alerts = await db.select().from(schema.alertEvents).where(eq(schema.alertEvents.userId, investor));
+    expect(alerts.length).toBeGreaterThan(15);
+    expect(alerts.some((a) => a.type === "stock_move")).toBe(true);
+    expect(new Set(alerts.map((a) => a.tradeDate)).size).toBeGreaterThan(8); // spread over many sessions
+    for (const a of alerts) expect(findAdvice(`${a.titleEn}\n${a.bodyEn}\n${a.titleHi}\n${a.bodyHi}`), a.titleEn).toEqual([]);
+    expect(alerts.filter((a) => a.isSimulated)).toHaveLength(0);
+  });
+
+  it("the tuner learned from the persona's ratings: small-move alerts raised to 5%", async () => {
+    const changes = await db.select().from(schema.thresholdChanges).where(eq(schema.thresholdChanges.userId, investor));
+    const sm = changes.find((c) => c.alertType === "stock_move")!;
+    expect(sm).toMatchObject({ oldValue: 2.5, newValue: 5, muted: false });
+    expect(sm.evidence.below.useful / sm.evidence.below.total).toBeLessThanOrEqual(0.4);
+  });
+
+  it("has weekly reports, Papa's in Hindi, advice-free", async () => {
+    const reports = await db.select().from(schema.reports).where(eq(schema.reports.userId, investor));
+    expect(reports.length).toBeGreaterThanOrEqual(2);
+    for (const r of reports) expect(findAdvice(JSON.stringify(r.content))).toEqual([]);
+    expect(JSON.stringify(reports.map((r) => r.content))).toMatch(/साप्ताहिक रिपोर्ट/);
+    expect((await db.select().from(schema.reports).where(eq(schema.reports.userId, saver))).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("never emails anyone, not even a confirmed family member", () => {
+    const targets = route({ kind: "report", owner: { email: "demo@nazar.dev", emailVerified: true, isDemo: true, emailDigest: true, quietMode: false, language: "en" }, portfolio: { alertsEnabled: true, language: "hi" }, recipients: [{ email: "papa@example.com", confirmed: true, unsubscribed: false }] });
+    expect(targets).toEqual([{ channel: "inbox" }]);
   });
 });
 
-describe("Try the demo: one isolated account per visitor", () => {
+describe("the nightly put-back", () => {
+  it("does nothing a second time on the same day", async () => {
+    const before = m.state.calls.quotes;
+    expect(await ensureTestAccounts(db, { provider: m.provider })).toMatchObject({ rebuilt: false });
+    expect(m.state.calls.quotes).toBe(before);
+  });
+
+  it("the next day undoes whatever visitors changed, without rebuilding the personas", async () => {
+    const u = await userByEmail("demo@nazar.dev");
+    const [first] = await holdingsOf(u.id);
+    await db.delete(schema.holdings).where(eq(schema.holdings.id, first.id));
+    await simulate(u.id, "global-selloff");
+    const alertsBefore = (await db.select().from(schema.alertEvents).where(eq(schema.alertEvents.userId, investor))).length;
+
+    const r = await ensureTestAccounts(db, { provider: m.provider, now: new Date(Date.now() + 86400000) });
+    expect(r).toMatchObject({ rebuilt: true, built: [] });
+    expect(await holdingsOf(u.id)).toHaveLength(wanted("investor"));
+    const [after] = await db.select().from(schema.users).where(eq(schema.users.id, u.id));
+    expect(after.simState).toBeNull();
+    expect(await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, u.id), eq(schema.alertEvents.isSimulated, true)))).toHaveLength(0);
+    expect((await db.select().from(schema.alertEvents).where(eq(schema.alertEvents.userId, investor))).length).toBe(alertsBefore);
+  });
+});
+
+describe("copies of a persona are isolated from each other", () => {
   let a: string, b: string;
   beforeAll(async () => {
-    a = await createDemoVisitor(db);
-    b = await createDemoVisitor(db);
+    a = await createCopy(db, "investor");
+    b = await createCopy(db, "investor");
   }, 120_000);
 
-  it("expires in 24 hours and starts as a full copy with fresh ids", async () => {
-    const [u] = await db.select().from(schema.users).where(eq(schema.users.id, a));
-    expect(u.isDemo).toBe(true);
-    expect(u.demoExpiresAt!.getTime() - Date.now()).toBeGreaterThan(23.9 * 3600_000);
+  it("a copy has the same history under fresh ids", async () => {
     const mineA = await db.select({ id: schema.alertEvents.id }).from(schema.alertEvents).where(eq(schema.alertEvents.userId, a));
-    const tmpl = await db.select({ id: schema.alertEvents.id }).from(schema.alertEvents).where(eq(schema.alertEvents.userId, templateId));
+    const tmpl = await db.select({ id: schema.alertEvents.id }).from(schema.alertEvents).where(eq(schema.alertEvents.userId, investor));
     expect(mineA).toHaveLength(tmpl.length);
     expect(mineA.some((x) => tmpl.some((t) => t.id === x.id))).toBe(false);
-    // The learned-threshold inbox message still points at this visitor's own change (Undo works).
+    // The learned-threshold inbox message still points at this copy's own change (Undo works).
     const [learned] = await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, a), eq(schema.alertEvents.type, "learned")));
     const [change] = await db.select().from(schema.thresholdChanges).where(eq(schema.thresholdChanges.id, String(learned.data.thresholdChangeId)));
     expect(change.userId).toBe(a);
+    // Each manual asset gets its own symbol, so two copies never collide.
+    const manual = (await holdingsOf(a)).filter((h) => h.symbol.startsWith("MANUAL:")).map((h) => h.symbol);
+    expect(manual.length).toBeGreaterThan(0);
+    expect((await holdingsOf(b)).some((h) => manual.includes(h.symbol))).toBe(false);
   });
 
-  it("Simulate a bad day: explained alerts for this visitor only, then reset", async () => {
+  it("Simulate a bad day: explained alerts for this account only, then reset", async () => {
     const r = await simulate(a, "global-selloff");
     expect(r.alertIds.length).toBeGreaterThanOrEqual(3);
     const sim = await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, a), eq(schema.alertEvents.isSimulated, true)));
@@ -129,9 +165,10 @@ describe("Try the demo: one isolated account per visitor", () => {
     const [u] = await db.select().from(schema.users).where(eq(schema.users.id, a));
     expect(u.simState).toMatchObject({ scenario: "global-selloff", date: r.simDate });
 
-    // Nobody else sees it.
-    for (const other of [b, templateId]) expect(await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, other), eq(schema.alertEvents.isSimulated, true)))).toHaveLength(0);
+    // Nobody else sees it, and live prices are untouched.
+    for (const other of [b, investor]) expect(await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, other), eq(schema.alertEvents.isSimulated, true)))).toHaveLength(0);
     expect(await db.select().from(schema.symbolSnapshots).where(eq(schema.symbolSnapshots.source, `sim:${b}`))).toHaveLength(0);
+    expect(await latestTradeDate(db, ["live"])).toBe(m.state.day);
 
     await resetSimulation(a);
     expect(await db.select().from(schema.alertEvents).where(and(eq(schema.alertEvents.userId, a), eq(schema.alertEvents.isSimulated, true)))).toHaveLength(0);
@@ -140,7 +177,7 @@ describe("Try the demo: one isolated account per visitor", () => {
     expect(after.simState).toBeNull();
   });
 
-  it("every scenario works offline", async () => {
+  it("every scenario produces alerts", async () => {
     for (const s of ["global-selloff", "rate-shock", "company-shock"]) {
       const r = await simulate(b, s);
       expect(r.alertIds.length, s).toBeGreaterThan(0);
@@ -148,12 +185,8 @@ describe("Try the demo: one isolated account per visitor", () => {
     await resetSimulation(b);
   });
 
-  it("simulation is refused for real accounts", async () => {
-    const real = await userByEmail("new@nazar.dev");
-    await expect(simulate(real.id, "global-selloff")).rejects.toThrow(/only available in demo/);
-  });
-
-  it("never used the network", () => {
-    expect(fetch).not.toHaveBeenCalled();
+  it("simulation is refused for ordinary accounts", async () => {
+    const real = await makeUser(db);
+    await expect(simulate(real.id, "global-selloff")).rejects.toThrow(/only available in test accounts/);
   });
 });

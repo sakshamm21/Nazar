@@ -82,7 +82,7 @@ export async function deliverWeekly(user: User, p: Portfolio, report: typeof sch
   const content = report.content as unknown as WeeklyContent;
   const targets = route({
     kind: "report",
-    owner: { email: user.email, emailVerified: !!user.emailVerifiedAt, isDemo: user.isDemo, emailDigest: settings.emailDigest, quietMode: settings.quietMode, language: user.uiLanguage },
+    owner: { email: user.email, emailVerified: !!user.emailVerifiedAt, isDemo: user.isDemo || user.isTestAccount, emailDigest: settings.emailDigest, quietMode: settings.quietMode, language: user.uiLanguage },
     portfolio: { alertsEnabled: p.alertsEnabled, language: p.language },
     recipients: recs.map((r) => ({ email: r.email, confirmed: !!r.confirmedAt, unsubscribed: !!r.unsubscribedAt })),
   });

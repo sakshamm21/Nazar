@@ -1,6 +1,6 @@
 /**
- * Applies Drizzle migrations to NAZAR_DATABASE_URL (or DATABASE_URL), then makes sure the demo
- * market, demo template and test accounts exist. Runs before `next build` on Vercel.
+ * Applies Drizzle migrations to NAZAR_DATABASE_URL (or DATABASE_URL), then makes sure the test
+ * accounts exist (built from live market data). Runs before `next build` on Vercel.
  * Refuses to touch a StockAI v1 database. Without a URL it does nothing: local PGlite sets itself up.
  *
  *   npm run db:migrate
@@ -29,10 +29,11 @@ async function main() {
   }
   console.log("[migrate] Database is up to date.");
   installDb(db);
-  const { ensureDemoMarket } = await import("../src/lib/demo/seed");
+  const { ensureTestAccounts } = await import("../src/lib/demo/seed");
   const t = Date.now();
-  const r = await ensureDemoMarket(db, { maxStaleDays: 0 });
-  console.log(`[migrate] Demo data ${r.rebuilt ? "rebuilt" : "already current"} (${r.today}) in ${((Date.now() - t) / 1000).toFixed(1)}s.`);
+  // Best effort: a data-source hiccup must not fail the deploy. The nightly maintenance job retries.
+  const r = await ensureTestAccounts(db, { force: process.env.REBUILD_TEST_ACCOUNTS === "1" }).catch((e) => ({ rebuilt: false, today: "", reason: String(e?.message ?? e).slice(0, 200), built: [] as string[] }));
+  console.log(`[migrate] Test accounts ${r.rebuilt ? `put back (personas built: ${r.built?.join(", ") || "none needed"})` : `unchanged${r.reason ? ` (${r.reason})` : ""}`} in ${((Date.now() - t) / 1000).toFixed(1)}s.`);
   process.exit(0);
 }
 

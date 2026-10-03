@@ -2,6 +2,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useHydrated, useStoredPref } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
 import { trackClient } from "@/lib/events-client";
 
@@ -22,12 +23,25 @@ const TOUR_STEPS = [
 
 type Rect = { top: number; left: number; width: number; height: number };
 
-export function Tour({ autoStart }: { autoStart: boolean }) {
+const SEEN = ["new", "seen"] as const;
+
+/**
+ * `shared`: the account is the shared test account, so "has seen the tour" is remembered in this
+ * browser instead of on the account. Otherwise the first visitor would finish it for everyone.
+ */
+export function Tour({ autoStart, shared = false }: { autoStart: boolean; shared?: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
   const path = usePathname();
   const forced = params.get("tour") === "1";
   const [step, setStep] = useState<number | null>(forced || autoStart ? 0 : null);
+  const hydrated = useHydrated();
+  const [seen, setSeen] = useStoredPref<(typeof SEEN)[number]>("nazar:tour", "new", SEEN);
+  const [offered, setOffered] = useState(false);
+  if (shared && hydrated && seen === "new" && !offered) {
+    setOffered(true);
+    setStep(0);
+  }
   const [rect, setRect] = useState<Rect | null>(null);
   // "Replay tour" adds ?tour=1 to the current page: restart when it appears (adjusting state on a
   // prop change during render, as React recommends, rather than in an effect).
@@ -43,10 +57,11 @@ export function Tour({ autoStart }: { autoStart: boolean }) {
       setStep(null);
       // Drop ?tour=1 first, so a reload can't restart a tour that was just finished.
       if (forced) router.replace(path, { scroll: false });
+      if (shared) return setSeen("seen");
       // keepalive: the save completes even if the user navigates away right after closing the tour.
       await fetch("/api/tour", { method: "POST", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ action, step: at }) }).catch(() => {});
     },
-    [step, forced, router, path],
+    [step, forced, router, path, shared, setSeen],
   );
 
   const measure = useCallback(() => {

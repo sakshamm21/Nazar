@@ -1,7 +1,7 @@
 /**
  * One command for local development: `npm run dev`.
  * Without a database URL it prepares the embedded PGlite database in .data/nazar (migrations,
- * demo market, demo template, test accounts) before starting Next.js, so the first page is instant.
+ * test accounts on live data) before starting Next.js, so the first page is instant.
  * Works the same on Windows, macOS and Linux.
  */
 import { spawn } from "node:child_process";
@@ -12,7 +12,7 @@ async function main() {
   const { databaseUrl, createPglite, closeDb, installDb, getDb, localDir } = await import("../src/lib/db");
   if (!databaseUrl) {
     const t = Date.now();
-    console.log("Preparing the local database with demo data…");
+    console.log("Preparing the local database (the first run fetches live prices for the test accounts, about a minute)…");
     const db = await createPglite(localDir());
     installDb(db);
     await getDb();

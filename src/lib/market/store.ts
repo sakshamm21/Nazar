@@ -5,20 +5,20 @@ import { schema } from "@/lib/db";
 import { NIFTY } from "@/lib/instruments/sectors";
 
 /**
- * Reads market data from Postgres — pages never call Yahoo. Data is keyed by `source`:
- * "live" (nightly pipeline), "demo" (frozen fixture) or "sim:<userId>" (a demo visitor's
- * simulated bad day). A user reads a chain of sources in priority order, e.g. ["sim:abc", "demo"].
+ * Reads market data from Postgres — pages never call a data provider. Data is keyed by `source`:
+ * "live" (the nightly checkup and refresh-on-open) or "sim:<userId>" (a test account's simulated
+ * bad day, which sits on top of live data for that user only). A user reads a chain of sources in
+ * priority order, e.g. ["sim:abc", "live"].
  */
 export type Snapshot = typeof schema.symbolSnapshots.$inferSelect;
 export type Instrument = typeof schema.instruments.$inferSelect;
 
-export function sourcesFor(u: { id: string; isDemo: boolean; simState?: { date: string } | null }): string[] {
-  if (u.isDemo || u.simState) return u.simState ? [`sim:${u.id}`, "demo", "live"] : ["demo", "live"];
-  return ["live"];
+export function sourcesFor(u: { id: string; simState?: { date: string } | null }): string[] {
+  return u.simState ? [`sim:${u.id}`, "live"] : ["live"];
 }
 
-/** Sources that define "today" for this user: demo accounts follow the demo calendar, never live dates. */
-export const dateSources = (chain: string[]) => (chain.includes("demo") ? chain.filter((s) => s !== "live") : chain);
+/** Sources that define "today" for this user (the whole chain: a simulated day is the latest one). */
+export const dateSources = (chain: string[]) => chain;
 
 const rank = (sources: string[], s: string) => {
   const i = sources.indexOf(s);

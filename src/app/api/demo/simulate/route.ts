@@ -20,13 +20,13 @@ const Body = z.object({
 });
 
 /**
- * DEMO: "Simulate a bad day". Runs the real alert engine on a generated session for this visitor
- * only. Optionally emails the resulting digest to an address the visitor typed (their own),
+ * "Simulate a bad day" (test accounts). Runs the real alert engine on a generated session for this
+ * account only. Optionally emails the resulting digest to an address the visitor typed (their own),
  * capped per address and per IP so it can't be used to send email to others.
  */
 export const POST = api(async (req) => {
   const user = await requireUser(req);
-  if (!user.isDemo) throw forbidden("Simulation is only available in the demo.", "NOT_DEMO");
+  if (!user.isTestAccount) throw forbidden("Simulation is only available in the test accounts.", "NOT_DEMO");
   const body = await parseBody(req, Body);
   await rateLimit(`demo:simulate:${user.id}`, 8, 24 * 3600_000, "That's plenty of bad days for one demo. Use Back to normal and explore the alerts.");
   const r = await simulate(user.id, body.scenario);

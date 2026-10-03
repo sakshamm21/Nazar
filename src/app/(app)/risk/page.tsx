@@ -45,15 +45,15 @@ export default async function RiskPage() {
         <p className="mt-1 max-w-2xl text-sm text-muted">Three checks most investors never run: what a market fall would cost you, which holdings secretly move together, and how concentrated your money is.</p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
-        <Card className="p-5 sm:p-6 lg:col-span-7">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
+        <Card className="min-w-0 p-5 sm:p-6 lg:col-span-7">
           <CardHeader overline="Stress test" title="What a market fall could cost you" right={<InfoTip k="stress" />} />
           <div className="mt-5">
-            <StressSlider holdings={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, beta: c.beta }))} />
+            <StressSlider holdings={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, beta: c.beta, assetClass: c.assetClass }))} />
           </div>
         </Card>
 
-        <div className="space-y-5 lg:col-span-5 lg:space-y-6">
+        <div className="min-w-0 space-y-5 lg:col-span-5 lg:space-y-6">
           <Card className="p-5 sm:p-6">
             <CardHeader overline="The two rings" title="Health and diversification" />
             <div className="mt-4 flex items-center gap-5">
@@ -107,7 +107,7 @@ export default async function RiskPage() {
         {div ? (
           <>
             <p className="mt-2 text-[15px] leading-6 text-text">
-              You own <b className="num">{div.holdings}</b> stocks, but over the last year they behaved like about <b className="num">{div.effectiveBets}</b> independent bets.
+              You own <b className="num">{div.holdings}</b> market-priced holdings, but over the last year they behaved like about <b className="num">{div.effectiveBets}</b> independent bets.
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {div.clusters.length ? (

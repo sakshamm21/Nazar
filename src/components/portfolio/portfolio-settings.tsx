@@ -87,7 +87,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
               setError(null);
               try {
                 const j = await apiCall(`/api/portfolios/${p.id}/recipient`, "POST", { email });
-                toast(j.status === "sent" ? "We emailed them a one-click confirmation." : j.status === "demo" ? "Saved. Demo accounts never send email." : j.status === "not_configured" ? "Saved. Email isn't configured on this server, so nothing was sent." : "Saved, but the confirmation email failed. Try again later.");
+                toast(j.status === "sent" ? "We emailed them a one-click confirmation." : j.status === "demo" ? "Saved. Test accounts never send email." : j.status === "not_configured" ? "Saved. Email isn't configured on this server, so nothing was sent." : "Saved, but the confirmation email failed. Try again later.");
                 router.refresh();
               } catch (e) {
                 setError((e as Error).message);

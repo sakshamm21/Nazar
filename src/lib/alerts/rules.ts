@@ -146,6 +146,8 @@ export function evaluate(day: DayInput, s: EffectiveSettings): Candidate[] {
       const cur = w.get(h.symbol) ?? 0;
       const prev = h.prevWeight ?? 0;
       const limit = s.concentration / 100;
+      // A fund, a deposit or a house being a large share is not single-company risk.
+      if ((h.assetClass ?? "stock") !== "stock") continue;
       if (cur < limit || prev >= limit || recentWithin("concentration", h.symbol, 30)) continue;
       const t = concentrationText({ label: h.name, weight: cur, limit: s.concentration, kind: "stock", ownerLabel: owner });
       out.push({

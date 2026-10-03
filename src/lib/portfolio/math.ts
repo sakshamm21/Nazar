@@ -3,6 +3,7 @@
  * concentration, and the health rollup. Pure functions over plain data, unit-tested.
  */
 import { round, xirr } from "@/lib/analytics/stats";
+import { GROUP_LABELS, GROUP_ORDER, groupOf, isManualClass, type AssetClass, type AssetGroup } from "@/lib/instruments/asset-classes";
 
 export type HoldingState = {
   symbol: string;
@@ -16,6 +17,8 @@ export type HoldingState = {
   beta: number | null;
   health: number | null;
   isFinancial?: boolean;
+  /** Unset = a stock. */
+  assetClass?: AssetClass;
 };
 
 const valueOf = (h: HoldingState) => h.quantity * (h.price ?? h.prevClose ?? h.avgPrice);
@@ -73,7 +76,7 @@ export function attribution(holdings: HoldingState[], niftyPct: number | null, f
     .map((h) => {
       const amount = h.price != null && h.prevClose != null ? h.quantity * (h.price - h.prevClose) : 0;
       const prevVal = prevValueOf(h);
-      const b = adjustedBeta(h.beta);
+      const b = betaOf(h);
       const marketPart = niftyPct != null ? prevVal * b * niftyPct : 0;
       return { symbol: h.symbol, name: h.name, amount, pct: h.prevClose && h.price != null ? h.price / h.prevClose - 1 : null, marketPart, specificPart: amount - marketPart, weight: w.get(h.symbol) ?? 0 };
     })
@@ -148,13 +151,27 @@ export function adjustedBeta(beta: number | null | undefined): number {
   return Math.min(2.5, Math.max(0, 0.67 * beta + 0.33));
 }
 
+/**
+ * How much a holding is expected to move when the Nifty moves 1%. Stocks and REITs use the
+ * Blume-adjusted beta. Funds, ETFs and gold use their measured beta as it is, because pulling a debt
+ * fund's or gold's beta towards 1 would overstate its risk. Deposits, provident funds, property and
+ * cash don't move with the stock market at all.
+ */
+export function betaOf(h: Pick<HoldingState, "beta" | "assetClass">): number {
+  const c = h.assetClass ?? "stock";
+  if (isManualClass(c)) return 0;
+  if (c === "stock" || c === "reit") return adjustedBeta(h.beta);
+  if (h.beta == null || !Number.isFinite(h.beta)) return c === "gold" ? 0 : 1;
+  return Math.min(2.5, Math.max(0, h.beta));
+}
+
 export function stressTest(holdings: HoldingState[], niftyShock: number) {
   const v = valuation(holdings);
   const per = holdings
     .map((h) => {
       const val = valueOf(h);
-      const b = adjustedBeta(h.beta);
-      return { symbol: h.symbol, name: h.name, value: val, beta: b, betaKnown: h.beta != null, loss: val * b * niftyShock };
+      const b = betaOf(h);
+      return { symbol: h.symbol, name: h.name, value: val, beta: b, betaKnown: h.beta != null || isManualClass(h.assetClass), loss: val * b * niftyShock };
     })
     .sort((a, b) => a.loss - b.loss);
   const loss = per.reduce((a, r) => a + r.loss, 0);
@@ -229,20 +246,37 @@ export function sectorAllocation(holdings: HoldingState[]) {
   return [...m.entries()].map(([sector, value]) => ({ sector, value, weight: value / total })).sort((a, b) => b.value - a.value);
 }
 
+/** Value by asset group (Stocks, Mutual funds, Gold…), largest first. */
+export function assetAllocation(holdings: HoldingState[]) {
+  const total = holdings.reduce((a, h) => a + valueOf(h), 0) || 1;
+  const m = new Map<AssetGroup, { value: number; count: number }>();
+  for (const h of holdings) {
+    const g = groupOf(h.assetClass);
+    const cur = m.get(g) ?? { value: 0, count: 0 };
+    m.set(g, { value: cur.value + valueOf(h), count: cur.count + 1 });
+  }
+  return GROUP_ORDER.filter((g) => m.has(g)).map((group) => ({ group, ...m.get(group)!, weight: m.get(group)!.value / total })).sort((a, b) => b.value - a.value);
+}
+
+/**
+ * Concentration flags are about single companies and sectors: a diversified fund, a deposit or a
+ * house being a large share of someone's money is not the risk this check is looking for.
+ */
 export function concentration(holdings: HoldingState[], limits = { stock: 0.25, sector: 0.4, top3: 0.6 }) {
   const w = [...weights(holdings).entries()].sort((a, b) => b[1] - a[1]);
   const sectors = sectorAllocation(holdings);
   const hhi = w.reduce((a, [, x]) => a + x * x, 0);
   const top3 = w.slice(0, 3).reduce((a, [, x]) => a + x, 0);
   const name = (s: string) => holdings.find((h) => h.symbol === s)?.name ?? s;
+  const isCompany = (s: string) => (holdings.find((h) => h.symbol === s)?.assetClass ?? "stock") === "stock";
   return {
     topStock: w[0] ? { symbol: w[0][0], name: name(w[0][0]), weight: w[0][1] } : null,
     top3,
     hhi: round(hhi, 4)!,
     sectors,
     flags: [
-      ...w.filter(([, x]) => x >= limits.stock).map(([s, x]) => ({ kind: "stock" as const, label: name(s), weight: x, limit: limits.stock })),
-      ...sectors.filter((s) => s.weight >= limits.sector && s.sector !== "Other").map((s) => ({ kind: "sector" as const, label: s.sector, weight: s.weight, limit: limits.sector })),
+      ...w.filter(([s, x]) => x >= limits.stock && isCompany(s)).map(([s, x]) => ({ kind: "stock" as const, label: name(s), weight: x, limit: limits.stock })),
+      ...sectors.filter((s) => s.weight >= limits.sector && s.sector !== "Other" && !GROUP_LABELS.has(s.sector)).map((s) => ({ kind: "sector" as const, label: s.sector, weight: s.weight, limit: limits.sector })),
       ...(top3 >= limits.top3 && holdings.length > 3 ? [{ kind: "top3" as const, label: "Top 3 holdings", weight: top3, limit: limits.top3 }] : []),
     ],
   };

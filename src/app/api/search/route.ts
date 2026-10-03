@@ -1,24 +1,19 @@
 import { api, json, requireUser } from "@/lib/http";
-import { getMaster, normalizeName, toYahoo } from "@/lib/instruments/master";
+import { MARKET_CLASSES, type MarketClass } from "@/lib/instruments/asset-classes";
+import { searchCatalog } from "@/lib/instruments/catalog";
 
 export const runtime = "nodejs";
 
-/** Ticker search for "add a holding": the bundled NSE list only (no Yahoo call per keystroke). */
+/**
+ * Search for anything a portfolio can hold: stocks, ETFs, mutual funds, REITs and InvITs, gold and
+ * silver. Uses the bundled lists only (no data-provider call per keystroke). `type` narrows it to
+ * one or more asset classes, comma-separated.
+ */
 export const GET = api(async (req) => {
   await requireUser(req);
-  const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
+  const p = new URL(req.url).searchParams;
+  const q = p.get("q")?.trim() ?? "";
   if (q.length < 2) return json({ results: [] });
-  const m = getMaster();
-  const up = q.toUpperCase().replace(/\.NS$/, "");
-  const nq = normalizeName(q);
-  const scored = m.rows
-    .map((r) => {
-      const n = normalizeName(r.name);
-      const score = r.symbol === up ? 100 : r.symbol.startsWith(up) ? 80 : n.startsWith(nq) ? 70 : n.includes(nq) ? 40 : r.isin === up ? 90 : 0;
-      return { r, score };
-    })
-    .filter((x) => x.score > 0)
-    .sort((a, b) => b.score - a.score || a.r.symbol.length - b.r.symbol.length)
-    .slice(0, 8);
-  return json({ results: scored.map(({ r }) => ({ symbol: toYahoo(r.symbol), name: r.name, isin: r.isin })) });
+  const classes = (p.get("type") ?? "").split(",").filter((c): c is MarketClass => (MARKET_CLASSES as readonly string[]).includes(c));
+  return json({ results: searchCatalog(q, { classes, limit: classes.length ? 20 : 14 }) });
 });

@@ -26,7 +26,7 @@ export function InsightsView({ data }: { data: Insights }) {
         <Card className="p-5 md:col-span-2">
           <div className="t-overline">North Star</div>
           <div className="mt-1 text-sm text-muted">Weekly users who rated at least one alert useful</div>
-          <div className="num mt-3 font-[family-name:var(--font-display)] text-[44px] font-semibold leading-none text-text">{data.nsm.value}</div>
+          <div className="num mt-3 text-[44px] font-semibold leading-none text-text">{data.nsm.value}</div>
           <div className={`num mt-2 text-sm ${delta >= 0 ? "text-gain" : "text-loss"}`}>
             {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)} vs previous 7 days
           </div>
@@ -173,7 +173,7 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub?: string
   return (
     <Card className="p-5">
       <div className="text-sm text-muted">{label}</div>
-      <div className="num mt-2 font-[family-name:var(--font-display)] text-[28px] font-semibold leading-none text-text">{value}</div>
+      <div className="num mt-2 text-[28px] font-semibold leading-none text-text">{value}</div>
       {sub && <div className="t-caption mt-2">{sub}</div>}
     </Card>
   );

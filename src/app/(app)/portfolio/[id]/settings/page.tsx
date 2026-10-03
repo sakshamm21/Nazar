@@ -26,7 +26,7 @@ export default async function PortfolioSettingsPage({ params }: { params: Promis
       <PortfolioSettings
         p={{ id: p.id, name: p.name, ownerLabel: p.ownerLabel, language: p.language, alertsEnabled: p.alertsEnabled }}
         recipient={r ? { email: r.email, confirmed: !!r.confirmedAt, unsubscribed: !!r.unsubscribedAt } : null}
-        isDemo={user.isDemo}
+        isDemo={user.isDemo || user.isTestAccount}
         emailConfigured={mailConfigured()}
       />
     </div>

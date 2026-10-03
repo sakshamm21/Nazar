@@ -1,8 +1,7 @@
-import { BellRing, CloudLightning, FileBarChart2, Languages, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
+import { ArrowRight, BellRing, CloudLightning, FileBarChart2, Languages, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DemoButton } from "@/components/landing/demo-button";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { RingGauge } from "@/components/rings/ring-gauge";
 import { NazarMark, Wordmark } from "@/components/rings/nazar-mark";
@@ -18,16 +17,16 @@ export const dynamic = "force-dynamic";
 export default async function Landing() {
   if (await currentUser()) redirect("/home");
   return (
-    <div className="min-h-dvh">
+    <div className="nz-aura min-h-dvh overflow-x-hidden">
       <header className="mx-auto flex max-w-[1120px] items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
         <Wordmark />
         <nav className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
-          <Link href="/signin" className={buttonClass("ghost", "sm")}>
-            Sign in
-          </Link>
-          <Link href="/signup" className={buttonClass("secondary", "sm", "hidden sm:inline-flex")}>
+          <Link href="/signup" className={buttonClass("ghost", "sm", "hidden sm:inline-flex")}>
             Create account
+          </Link>
+          <Link href="/signin" className={buttonClass("secondary", "sm")}>
+            Sign in
           </Link>
         </nav>
       </header>
@@ -37,20 +36,22 @@ export default async function Landing() {
         <section className="mx-auto grid max-w-[1120px] items-center gap-10 px-4 pb-16 pt-6 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:pb-24 lg:pt-14">
           <div>
             <Chip tone="accent" className="mb-5">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> For Indian investors on Zerodha, Groww and Upstox
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Stocks, funds, gold, FDs. One watchdog.
             </Chip>
-            <h1 className="font-[family-name:var(--font-display)] text-[40px] font-semibold leading-[44px] tracking-[-0.03em] text-text sm:text-[56px] sm:leading-[60px]">
-              Your stocks,
+            <h1 className="font-[family-name:var(--font-display)] text-[46px] font-extrabold leading-[46px] tracking-[-0.045em] text-text sm:text-[76px] sm:leading-[72px]">
+              Your money,
               <br />
-              watched.
+              <span className="t-accent nz-grad pr-2 font-medium tracking-[-0.03em]">watched.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-7 text-muted">
-              Nazar watches your stocks every day and messages you only when something important happens, explaining what happened and why, in plain language.
+            <p className="mt-6 max-w-xl text-[17px] leading-7 text-muted">
+              Nazar watches everything you own every day and messages you only when something important happens, explaining what happened and why, in plain language.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <DemoButton />
-              <Link href="/signin" className={buttonClass("secondary", "lg")}>
-                Sign in
+              <Link href="/signin" className={buttonClass("primary", "lg")}>
+                Sign in <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/signup" className={buttonClass("secondary", "lg")}>
+                Create an account
               </Link>
             </div>
             <p className="mt-4 flex items-center gap-2 text-sm text-subtle">
@@ -65,7 +66,9 @@ export default async function Landing() {
           <div className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
             <div className="max-w-2xl">
               <div className="t-overline">What Nazar does</div>
-              <h2 className="t-title-1 mt-2 text-text">Six things a busy investor actually needs</h2>
+              <h2 className="t-title-1 mt-2 text-text">
+                Six things a busy investor <span className="t-accent nz-grad">actually</span> needs
+              </h2>
               <p className="mt-3 text-muted">You don&apos;t have time to track results, news and market swings for 15 stocks, plus your parents&apos; portfolio. Nazar does, and stays quiet unless it matters.</p>
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,15 +116,19 @@ export default async function Landing() {
                 <CloudLightning className="h-6 w-6" />
               </span>
               <div>
-                <h2 className="t-title-1 text-text">See it on a bad day</h2>
-                <p className="mt-2 max-w-xl text-muted">Open the demo: a real 14-stock portfolio plus a parent&apos;s Hindi portfolio, 60 days of history, and a button that simulates a market fall so you can watch real alerts arrive. A short tour shows you around.</p>
+                <h2 className="t-title-1 text-text">
+                  See it on a <span className="t-accent nz-grad">bad</span> day
+                </h2>
+                <p className="mt-2 max-w-xl text-muted">Sign in with the test account: a real 14-stock portfolio plus a parent&apos;s Hindi portfolio, 60 days of history, and a button that simulates a market fall so you can watch real alerts arrive. A short tour shows you around.</p>
               </div>
             </div>
-            <DemoButton label="Open the demo" />
+            <Link href="/signin" className={buttonClass("primary", "lg")}>
+              Sign in to try it <ArrowRight className="h-4 w-4" />
+            </Link>
           </Card>
           <div className="mt-12 grid gap-6 text-sm sm:grid-cols-3">
-            <Step n="1" title="Add your holdings" body="Import the holdings file from Zerodha, Groww or Upstox, or add stocks by hand. Names map to NSE tickers automatically." />
-            <Step n="2" title="Nazar checks every evening" body="After the market closes, Nazar fetches prices, results and news for your stocks once, and runs its checks." />
+            <Step n="1" title="Add what you own" body="Search stocks, mutual funds, ETFs and gold, import a broker file, or add deposits and PF at the value you enter." />
+            <Step n="2" title="Nazar checks every evening" body="After the market closes, Nazar fetches prices, results and news for your holdings once, and runs its checks." />
             <Step n="3" title="You hear only what matters" body="An alert in the app and one calm email digest, with the reason and your ₹ impact. Quiet days stay quiet." />
           </div>
         </section>
@@ -146,7 +153,7 @@ export default async function Landing() {
 
 function Feature({ n, icon, title, body, children }: { n: string; icon: React.ReactNode; title: string; body: string; children: React.ReactNode }) {
   return (
-    <Card className="flex flex-col p-5">
+    <Card className="flex flex-col p-5 transition-transform duration-200 hover:-translate-y-0.5">
       <div className="flex items-center gap-3">
         <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-accent-soft text-accent">{icon}</span>
         <span className="t-overline">H{n}</span>
@@ -182,7 +189,7 @@ function MiniAlert() {
 function HeroVisual() {
   return (
     <div className="relative mx-auto w-full max-w-md">
-      <Card className="p-6">
+      <Card className="nz-ring p-6">
         <div className="t-overline">My portfolio · as of today&apos;s close</div>
         <div className="t-display num mt-2 text-text">₹18,64,210</div>
         <div className="num mt-1 text-[15px] font-medium text-loss">▼ −₹8,012 (−0.4%) today</div>

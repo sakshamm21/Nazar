@@ -10,8 +10,8 @@ import * as schema from "./schema";
  * - NAZAR_DATABASE_URL (preferred) or DATABASE_URL → real Postgres. Neon uses its HTTP driver so
  *   nothing hangs on a socket frozen between serverless invocations; anything else uses postgres-js.
  *   Migrations run at build time (`npm run build` → scripts/migrate.ts).
- * - neither set → embedded PGlite (real Postgres compiled to WASM) in ./.data/nazar, migrated and
- *   seeded with demo data automatically, so `npm run dev` works with zero setup.
+ * - neither set → embedded PGlite (real Postgres compiled to WASM) in ./.data/nazar, migrated, with
+ *   the test accounts built from live market data automatically, so `npm run dev` works with zero setup.
  */
 export type DB = ReturnType<typeof drizzlePg<typeof schema>>;
 export { schema };
@@ -74,13 +74,14 @@ export async function getDb(): Promise<DB> {
     throw e;
   });
   const db = await state.__nazarDb;
-  // Local zero-setup: the first request seeds the demo market and test accounts (PGlite only).
+  // Local zero-setup: the first request builds the test accounts (PGlite only).
   // Code running inside the seed itself calls getDb() too, so it must not wait on the seed.
   if (!databaseUrl && !state.__nazarSkipSeed && !seeding.getStore()) {
     state.__nazarSeed ??= seeding
       .run(true, async () => {
-        const { ensureDemoMarket } = await import("@/lib/demo/seed");
-        await ensureDemoMarket(db);
+        const { ensureTestAccounts } = await import("@/lib/demo/seed");
+        // Needs the internet (live prices). Offline, the app still starts; the accounts fill in later.
+        await ensureTestAccounts(db).catch(() => undefined);
       })
       .catch((e) => {
         state.__nazarSeed = undefined;

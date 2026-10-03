@@ -131,7 +131,7 @@ export const POST = api(async (req: Request) => {
   const history = (Array.isArray(existing?.messages) ? existing.messages : []) as Msg[];
   const messages: Msg[] = [...history, userMessage];
 
-  const limit = await checkAndRecord(userId, ipHash(req), user.isDemo);
+  const limit = await checkAndRecord(userId, ipHash(req), user.isDemo || user.isTestAccount);
   if (!limit.ok) {
     track(userId, "rate_limited", { status: limit.status, reason: limit.error.slice(0, 60) }, id);
     return Response.json({ error: limit.error }, { status: limit.status });

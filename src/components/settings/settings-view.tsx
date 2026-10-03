@@ -72,7 +72,7 @@ export function SettingsView(props: {
           Right now: stock moves of {props.effective.stockMove}%+, whole-portfolio moves of {props.effective.portfolioMove}%+, any stock above {props.effective.concentration}% of a portfolio. Results are always explained.
         </p>
         <div className="mt-5 space-y-3">
-          <SwitchRow label="Daily email digest" body={demo ? "Demo accounts never send email." : !props.emailConfigured ? "Email isn't configured on this deployment yet; alerts stay in the inbox." : props.user.emailVerified ? `One calm email a day at most, to ${props.user.email}.` : "Verify your email to receive digests."} checked={s.emailDigest && !demo} disabled={demo} onChange={(v) => save({ emailDigest: v })} />
+          <SwitchRow label="Daily email digest" body={demo ? "Test accounts never send email." : !props.emailConfigured ? "Email isn't configured on this deployment yet; alerts stay in the inbox." : props.user.emailVerified ? `One calm email a day at most, to ${props.user.email}.` : "Verify your email to receive digests."} checked={s.emailDigest && !demo} disabled={demo} onChange={(v) => save({ emailDigest: v })} />
           <SwitchRow label="Quiet mode" body="Only major (critical) alerts reach your email. Everything still appears in the inbox." checked={s.quietMode} onChange={(v) => save({ quietMode: v })} />
         </div>
       </Card>
@@ -169,36 +169,7 @@ export function SettingsView(props: {
         </div>
       </Card>
 
-      <Card className="p-5 sm:p-6">
-        <CardHeader overline="Account" title={props.user.isDemo && !props.user.isTestAccount ? "Demo account" : props.user.name} />
-        {!(props.user.isDemo && !props.user.isTestAccount) && <p className="mt-1 text-sm text-muted">{props.user.email}</p>}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              await apiCall("/api/auth/logout", "POST");
-              router.push("/");
-              router.refresh();
-            }}
-          >
-            Sign out
-          </Button>
-          {!props.user.isTestAccount && (
-            <Button
-              variant="danger"
-              onClick={async () => {
-                if (!confirm("Delete your account and all your portfolios, alerts and chats? This can't be undone.")) return;
-                await apiCall("/api/account", "DELETE");
-                router.push("/");
-                router.refresh();
-              }}
-            >
-              <Trash2 className="h-4 w-4" /> Delete account
-            </Button>
-          )}
-        </div>
-        <p className="t-caption mt-5">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money.</p>
-      </Card>
+      <p className="t-caption px-1">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money.</p>
     </div>
   );
 }

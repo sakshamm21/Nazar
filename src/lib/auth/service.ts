@@ -116,7 +116,7 @@ export async function login(emailIn: string, password: string) {
 
 export async function forgotPassword(emailIn: string) {
   const u = await findByEmail(emailIn);
-  if (!u || u.isDemo) return {};
+  if (!u || u.isDemo || u.isTestAccount) return {};
   const token = randomBytes(32).toString("hex");
   const db = await getDb();
   await db.update(schema.users).set({ resetTokenHash: sha256(token), resetExpiresAt: new Date(Date.now() + RESET_TTL_MIN * 60_000) }).where(eq(schema.users.id, u.id));
@@ -134,4 +134,13 @@ export async function resetPassword(token: string, password: string) {
     .set({ passwordHash: await bcrypt.hash(password, 10), resetTokenHash: null, resetExpiresAt: null, emailVerifiedAt: u.emailVerifiedAt ?? new Date() })
     .where(eq(schema.users.id, u.id));
   return u;
+}
+
+/** Change a signed-in user's password; they must know the current one. */
+export async function changePassword(userId: string, current: string, next: string) {
+  const db = await getDb();
+  const [u] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+  if (!u?.passwordHash || !(await bcrypt.compare(current, u.passwordHash))) throw badRequest("That isn't your current password.", "INVALID_CREDENTIALS");
+  await db.update(schema.users).set({ passwordHash: await bcrypt.hash(next, 10), resetTokenHash: null, resetExpiresAt: null }).where(eq(schema.users.id, u.id));
+  track(u.id, "password_changed", {});
 }

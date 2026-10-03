@@ -1,4 +1,4 @@
-import { SYMBOL_ALIASES, normalizeName, toYahoo, type MasterIndex, type MasterRow } from "@/lib/instruments/master";
+import { SYMBOL_ALIASES, normalizeName, yahooOf, type MasterIndex, type MasterRow } from "@/lib/instruments/master";
 
 /**
  * Maps a broker row to an NSE ticker. Order (most → least certain):
@@ -12,7 +12,7 @@ export type Resolution =
 
 export type SearchFn = (query: string) => Promise<{ symbol: string; name: string; type?: string }[]>;
 
-const hit = (r: MasterRow, via: Extract<Resolution, { status: "matched" }>["via"]): Resolution => ({ status: "matched", symbol: toYahoo(r.symbol), name: r.name, isin: r.isin, via });
+const hit = (r: MasterRow, via: Extract<Resolution, { status: "matched" }>["via"]): Resolution => ({ status: "matched", symbol: yahooOf(r), name: r.name, isin: r.isin || null, via });
 
 export function resolveLocal(index: MasterIndex, input: { rawName: string; symbol?: string | null; isin?: string | null }): Resolution {
   if (input.isin) {
@@ -30,14 +30,14 @@ export function resolveLocal(index: MasterIndex, input: { rawName: string; symbo
   if (!key) return { status: "unmatched", reason: "Empty name" };
   const exact = index.byName.get(key);
   if (exact?.length === 1) return hit(exact[0], "name");
-  if (exact && exact.length > 1) return { status: "ambiguous", candidates: exact.map((r) => ({ symbol: toYahoo(r.symbol), name: r.name })) };
+  if (exact && exact.length > 1) return { status: "ambiguous", candidates: exact.map((r) => ({ symbol: yahooOf(r), name: r.name })) };
   // Partial: every word of the input appears at the start of the company's name ("HDFC Bank" ⊂ "HDFC Bank Limited").
   const partial = index.rows.filter((r) => {
     const n = normalizeName(r.name);
     return n.startsWith(key + " ") || n === key;
   });
   if (partial.length === 1) return hit(partial[0], "partial");
-  if (partial.length > 1 && partial.length <= 5) return { status: "ambiguous", candidates: partial.map((r) => ({ symbol: toYahoo(r.symbol), name: r.name })) };
+  if (partial.length > 1 && partial.length <= 5) return { status: "ambiguous", candidates: partial.map((r) => ({ symbol: yahooOf(r), name: r.name })) };
   return { status: "unmatched", reason: "Not found in the NSE list" };
 }
 

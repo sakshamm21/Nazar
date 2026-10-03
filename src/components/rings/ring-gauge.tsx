@@ -32,7 +32,7 @@ export function RingGauge({ outer, inner, size = 168, label, sublabel }: { outer
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          <div className="num font-[family-name:var(--font-display)] font-semibold tracking-[-0.02em] text-text" style={{ fontSize: size * 0.22, lineHeight: 1 }}>
+          <div className="num font-semibold tracking-[-0.02em] text-text" style={{ fontSize: size * 0.22, lineHeight: 1 }}>
             {outer ?? "—"}
           </div>
           {label && <div className="t-caption mt-1">{label}</div>}

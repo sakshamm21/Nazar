@@ -3,28 +3,33 @@ import path from "node:path";
 import { parseCsv } from "@/lib/importers/csv";
 
 /**
- * NSE equity master (src/data/nse-equity.csv, refreshed by `npm run nse:refresh`): every listed
- * equity's symbol, name and ISIN. Broker exports carry ISINs, so most rows map exactly without
+ * NSE master (src/data/nse-equity.csv, refreshed by `npm run nse:refresh`, plus the ETF and trust
+ * lists from `npm run catalog:refresh`): every listed security's symbol, name and ISIN. Broker exports carry ISINs, so most rows map exactly without
  * calling Yahoo (whose name search fails on renames like Zomato → Eternal).
  */
-export type MasterRow = { symbol: string; name: string; isin: string };
+export type MasterRow = { symbol: string; name: string; isin: string; /** The Yahoo symbol when it isn't "<symbol>.NS". */ yahoo?: string };
 
 let cache: MasterIndex | null = null;
 
 export type MasterIndex = {
+  /** Everything a broker file can contain: equities, plus ETFs, REITs and InvITs. */
   rows: MasterRow[];
+  /** Equities only. */
+  stocks: MasterRow[];
   bySymbol: Map<string, MasterRow>;
   byIsin: Map<string, MasterRow>;
   byName: Map<string, MasterRow[]>;
 };
 
-export function buildIndex(rows: MasterRow[]): MasterIndex {
+export function buildIndex(stocks: MasterRow[], others: MasterRow[] = []): MasterIndex {
+  const taken = new Set(stocks.map((s) => s.symbol));
+  const rows = [...stocks, ...others.filter((o) => !taken.has(o.symbol))];
   const byName = new Map<string, MasterRow[]>();
   for (const r of rows) {
     const k = normalizeName(r.name);
     byName.set(k, [...(byName.get(k) ?? []), r]);
   }
-  return { rows, bySymbol: new Map(rows.map((r) => [r.symbol, r])), byIsin: new Map(rows.map((r) => [r.isin, r])), byName };
+  return { rows, stocks, bySymbol: new Map(rows.map((r) => [r.symbol, r])), byIsin: new Map(rows.filter((r) => r.isin).map((r) => [r.isin, r])), byName };
 }
 
 function parseMaster(csv: string): MasterRow[] {
@@ -38,8 +43,10 @@ function parseMaster(csv: string): MasterRow[] {
 
 export function getMaster(): MasterIndex {
   if (!cache) {
-    const file = path.join(process.cwd(), "src", "data", "nse-equity.csv");
-    cache = buildIndex(parseMaster(readFileSync(file, "utf8")));
+    const file = (name: string) => readFileSync(path.join(process.cwd(), "src", "data", name), "utf8");
+    // ETF and trust lists (`npm run catalog:refresh`): SYMBOL, NAME, ISIN, …
+    const listed = (name: string, yahooCol?: number) => parseCsv(file(name)).slice(1).filter((l) => l[0]?.trim()).map((l) => ({ symbol: l[0].trim().toUpperCase(), name: l[1].trim(), isin: (l[2] ?? "").trim().toUpperCase(), ...(yahooCol != null && l[yahooCol]?.trim() ? { yahoo: l[yahooCol].trim().toUpperCase() } : {}) }));
+    cache = buildIndex(parseMaster(file("nse-equity.csv")), [...listed("nse-etf.csv"), ...listed("nse-trusts.csv", 4)]);
   }
   return cache;
 }
@@ -122,3 +129,4 @@ export const SYMBOL_ALIASES: Record<string, string> = {
 };
 
 export const toYahoo = (nseSymbol: string) => `${nseSymbol.toUpperCase()}.NS`;
+export const yahooOf = (r: MasterRow) => r.yahoo ?? toYahoo(r.symbol);

@@ -108,8 +108,11 @@ describe("nightly checkup (fake provider)", () => {
     expect(r).toMatchObject({ status: "done", runDate: D2 });
     expect(r.stats.results).toBe(1);
 
-    const [ev] = await db.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "INFY.NS"));
+    const events = await db.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "INFY.NS"));
+    const ev = events.find((e) => e.quarterEnd === "2026-06-30")!;
     expect(ev).toMatchObject({ quarterEnd: "2026-06-30", detectedOn: D2, source: "live" });
+    // The quarter that was already out on day 1 is kept for the stock page, dated in the past so it was never announced.
+    expect(events.find((e) => e.quarterEnd === "2026-03-31")).toMatchObject({ detectedOn: "2026-03-31", data: { backfilled: true } });
 
     const res = (await alertsFor(user.id, D2)).find((a) => a.type === "results")!;
     expect(res.titleEn).toBe("Infosys reported Apr–Jun 2026 results");

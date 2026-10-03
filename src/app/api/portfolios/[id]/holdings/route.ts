@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { z } from "zod";
 import { api, json, parseBody, requireUser } from "@/lib/http";
 import { upsertHoldings } from "@/lib/repo/portfolios";
-import { firstLook } from "@/lib/pipeline/first-look";
+import { firstLookFor } from "@/lib/pipeline/first-look";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -17,15 +17,16 @@ const Item = z.object({
   rawName: z.string().max(120).nullable().optional(),
   source: z.enum(["manual", "zerodha", "groww", "upstox", "generic", "screenshot"]).default("manual"),
 });
-const Body = z.object({ holdings: z.array(Item).min(1).max(200) });
+/** `mode`: "replace" overwrites a symbol already held (imports); "add" merges it in as a further purchase. */
+const Body = z.object({ holdings: z.array(Item).min(1).max(200), mode: z.enum(["replace", "add"]).default("replace") });
 
-/** Adds or updates holdings (manual add, or the confirm step of an import). */
+/** Adds or updates market holdings (adding by hand, or the confirm step of an import). */
 export const POST = api(async (req, ctx: Ctx) => {
   const u = await requireUser(req);
   const { id } = await ctx.params;
-  const { holdings } = await parseBody(req, Body);
-  const rows = await upsertHoldings(u.id, id, holdings);
+  const { holdings, mode } = await parseBody(req, Body);
+  const rows = await upsertHoldings(u.id, id, holdings, mode);
   // New symbols get a one-time first look right away instead of waiting for tonight's checkup.
-  if (!u.isDemo) after(() => firstLook(holdings.map((h) => h.symbol.toUpperCase())).catch(() => undefined));
+  after(() => firstLookFor(u, holdings.map((h) => h.symbol)));
   return json({ holdings: rows });
 });

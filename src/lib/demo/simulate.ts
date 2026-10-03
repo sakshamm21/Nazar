@@ -1,15 +1,16 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { adjustedBeta } from "@/lib/portfolio/math";
+import { adjustedBeta, betaOf } from "@/lib/portfolio/math";
+import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { NIFTY, SECTOR_INDICES, sectorOf } from "@/lib/instruments/sectors";
 import { latestTradeDate, shiftDate, snapshotsAsOf, sourcesFor, instrumentsFor } from "@/lib/market/store";
 import { evaluateUser } from "@/lib/pipeline/evaluate";
 import { track } from "@/lib/events";
 
 /**
- * DEMO: "Simulate a bad day in the market". Generates a realistic next session for the visitor's
- * holdings and runs the REAL alert engine on it. Each stock's move = its beta × the market move,
+ * "Simulate a bad day in the market" (test accounts). Starts from today's real prices, generates a
+ * realistic next session for the account's holdings and runs the REAL alert engine on it. Each stock's move = its beta × the market move,
  * plus its sector's extra move, plus a small deterministic wobble — and one holding gets a
  * company-specific shock so every "likely reason" type shows up. Written under the visitor's own
  * source ("sim:<userId>"), so nobody else sees it; alerts are badged SIMULATION and never carry
@@ -53,18 +54,18 @@ const wobble = (symbol: string) => {
 export async function simulate(userId: string, scenarioId: string) {
   const db = await getDb();
   const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId));
-  if (!user?.isDemo) throw new Error("Simulation is only available in demo accounts.");
+  if (!user?.isTestAccount) throw new Error("Simulation is only available in test accounts.");
   await resetSimulation(userId);
   const sc = SCENARIOS[scenarioId] ?? SCENARIOS["global-selloff"];
   const chain = sourcesFor({ ...user, simState: null });
   const today = await latestTradeDate(db, chain);
-  if (!today) throw new Error("Demo market not ready yet.");
+  if (!today) throw new Error("Market data isn't ready yet.");
   let simDate = shiftDate(today, 1);
   while ([0, 6].includes(new Date(`${simDate}T00:00:00Z`).getUTCDay())) simDate = shiftDate(simDate, 1);
 
   const pfs = await db.select({ id: schema.portfolios.id }).from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
   const holdings = pfs.length ? await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, pfs.map((p) => p.id))) : [];
-  const symbols = [...new Set(holdings.map((h) => h.symbol))];
+  const symbols = [...new Set(holdings.map((h) => h.symbol))].filter((s) => !isManualSymbol(s));
   const [snaps, inst] = await Promise.all([snapshotsAsOf(db, [...symbols, NIFTY, ...SECTOR_INDICES], today, chain), instrumentsFor(db, symbols)]);
 
   // The company-specific shock: largest auto holding (or largest non-financial).
@@ -72,8 +73,9 @@ export async function simulate(userId: string, scenarioId: string) {
   const sectorFor = (s: string) => sectorOf(inst.get(s)?.sector, inst.get(s)?.industry);
   let shocked: string | null = null;
   if (sc.company) {
-    const pool = symbols.filter((s) => (sc.company!.pick === "largest-auto" ? sectorFor(s).label === "Auto" : !sectorFor(s).financial));
-    shocked = (pool.length ? pool : symbols).sort((a, b) => value(b) - value(a))[0] ?? null;
+    const stocks = symbols.filter((s) => (inst.get(s)?.assetClass ?? "stock") === "stock");
+    const pool = stocks.filter((s) => (sc.company!.pick === "largest-auto" ? sectorFor(s).label === "Auto" : !sectorFor(s).financial));
+    shocked = (pool.length ? pool : stocks).sort((a, b) => value(b) - value(a))[0] ?? null;
   }
 
   const source = `sim:${userId}`;
@@ -92,8 +94,10 @@ export async function simulate(userId: string, scenarioId: string) {
   for (const [idx, mv] of Object.entries(indexMove)) push(idx, mv);
   for (const s of symbols) {
     const sec = sectorFor(s);
-    const b = adjustedBeta(snaps.get(s)?.beta ?? null);
-    const move = s === shocked ? sc.company!.move : (sc.sectors[sec.label] ?? b * sc.market) + wobble(s);
+    const company = (inst.get(s)?.assetClass ?? "stock") === "stock";
+    // Funds, ETFs and gold follow the market by their own measured beta; sector moves are for companies.
+    const b = company ? adjustedBeta(snaps.get(s)?.beta ?? null) : betaOf({ beta: snaps.get(s)?.beta ?? null, assetClass: inst.get(s)?.assetClass });
+    const move = s === shocked ? sc.company!.move : ((company ? sc.sectors[sec.label] : undefined) ?? b * sc.market) + wobble(s) * (company ? 1 : 0.3);
     push(s, Math.max(-0.2, Math.min(0.2, move)));
   }
   if (priceRows.length) await db.insert(schema.priceDaily).values(priceRows).onConflictDoNothing();

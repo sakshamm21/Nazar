@@ -1,6 +1,6 @@
 {
   "name": "nazar",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "description": "Nazar: an AI portfolio watchdog for Indian retail investors",
   "scripts": {
@@ -16,8 +16,8 @@
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "demo:reset": "tsx --conditions=react-server scripts/reset-local.ts",
-    "demo:capture": "tsx --conditions=react-server scripts/demo/capture-fixture.ts",
     "nse:refresh": "tsx --conditions=react-server scripts/refresh-nse-master.ts",
+    "catalog:refresh": "tsx --conditions=react-server scripts/refresh-catalog.ts",
     "pipeline:run": "tsx --conditions=react-server scripts/run-pipeline.ts",
     "eval:guard": "node scripts/eval-guard.mjs"
   },
