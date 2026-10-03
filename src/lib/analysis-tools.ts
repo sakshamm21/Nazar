@@ -3,7 +3,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { NV, cached, clean, fetchMetrics, fetchQuotes, fxRate, isTransient, num, quoteSummary, yf } from "./finance";
 import { buildHealth, comps, correlationMatrix, dupont, piotroskiAltman, riskReturn, sipBacktest, technicals, FINANCIAL_RE } from "./analytics/models";
-import { round, sample } from "./analytics/stats";
+import { round } from "./analytics/stats";
 
 /**
  * Quant / modelling tools for the Ask tab. The maths lives in analytics/models.ts (pure, tested,

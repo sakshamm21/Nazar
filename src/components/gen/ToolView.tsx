@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";

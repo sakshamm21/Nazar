@@ -15,7 +15,7 @@ export function AuthCard({ title, subtitle, children, footer }: { title: string;
         <div className="mt-6">{children}</div>
       </Card>
       {footer && <div className="mt-6 text-center text-sm text-muted">{footer}</div>}
-      <p className="mt-8 max-w-[420px] text-center text-[12px] leading-5 text-subtle">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you to buy or sell.</p>
+      <p className="mt-8 max-w-[420px] text-center text-[12px] leading-5 text-subtle">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money.</p>
     </div>
   );
 }

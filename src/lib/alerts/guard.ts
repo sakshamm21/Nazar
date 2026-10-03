@@ -32,7 +32,7 @@ const EN = [
 ];
 
 const HI = [
-  /ख़?खरीद(ें|ो|ना|ने|िए|ें।)/u,
+  /ख़?रीद(ें|ो|ना|ने|िए|ें।)/u,
   /बेच(ें|ो|ना|ने|िए|कर)/u,
   /होल्ड/u,
   /लक्ष्य\s*मूल्य/u,
@@ -50,7 +50,9 @@ export const ADVICE_PATTERNS = [...EN, ...HI, ...HINGLISH];
 
 export type AdviceViolation = { pattern: string; match: string };
 
-export function findAdvice(text: string): AdviceViolation[] {
+export function findAdvice(raw: string): AdviceViolation[] {
+  // NFC splits precomposed nukta letters (ख़ → ख + ़), so one pattern covers both spellings.
+  const text = raw.normalize("NFC");
   const out: AdviceViolation[] = [];
   for (const p of ADVICE_PATTERNS) {
     const m = p.exec(text);

@@ -2,6 +2,7 @@ import "server-only";
 import { createHash, randomUUID } from "crypto";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { authSecret } from "@/lib/auth/secret";
 import { tooMany } from "./errors";
 
 const envNum = (name: string, fallback: number) => {
@@ -32,7 +33,7 @@ export function clientIp(req: Request) {
 }
 
 export function ipHash(req: Request) {
-  const salt = process.env.AUTH_SECRET ?? "nazar";
+  const salt = authSecret();
   return createHash("sha256").update(`${salt}:ip:${clientIp(req)}`).digest("hex").slice(0, 32);
 }
 

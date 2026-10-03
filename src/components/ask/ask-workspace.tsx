@@ -2,7 +2,7 @@
 import type { UIMessage } from "ai";
 import { Check, Copy, FileDown, FileSpreadsheet, History, Link2, Plus, Share2, Trash2, Wrench } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Chat } from "@/components/Chat";
@@ -10,28 +10,35 @@ import type { Rating } from "@/components/Messages";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
+import { useStoredPref } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
 import { PRIVATE_TOOLS } from "@/lib/tool-names";
 import { trackClient } from "@/lib/track-client";
 
 type ChatRow = { id: string; title: string; updatedAt: string };
 type Mode = "simple" | "pro";
+const MODES = ["simple", "pro"] as const;
+const fetchChat = (id: string) =>
+  fetch(`/api/chats/${id}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 /** The Ask tab: v1's research agent, now one tab of Nazar, with portfolio-aware answers. */
-export function AskWorkspace({ remaining }: { remaining: { remaining: number; limit: number } | null }) {
+export type AskStart = { openId: string } | { newId: string; question: string | null };
+
+export function AskWorkspace({ remaining, start }: { remaining: { remaining: number; limit: number } | null; start: AskStart }) {
   const router = useRouter();
-  const params = useSearchParams();
   const [chats, setChats] = useState<ChatRow[]>([]);
-  const [chatId, setChatId] = useState("");
-  const [initial, setInitial] = useState<UIMessage[] | null>(null);
+  const [chatId, setChatId] = useState("newId" in start ? start.newId : "");
+  const [initial, setInitial] = useState<UIMessage[] | null>("newId" in start ? [] : null);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [shareId, setShareId] = useState<string | null>(null);
-  const [mode, setMode] = useState<Mode>("simple");
-  const [model, setModel] = useState("auto");
+  const [mode, setMode] = useStoredPref<Mode>("nazar:mode", "simple", MODES);
+  const [model] = useStoredPref<string>("nazar:model", "auto");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [prompt, setPrompt] = useState<{ text: string; nonce: number } | null>(null);
+  const [prompt] = useState<{ text: string; nonce: number } | null>("newId" in start && start.question ? { text: start.question, nonce: 1 } : null);
   const msgs = useRef<UIMessage[]>([]);
   const onMessages = useCallback((m: UIMessage[]) => {
     msgs.current = m;
@@ -41,17 +48,20 @@ export function AskWorkspace({ remaining }: { remaining: { remaining: number; li
     const r = await fetch("/api/chats");
     if (r.ok) setChats((await r.json()).chats);
   }, []);
-  const open = useCallback(async (id: string) => {
-    setHistoryOpen(false);
-    const r = await fetch(`/api/chats/${id}`);
-    if (!r.ok) return;
-    const j = await r.json();
+  const showChat = useCallback((id: string, j: { messages?: UIMessage[]; feedback?: Record<string, Rating>; shareId?: string | null }) => {
     setInitial(j.messages ?? []);
     setRatings(j.feedback ?? {});
     setShareId(j.shareId ?? null);
     setChatId(id);
     history.replaceState(null, "", `/ask?c=${id}`);
   }, []);
+  const open = useCallback(
+    (id: string) => {
+      setHistoryOpen(false);
+      void fetchChat(id).then((j) => j && showChat(id, j));
+    },
+    [showChat],
+  );
   const fresh = useCallback(() => {
     setHistoryOpen(false);
     setInitial([]);
@@ -62,19 +72,13 @@ export function AskWorkspace({ remaining }: { remaining: { remaining: number; li
   }, []);
 
   useEffect(() => {
-    refresh();
-    try {
-      setModel(localStorage.getItem("nazar:model") ?? "auto");
-      const m = localStorage.getItem("nazar:mode");
-      if (m === "pro" || m === "simple") setMode(m);
-    } catch {}
-    const c = params.get("c");
-    const q = params.get("q");
-    if (c) open(c);
-    else {
-      fresh();
-      if (q) setPrompt({ text: q, nonce: Date.now() });
-    }
+    fetch("/api/chats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => j && setChats(j.chats))
+      .catch(() => {});
+    if ("openId" in start) void fetchChat(start.openId).then((j) => j && showChat(start.openId, j));
+    else history.replaceState(null, "", "/ask"); // drop ?q= so a reload doesn't ask again
+    // Runs once on mount: `start` describes the first load only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -139,9 +143,6 @@ export function AskWorkspace({ remaining }: { remaining: { remaining: number; li
               onChange={(m) => {
                 setMode(m);
                 trackClient("mode_change", { mode: m });
-                try {
-                  localStorage.setItem("nazar:mode", m);
-                } catch {}
               }}
               options={[
                 { value: "simple", label: "Simple" },

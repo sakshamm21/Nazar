@@ -49,7 +49,7 @@ export default async function HomePage() {
             body={
               <>
                 Import your holdings file from Zerodha, Groww or Upstox, or add stocks by hand. Nazar checks them every evening and only messages you when something important happens.
-                <span className="mt-3 block text-subtle">We watch and explain; you decide. Nazar never tells you to buy or sell.</span>
+                <span className="mt-3 block text-subtle">We watch and explain; you decide. Nazar never tells you what to do with your money.</span>
               </>
             }
             action={
@@ -153,7 +153,7 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
         </Stat>
         <Stat label="XIRR" tip="xirr">
           <div className="num text-[15px] font-medium text-text">{v.xirr.xirr != null ? `${(v.xirr.xirr * 100).toFixed(1)}%` : "—"}</div>
-          <div className="num text-[12px] text-subtle">{v.xirr.niftyXirr != null ? `Nifty ${(v.xirr.niftyXirr * 100).toFixed(1)}%` : v.xirr.dated ? "" : "add buy dates"}</div>
+          <div className="num text-[12px] text-subtle">{v.xirr.niftyXirr != null ? `Nifty ${(v.xirr.niftyXirr * 100).toFixed(1)}%` : v.xirr.dated ? "" : "add purchase dates"}</div>
         </Stat>
         <Stat label="Invested">
           <div className="num text-[15px] font-medium text-text">{inrCompact(v.valuation.invested)}</div>

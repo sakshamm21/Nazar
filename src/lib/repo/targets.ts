@@ -14,7 +14,7 @@ export async function listTargets(userId: string) {
 }
 
 export async function createTarget(userId: string, input: { symbol: string; direction: "above" | "below"; target: number; note?: string | null }) {
-  if (!(input.target > 0)) throw badRequest("Target price must be a positive number.");
+  if (!(input.target > 0)) throw badRequest("The price level must be a positive number.");
   const db = await getDb();
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.priceTargets).where(and(eq(schema.priceTargets.userId, userId), isNull(schema.priceTargets.triggeredAt)));
   if (Number(n) >= TARGETS_MAX_ACTIVE) throw badRequest(`You already have ${TARGETS_MAX_ACTIVE} active price alerts. Delete some first.`);

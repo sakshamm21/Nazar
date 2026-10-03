@@ -20,7 +20,7 @@ export type Scenario = { id: string; label: string; labelHi: string; market: num
 export const SCENARIOS: Record<string, Scenario> = {
   "global-selloff": {
     id: "global-selloff",
-    label: "Global sell-off: the Nifty falls 3.2%, IT and autos hit hardest",
+    label: "Global slide: the Nifty falls 3.2%, IT and autos hit hardest",
     labelHi: "वैश्विक गिरावट: निफ्टी 3.2% गिरा, आईटी और ऑटो पर सबसे ज़्यादा असर",
     market: -0.032,
     sectors: { IT: -0.052, Auto: -0.045, Banks: -0.036, "Financial services": -0.038, "Energy & power": -0.025, FMCG: -0.012, "Pharma & healthcare": -0.009, "Telecom & media": -0.021 },

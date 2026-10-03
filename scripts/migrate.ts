@@ -10,7 +10,7 @@ import { loadEnv } from "./env";
 
 async function main() {
   loadEnv();
-  const { connect, databaseUrl, isLegacyDatabase, useDb } = await import("../src/lib/db");
+  const { connect, databaseUrl, isLegacyDatabase, installDb } = await import("../src/lib/db");
   if (!databaseUrl) {
     console.log("[migrate] No NAZAR_DATABASE_URL / DATABASE_URL set: skipping (local PGlite migrates on first use).");
     return;
@@ -28,7 +28,7 @@ async function main() {
     await migrate(db as never, { migrationsFolder });
   }
   console.log("[migrate] Database is up to date.");
-  useDb(db);
+  installDb(db);
   const { ensureDemoMarket } = await import("../src/lib/demo/seed");
   const t = Date.now();
   const r = await ensureDemoMarket(db, { maxStaleDays: 0 });

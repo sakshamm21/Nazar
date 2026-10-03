@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useStoredPref } from "@/lib/client-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -41,12 +42,9 @@ export function SettingsView(props: {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [s, setS] = useState(props.settings);
-  const [model, setModel] = useState("auto");
+  const [model, setModel] = useStoredPref<string>("nazar:model", "auto");
   const [models, setModels] = useState<{ id: string; label: string; blurb: string }[]>([]);
   useEffect(() => {
-    try {
-      setModel(localStorage.getItem("nazar:model") ?? "auto");
-    } catch {}
     fetch("/api/models").then((r) => (r.ok ? r.json() : null)).then((j) => j && setModels(j.models));
   }, []);
   const save = async (patch: Partial<typeof s>) => {
@@ -149,9 +147,6 @@ export function SettingsView(props: {
               value={model}
               onChange={(e) => {
                 setModel(e.target.value);
-                try {
-                  localStorage.setItem("nazar:model", e.target.value);
-                } catch {}
               }}
             >
               <option value="auto">Auto (recommended)</option>
@@ -206,7 +201,7 @@ export function SettingsView(props: {
             </Button>
           )}
         </div>
-        <p className="t-caption mt-5">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you to buy, sell or hold.</p>
+        <p className="t-caption mt-5">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money.</p>
       </Card>
     </div>
   );

@@ -42,10 +42,13 @@ export function Chat({
 }) {
   const [input, setInput] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
+  // Read when a message is sent (not during render), so updating them after commit is enough.
   const modelRef = useRef(model);
-  modelRef.current = model;
   const modeRef = useRef(mode);
-  modeRef.current = mode;
+  useEffect(() => {
+    modelRef.current = model;
+    modeRef.current = mode;
+  }, [model, mode]);
   const [ratings, setRatings] = useState<Record<string, Rating>>(initialRatings ?? {});
 
   const rate = async (messageId: string, rating: Rating | null, reason?: FeedbackReason) => {
@@ -112,7 +115,7 @@ export function Chat({
             <div className="no-print flex flex-col items-center pt-[12vh] text-center">
               <NazarMark size={44} className="mb-4" />
               <h1 className="t-title-1 text-text">Ask Nazar anything about your money</h1>
-              <p className="mt-2 max-w-md text-sm text-muted">Questions about your portfolio, a company or the market. Nazar reads your holdings and live data, and explains in plain language. It never tells you what to buy or sell.</p>
+              <p className="mt-2 max-w-md text-sm text-muted">Questions about your portfolio, a company or the market. Nazar reads your holdings and live data, and explains in plain language. It never tells you what to do with your money.</p>
               {onOpenTools && (
                 <button onClick={onOpenTools} className="mt-4 flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs text-accent hover:bg-accent-soft">
                   <Wrench className="h-3.5 w-3.5" /> Research tools: {TOOL_COUNT} tools incl. DCF, comps, SIP backtest · Excel

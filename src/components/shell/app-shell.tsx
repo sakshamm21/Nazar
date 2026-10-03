@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Home, LineChart, MessageCircle, Settings2, Wallet } from "lucide-react";
+import { Bell, Home, MessageCircle, Settings2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -60,7 +60,7 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
         <main id="main" className="mx-auto w-full max-w-[1120px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
           {children}
           <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">
-            We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you to buy, sell or hold. Market data comes from Yahoo Finance via nightly checks and may be delayed or occasionally wrong.
+            We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data comes from Yahoo Finance via nightly checks and may be delayed or occasionally wrong.
           </footer>
         </main>
       </div>

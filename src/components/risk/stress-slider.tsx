@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { adjustedBeta } from "@/lib/portfolio/math";
 import { absPct, inr, inrCompact } from "@/lib/format";
@@ -10,13 +10,10 @@ type H = { symbol: string; name: string; value: number; beta: number | null };
 export function StressSlider({ holdings }: { holdings: H[] }) {
   const [shock, setShock] = useState(10);
   const total = holdings.reduce((a, h) => a + h.value, 0);
-  const rows = useMemo(
-    () =>
-      holdings
-        .map((h) => ({ ...h, b: adjustedBeta(h.beta), loss: -h.value * adjustedBeta(h.beta) * (shock / 100) }))
-        .sort((a, b) => a.loss - b.loss),
-    [holdings, shock],
-  );
+  // The React compiler memoizes this; it is cheap anyway (≤ 100 holdings).
+  const rows = holdings
+    .map((h) => ({ ...h, b: adjustedBeta(h.beta), loss: -h.value * adjustedBeta(h.beta) * (shock / 100) }))
+    .sort((a, b) => a.loss - b.loss);
   const loss = rows.reduce((a, r) => a + r.loss, 0);
   const pBeta = total ? rows.reduce((a, r) => a + r.value * r.b, 0) / total : 1;
   const unknown = holdings.filter((h) => h.beta == null).length;

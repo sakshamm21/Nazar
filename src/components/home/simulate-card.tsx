@@ -11,7 +11,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { cn } from "@/lib/cn";
 
 const SCENARIOS = [
-  { id: "global-selloff", title: "Global sell-off", body: "The Nifty falls 3.2%; IT and autos are hit hardest, and one of your stocks has bad news of its own." },
+  { id: "global-selloff", title: "Global slide", body: "The Nifty falls 3.2%; IT and autos are hit hardest, and one of your stocks has bad news of its own." },
   { id: "rate-shock", title: "Rate shock", body: "A surprise rate hike: banks and lenders fall about 4%." },
   { id: "company-shock", title: "One company's bad day", body: "A quiet market, but one of your biggest holdings falls 8%." },
 ];

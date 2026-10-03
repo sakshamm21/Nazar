@@ -12,7 +12,7 @@ import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "./repo/
 import { TARGETS_MAX_ACTIVE, createTarget, deleteTargets, listTargets } from "./repo/targets";
 import { buildPortfolioView } from "./views/portfolio";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 async function safe<T>(fn: () => Promise<T>): Promise<T | { error: string }> {
   try {
@@ -434,7 +434,7 @@ export function userTools(userId: string) {
   return {
     getMyPortfolio: tool({
       description:
-        "Read-only view of the user's own portfolios as Nazar tracks them (from last night's checkup): value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Never use it to tell the user to buy or sell anything.",
+        "Read-only view of the user's own portfolios as Nazar tracks them (from last night's checkup): value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
       inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, e.g. \"Papa's portfolio\". Omit for the default.") }),
       execute: async ({ portfolio }) =>
         safe(async () => {

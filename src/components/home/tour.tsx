@@ -26,12 +26,15 @@ export function Tour({ autoStart }: { autoStart: boolean }) {
   const router = useRouter();
   const path = usePathname();
   const forced = params.get("tour") === "1";
-  const [step, setStep] = useState<number | null>(null);
+  const [step, setStep] = useState<number | null>(forced || autoStart ? 0 : null);
   const [rect, setRect] = useState<Rect | null>(null);
-
-  useEffect(() => {
-    if (forced || autoStart) setStep(0);
-  }, [forced, autoStart]);
+  // "Replay tour" adds ?tour=1 to the current page: restart when it appears (adjusting state on a
+  // prop change during render, as React recommends, rather than in an effect).
+  const [wasForced, setWasForced] = useState(forced);
+  if (forced !== wasForced) {
+    setWasForced(forced);
+    if (forced) setStep(0);
+  }
 
   const finish = useCallback(
     async (action: "complete" | "skip") => {

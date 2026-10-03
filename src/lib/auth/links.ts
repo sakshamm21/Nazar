@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
+import { authSecret } from "./secret";
 
 /**
  * Signed one-click links for emails (no sign-in needed): rate an alert, confirm a family
@@ -11,8 +12,8 @@ export type LinkPayload =
   | { a: "unsub"; rec: string }
   | { a: "unsub-owner"; user: string };
 
-const secret = () => process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "nazar-dev-secret-change-me-0123456789";
-const sign = (s: string) => createHmac("sha256", secret()).update(s).digest("base64url");
+// "link:" separates these signatures from any other use of the same secret.
+const sign = (s: string) => createHmac("sha256", authSecret()).update(`link:${s}`).digest("base64url");
 
 export function signLink(p: LinkPayload, ttlDays = 60): string {
   const body = Buffer.from(JSON.stringify({ ...p, exp: Date.now() + ttlDays * 86400000 })).toString("base64url");

@@ -54,7 +54,7 @@ export default async function Landing() {
               </Link>
             </div>
             <p className="mt-4 flex items-center gap-2 text-sm text-subtle">
-              <ShieldCheck className="h-4 w-4" /> We watch and explain; you decide. No buy or sell tips, ever.
+              <ShieldCheck className="h-4 w-4" /> We watch and explain; you decide. No tips, no predictions, ever.
             </p>
           </div>
           <HeroVisual />
@@ -132,7 +132,7 @@ export default async function Landing() {
           <div className="flex items-center gap-2">
             <NazarMark size={20} /> Nazar · a portfolio project by Saksham Malhotra
           </div>
-          <p className="max-w-2xl">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you to buy, sell or hold. Market data from Yahoo Finance may be delayed.</p>
+          <p className="max-w-2xl">We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data from Yahoo Finance may be delayed.</p>
           {process.env.NEXT_PUBLIC_LEGACY_URL && (
             <a href={process.env.NEXT_PUBLIC_LEGACY_URL} className="hover:text-text">
               StockAI (legacy)

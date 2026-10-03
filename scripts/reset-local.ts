@@ -3,16 +3,15 @@
  * (Stop `npm run dev` first; PGlite allows one process at a time.)
  */
 import { rmSync } from "node:fs";
-import path from "node:path";
 import { loadEnv } from "./env";
 
 async function main() {
   loadEnv();
-  const dir = path.join(process.cwd(), ".data", "nazar");
+  const { createPglite, installDb, getDb, localDir } = await import("../src/lib/db");
+  const dir = localDir();
   rmSync(dir, { recursive: true, force: true });
-  const { createPglite, useDb, getDb } = await import("../src/lib/db");
   const db = await createPglite(dir);
-  useDb(db);
+  installDb(db);
   await getDb();
   await (db as unknown as { $client: { close: () => Promise<void> } }).$client.close();
   console.log("Local database rebuilt with fresh demo data.");

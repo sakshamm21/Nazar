@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * Client-side Excel export. Model-type tools (DCF, comps, SIP, risk, correlation, DuPont) become
  * live spreadsheets: blue cells are inputs, black cells are formulas, so users can change an

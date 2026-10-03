@@ -37,13 +37,13 @@ Every colour is a semantic token defined in `src/app/globals.css`. Themes differ
 | `--line-strong` | `#2C3854` | `#CBD3E1` | Focus-adjacent borders, dividers that must be seen |
 | `--text` | `#E9EEF8` | `#0E1424` | Primary text |
 | `--muted` | `#9DA9C2` | `#4C586F` | Secondary text |
-| `--subtle` | `#7F8BA6` | `#5F6B83` | Captions and meta (meets 4.5:1 on its background) |
-| `--accent` | `#5B86FF` nazar blue | `#2B54F0` | The single brand accent: primary actions, focus, active tab, gauge |
+| `--subtle` | `#8792AD` | `#58647C` | Captions and meta (meets 4.5:1 on its background) |
+| `--accent` | `#668EFF` nazar blue | `#2B54F0` | The single brand accent: primary actions, focus, active tab, gauge |
 | `--accent-ink` | `#06102B` | `#FFFFFF` | Text on accent fills |
 | `--ice` | `#A9C4FF` | `#DCE6FF` | Soft companion to the accent: inner ring, tints |
 | `--accent-soft` | accent at 14% | accent at 10% | Selected backgrounds |
-| `--gain` | `#3CCBA8` teal-green | `#0B7A64` | Gains, always with "+" or ▲ |
-| `--loss` | `#FF8169` coral | `#C03D29` | Losses, always with "−" or ▼ |
+| `--gain` | `#3CCBA8` teal-green | `#08705C` | Gains, always with "+" or ▲ |
+| `--loss` | `#FF8169` coral | `#B33824` | Losses, always with "−" or ▼ |
 | `--warn` | `#F2B85B` | `#9A5B00` | Stale data, cautions |
 
 Rules:

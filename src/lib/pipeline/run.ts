@@ -70,7 +70,8 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
         stats.marketDate = q.marketDate;
         if (!q.marketDate || q.marketDate !== runDate) {
           // Weekend or market holiday: prices were refreshed, but there's no new session to alert on.
-          await save(run, { stage: "done", status: "skipped", stats: { ...stats, reason: "no session today" }, finishedAt: new Date() });
+          stats.reason = "no session today";
+          await save(run, { stage: "done", status: "skipped", stats, finishedAt: new Date() });
           break;
         }
         await save(run, { stage: "collect", cursor: 0, stats });

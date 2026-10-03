@@ -6,7 +6,10 @@
  * Voice: calm, direct, slightly warm. Facts and context, never instructions.
  */
 import type { QuarterRow } from "@/lib/db/schema";
-import { absPct, dayLabel, inr, inrApprox, signedPct } from "@/lib/format";
+import { absPct, dayLabel, inr as inrRaw, inrApprox, signedPct } from "@/lib/format";
+
+/** Whole rupees in prose (no paise). */
+const inr = (n: number, o: { sign?: boolean } = {}) => inrRaw(Math.round(n), { ...o, decimals: 0 });
 import type { Attribution } from "@/lib/portfolio/math";
 import type { ReasonKind } from "./reason";
 

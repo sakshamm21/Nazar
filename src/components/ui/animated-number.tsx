@@ -1,4 +1,5 @@
 "use client";
+import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -9,18 +10,16 @@ export function AnimatedNumber({ value, format, className }: { value: number; fo
   const text = format(value);
   const [shown, setShown] = useState(() => text.replace(/\d/g, "0"));
   const first = useRef(true);
+  const reduce = useReducedMotion();
   useEffect(() => {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setShown(text);
-      return;
-    }
+    if (reduce) return;
     const t = setTimeout(() => setShown(text), first.current ? 60 : 0);
     first.current = false;
     return () => clearTimeout(t);
-  }, [text]);
-  // Keep the digit slots aligned with the final text (lengths can differ between values).
-  const display = shown.length === text.length ? shown : text;
+  }, [text, reduce]);
+  // Reduced motion: show the value as is. Otherwise keep the digit slots aligned with the final
+  // text (lengths can differ between values).
+  const display = reduce || shown.length !== text.length ? text : shown;
   return (
     <span className={`num inline-flex ${className ?? ""}`}>
       <span className="sr-only">{text}</span>

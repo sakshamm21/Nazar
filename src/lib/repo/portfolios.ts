@@ -69,7 +69,7 @@ export async function upsertHoldings(userId: string, portfolioId: string, items:
   await requirePortfolio(userId, portfolioId);
   const db = await getDb();
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId));
-  if (Number(n) + items.length > MAX_HOLDINGS * 2) throw badRequest(`A portfolio can hold up to ${MAX_HOLDINGS} stocks.`);
+  if (Number(n) + items.length > MAX_HOLDINGS * 2) throw badRequest(`A portfolio can have up to ${MAX_HOLDINGS} stocks.`);
   for (const it of items) {
     await db
       .insert(schema.holdings)
@@ -80,7 +80,7 @@ export async function upsertHoldings(userId: string, portfolioId: string, items:
       });
   }
   const [{ total }] = await db.select({ total: sql<number>`count(*)::int` }).from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId));
-  if (Number(total) > MAX_HOLDINGS) throw badRequest(`A portfolio can hold up to ${MAX_HOLDINGS} stocks.`);
+  if (Number(total) > MAX_HOLDINGS) throw badRequest(`A portfolio can have up to ${MAX_HOLDINGS} stocks.`);
   return listHoldings(userId, portfolioId);
 }
 

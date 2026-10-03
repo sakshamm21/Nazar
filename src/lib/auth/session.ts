@@ -1,5 +1,6 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
+import { authSecret } from "./secret";
 
 /**
  * Sessions: a signed JWT (HS256) in an httpOnly cookie — Syncronify's token approach, carried in a
@@ -10,11 +11,7 @@ const MAX_AGE_DAYS = 30;
 
 export type Session = { userId: string; isDemo: boolean };
 
-function secret() {
-  const s = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || (process.env.NODE_ENV !== "production" ? "nazar-dev-secret-change-me-0123456789" : "");
-  if (!s) throw new Error("AUTH_SECRET is not set");
-  return new TextEncoder().encode(s);
-}
+const secret = () => new TextEncoder().encode(authSecret());
 
 export async function signSession(s: Session, maxAgeDays = MAX_AGE_DAYS): Promise<string> {
   return new SignJWT({ demo: s.isDemo })

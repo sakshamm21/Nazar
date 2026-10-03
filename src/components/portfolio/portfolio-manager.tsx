@@ -29,13 +29,16 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
   const router = useRouter();
   const params = useSearchParams();
   const [adding, setAdding] = useState(params.get("add") === "1");
-  const [creating, setCreating] = useState<null | "self" | "family">(params.get("new") === "family" ? "family" : null);
+  const [creating, setCreating] = useState<null | "self" | "family">(params.get("new") === "family" ? "family" : portfolios.length ? null : "self");
   const [editing, setEditing] = useState<Row | null>(null);
   const active = portfolios.find((p) => p.id === activeId) ?? null;
 
-  useEffect(() => {
+  // Deleting the last portfolio opens "create" straight away.
+  const [count, setCount] = useState(portfolios.length);
+  if (portfolios.length !== count) {
+    setCount(portfolios.length);
     if (!portfolios.length) setCreating("self");
-  }, [portfolios.length]);
+  }
 
   const select = (id: string) => {
     document.cookie = `nazar_pf=${id}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
@@ -152,8 +155,9 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
 function TickerSearch({ onPick }: { onPick: (r: { symbol: string; name: string; isin: string }) => void }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<{ symbol: string; name: string; isin: string }[]>([]);
+  const shown = q.trim().length < 2 ? [] : results;
   useEffect(() => {
-    if (q.trim().length < 2) return setResults([]);
+    if (q.trim().length < 2) return;
     const t = setTimeout(async () => {
       const j = await call(`/api/search?q=${encodeURIComponent(q.trim())}`, "GET").catch(() => ({ results: [] }));
       setResults(j.results);
@@ -163,9 +167,9 @@ function TickerSearch({ onPick }: { onPick: (r: { symbol: string; name: string; 
   return (
     <div>
       <Input autoFocus aria-label="Search NSE stocks" placeholder="Search by name or NSE symbol, e.g. Infosys" value={q} onChange={(e) => setQ(e.target.value)} />
-      {results.length > 0 && (
+      {shown.length > 0 && (
         <ul className="mt-2 max-h-64 overflow-y-auto rounded-[14px] border border-line" role="listbox">
-          {results.map((r) => (
+          {shown.map((r) => (
             <li key={r.symbol}>
               <button type="button" role="option" aria-selected={false} onClick={() => onPick(r)} className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-sm hover:bg-surface-2">
                 <span className="text-text">{r.name}</span>
@@ -266,14 +270,15 @@ function EditHoldingSheet({ row, onClose }: { row: Row | null; onClose: () => vo
   const [avg, setAvg] = useState("");
   const [date, setDate] = useState("");
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (row) {
-      setQty(String(row.quantity));
-      setAvg(String(row.avgPrice));
-      setDate(row.buyDate ?? "");
-      setError(null);
-    }
-  }, [row]);
+  // Load the row's values when a (different) holding is opened; kept while the sheet animates closed.
+  const [loaded, setLoaded] = useState<Row | null>(null);
+  if (row && row !== loaded) {
+    setLoaded(row);
+    setQty(String(row.quantity));
+    setAvg(String(row.avgPrice));
+    setDate(row.buyDate ?? "");
+    setError(null);
+  }
   return (
     <Sheet
       open={!!row}
@@ -326,7 +331,7 @@ function CreatePortfolioSheet({ mode, onClose }: { mode: null | "self" | "family
       open={!!mode}
       onClose={onClose}
       title={family ? "Add a family portfolio" : "New portfolio"}
-      description={family ? "Track a parent's or partner's stocks separately. Nazar can send them a weekly report and major alerts in their language." : "Most people need one. Add more to keep things separate."}
+      description={family ? "Track a parent's or partner's stocks separately. Nazar can send them a weekly report and major alerts in their language." : "Most people need one. Create another to keep things separate."}
       footer={
         <Button
           className="w-full"

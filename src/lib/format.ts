@@ -89,7 +89,7 @@ export function inrCompact(n: number | null | undefined, opts: { sign?: boolean 
 export function inrApprox(n: number) {
   const a = Math.abs(n);
   const step = a >= 1e5 ? 1000 : a >= 1e4 ? 100 : a >= 1000 ? 10 : 1;
-  return inr(Math.round(a / step) * step);
+  return inr(Math.round(a / step) * step, { decimals: 0 });
 }
 
 /** −7.2% / +1.4% from a fraction (0.072 = 7.2%). Uses a real minus sign. */

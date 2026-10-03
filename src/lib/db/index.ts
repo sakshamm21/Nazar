@@ -40,8 +40,11 @@ export async function connect(url = databaseUrl): Promise<DB> {
     const client = postgres(url, { prepare: false, max: 5, onnotice: () => {}, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : "require" });
     return drizzlePg(client, { schema });
   }
-  return createPglite(process.env.VERCEL ? "memory://" : path.join(process.cwd(), ".data", "nazar"));
+  return createPglite(process.env.VERCEL ? "memory://" : localDir());
 }
+
+/** Local PGlite folder (.data/nazar by default; e2e tests use their own via NAZAR_PGLITE_DIR). */
+export const localDir = () => path.resolve(process.cwd(), process.env.NAZAR_PGLITE_DIR || path.join(".data", "nazar"));
 
 /** PGlite database, migrated. `dir` may be "memory://" (tests, Vercel without a DB URL). */
 export async function createPglite(dir: string): Promise<DB> {
@@ -93,6 +96,6 @@ export function setDbForTests(db: DB) {
 export { schema };
 
 /** Scripts: use an already-open database as the app's database (seeding still runs once). */
-export function useDb(db: DB) {
+export function installDb(db: DB) {
   g.__nazarDb = Promise.resolve(db);
 }
