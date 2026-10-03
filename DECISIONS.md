@@ -113,7 +113,15 @@ The text always says "likely" and shows the numbers it compared. The two-thirds 
 
 **Decision.** Beta and volatility are computed nightly from one year of stored daily closes against the Nifty 50, then Blume-adjusted for the stress test. Yahoo's beta is ignored for `.NS`/`.BO` symbols.
 
-## D-13 · Things deliberately not built
+## D-13 · Functions run next to the database
+
+**Context.** The free Neon database is in AWS us-east-1, and the Neon HTTP driver makes one round trip per query. A page making 15 queries from Mumbai (bom1) would spend about 3 seconds crossing the ocean.
+
+**Decision.** Vercel functions run in `iad1`, next to the database. Indian visitors still reach Vercel's nearby edge network, and pay the long hop once per request instead of once per query. Yahoo Finance works from both regions; the nightly checkup was verified from iad1 after the move.
+
+**Trade-off.** A few hundred milliseconds of first-byte latency for visitors in India. Moving both the database and the functions to an Asian region later is a configuration change, not a code change.
+
+## D-14 · Things deliberately not built
 
 | Not built | Why |
 |---|---|
@@ -124,6 +132,6 @@ The text always says "likely" and shows the numbers it compared. The two-thirds 
 | Telegram / WhatsApp / push | Outside integrations (D-7) |
 | Google sign-in | Skipped on request (D-9) |
 
-## D-14 · Vitest and Playwright
+## D-15 · Vitest and Playwright
 
 **Decision.** Vitest for unit and integration tests: path aliases, mocking and fake timers with little setup. Playwright drives the installed Microsoft Edge on Windows, so there's no browser download. Both run with one command on Windows, macOS and Linux.
