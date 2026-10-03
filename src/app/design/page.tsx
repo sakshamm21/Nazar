@@ -13,7 +13,7 @@ export default function DesignPage() {
         <Link href="/" aria-label="Nazar home">
           <Wordmark />
         </Link>
-        <p className="text-sm text-muted">Design system · “The watchful eye”</p>
+        <p className="text-sm text-muted">Design system</p>
       </header>
       <StyleGuide />
     </div>

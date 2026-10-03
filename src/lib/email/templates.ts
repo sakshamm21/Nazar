@@ -9,7 +9,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 const C = { ink: "#0A0F1C", text: "#1B2335", muted: "#5A6478", line: "#E3E8F0", bg: "#F5F7FA", card: "#FFFFFF", blue: "#2B54F0", gain: "#0F7A66", loss: "#C2412D" };
 
-const ring = `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="width:22px;height:22px;border-radius:50%;border:2px solid ${C.blue};text-align:center;vertical-align:middle"><div style="width:8px;height:8px;border-radius:50%;background:${C.blue};margin:0 auto"></div></td><td style="padding-left:8px;font:600 16px/1 Arial,sans-serif;color:${C.ink};letter-spacing:-0.2px">Nazar</td></tr></table>`;
+const ring = `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="width:24px;height:24px;border-radius:7px;background:${C.blue};text-align:center;vertical-align:middle;font:700 14px/24px Arial,sans-serif;color:#ffffff">N</td><td style="padding-left:8px;font:600 16px/1 Arial,sans-serif;color:${C.ink};letter-spacing:-0.2px">Nazar</td></tr></table>`;
 
 function layout(opts: { lang: Lang; preheader: string; body: string; footer?: string }) {
   const font = opts.lang === "hi" ? "'Noto Sans Devanagari',Mangal,Arial,sans-serif" : "Inter,Segoe UI,Arial,sans-serif";
