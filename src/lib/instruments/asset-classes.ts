@@ -42,11 +42,11 @@ export const ASSET_META: Record<AssetClass, Meta> = {
 /** Display order of groups, and the colour token each one uses in allocation bars. */
 export const GROUP_ORDER: AssetGroup[] = ["Stocks", "Mutual funds", "ETFs", "REITs & InvITs", "US stocks", "Gold & silver", "Crypto", "Fixed income", "Retirement", "Property", "Cash", "Other"];
 export const GROUP_COLOR: Record<AssetGroup, string> = {
-  Stocks: "var(--pop)",
+  Stocks: "var(--accent)",
   "Mutual funds": "#22c1dc",
   ETFs: "#f472b6",
   "REITs & InvITs": "#fb923c",
-  "US stocks": "#5b9dff",
+  "US stocks": "#84cc16",
   Crypto: "#f59e0b",
   "Gold & silver": "#e5c11f",
   "Fixed income": "#2bbfa4",

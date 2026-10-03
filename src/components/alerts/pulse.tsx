@@ -27,7 +27,7 @@ export function Pulse({ perf, name, alerts, portfolios, activeId }: { perf: Perf
           {tabs.map((t) => (
             <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => go(t.id)} className={cn("-mb-px flex items-center gap-2 border-b-2 pb-2.5 text-[15px] font-semibold transition-colors", tab === t.id ? "border-text text-text" : "border-transparent text-muted hover:text-text")}>
               {t.label}
-              {t.id === "alerts" && unread > 0 && <span className="num rounded-none bg-cta px-1.5 text-[11px] font-semibold text-cta-ink">{unread}</span>}
+              {t.id === "alerts" && unread > 0 && <span className="num rounded-full bg-cta px-1.5 text-[11px] font-semibold text-cta-ink">{unread}</span>}
             </button>
           ))}
         </div>

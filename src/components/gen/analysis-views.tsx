@@ -163,17 +163,17 @@ export function HealthView({ data }: { data: any }) {
   const groups = [...new Set(data.tests.map((t: any) => t.group))] as string[];
   return (
     <Panel title={<span><span className="font-mono">{data.symbol}</span> · Financial health</span>} subtitle={`Fiscal ${String(data.periods[0]).slice(0, 4)} → ${String(data.periods[1]).slice(0, 4)}`}>
-      {data.note && <div className="mb-3 rounded-none bg-warn-soft px-2 py-1.5 text-xs text-warn">{data.note}</div>}
+      {data.note && <div className="mb-3 rounded-md bg-warn-soft px-2 py-1.5 text-xs text-warn">{data.note}</div>}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-none border border-line p-3">
+        <div className="rounded-lg border border-line p-3">
           <div className="text-[11px] uppercase tracking-wide text-subtle">Piotroski F-score</div>
-          <div className="mt-1 flex items-baseline gap-2"><span className="text-3xl font-semibold tabular-nums">{f}</span><span className="text-sm text-subtle">/ 9</span><span className={`ml-auto rounded-none px-2 py-0.5 text-xs font-medium ${band[1]}`}>{band[0]}</span></div>
+          <div className="mt-1 flex items-baseline gap-2"><span className="text-3xl font-semibold tabular-nums">{f}</span><span className="text-sm text-subtle">/ 9</span><span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${band[1]}`}>{band[0]}</span></div>
           {data.scoredTests < 9 && <div className="mt-1 text-[11px] text-subtle">{9 - data.scoredTests} test(s) had no data</div>}
         </div>
-        <div className="rounded-none border border-line p-3">
+        <div className="rounded-lg border border-line p-3">
           <div className="text-[11px] uppercase tracking-wide text-subtle">Altman Z-score</div>
           {z ? (
-            <div className="mt-1 flex items-baseline gap-2"><span className="text-3xl font-semibold tabular-nums">{z.z.toFixed(2)}</span><span className={`ml-auto rounded-none px-2 py-0.5 text-xs font-medium ${zTone}`}>{z.zone} zone</span></div>
+            <div className="mt-1 flex items-baseline gap-2"><span className="text-3xl font-semibold tabular-nums">{z.z.toFixed(2)}</span><span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${zTone}`}>{z.zone} zone</span></div>
           ) : (
             <div className="mt-2 text-sm text-subtle">Not enough data</div>
           )}

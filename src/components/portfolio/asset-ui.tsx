@@ -25,14 +25,14 @@ export function AssetIcon({ assetClass, size = "md", className }: { assetClass: 
   const Icon = ASSET_ICON[assetClass];
   const color = GROUP_COLOR[groupOf(assetClass)];
   return (
-    <span aria-hidden className={cn("grid shrink-0 place-items-center rounded-none", size === "sm" ? "h-8 w-8" : "h-10 w-10", className)} style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }}>
+    <span aria-hidden className={cn("grid shrink-0 place-items-center rounded-[12px]", size === "sm" ? "h-8 w-8" : "h-10 w-10", className)} style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }}>
       <Icon className={size === "sm" ? "h-4 w-4" : "h-5 w-5"} />
     </span>
   );
 }
 
 export function ClassBadge({ assetClass }: { assetClass: AssetClass }) {
-  return <span className="rounded-none border border-line px-2 py-0.5 text-[11px] font-medium text-muted whitespace-nowrap">{ASSET_META[assetClass].label}</span>;
+  return <span className="rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-muted whitespace-nowrap">{ASSET_META[assetClass].label}</span>;
 }
 
 export type Slice = { group: AssetGroup; value: number; weight: number; count: number };
@@ -42,15 +42,15 @@ export function AllocationBar({ slices, format }: { slices: Slice[]; format: (n:
   if (!slices.length) return null;
   return (
     <div>
-      <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-none" role="img" aria-label={`Allocation: ${slices.map((s) => `${s.group} ${Math.round(s.weight * 100)}%`).join(", ")}`}>
+      <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label={`Allocation: ${slices.map((s) => `${s.group} ${Math.round(s.weight * 100)}%`).join(", ")}`}>
         {slices.map((s) => (
-          <div key={s.group} className="h-full first:rounded-l-none last:rounded-r-none" style={{ width: `${Math.max(1.5, s.weight * 100)}%`, background: GROUP_COLOR[s.group] }} />
+          <div key={s.group} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${Math.max(1.5, s.weight * 100)}%`, background: GROUP_COLOR[s.group] }} />
         ))}
       </div>
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
         {slices.map((s) => (
           <li key={s.group} className="flex items-center gap-2 text-[13px]">
-            <span className="h-2.5 w-2.5 rounded-none" style={{ background: GROUP_COLOR[s.group] }} aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: GROUP_COLOR[s.group] }} aria-hidden />
             <span className="text-text">{s.group}</span>
             <span className="num text-muted">
               {Math.round(s.weight * 100)}% · {format(s.value)}

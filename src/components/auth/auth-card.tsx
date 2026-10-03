@@ -12,7 +12,7 @@ export function AuthCard({ title, accent, subtitle, children, footer }: { title:
       <Link href="/" className="mb-8" aria-label="Nazar home">
         <Wordmark size={34} />
       </Link>
-      <Card className="nz-ring nz-enter w-full max-w-[400px] p-6 sm:p-8">
+      <Card className="w-full max-w-[400px] p-6 sm:p-8">
         <h1 className="t-title-1 text-text">
           {before}
           {at >= 0 && <span className="t-accent nz-grad">{accent}</span>}

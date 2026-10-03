@@ -46,7 +46,7 @@ export function SimulateCard({ active }: { active: boolean }) {
     <>
       <Card className="relative overflow-hidden p-5 sm:p-6" data-tour="simulate">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-none bg-accent-soft text-accent">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-accent-soft text-accent">
             <CloudLightning className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -78,7 +78,7 @@ export function SimulateCard({ active }: { active: boolean }) {
         <fieldset className="space-y-2">
           <legend className="sr-only">Scenario</legend>
           {SCENARIOS.map((s) => (
-            <label key={s.id} className={cn("flex cursor-pointer gap-3 rounded-none border p-3.5 transition-colors", scenario === s.id ? "border-accent bg-accent-soft" : "border-line hover:bg-surface-2")}>
+            <label key={s.id} className={cn("flex cursor-pointer gap-3 rounded-[14px] border p-3.5 transition-colors", scenario === s.id ? "border-accent bg-accent-soft" : "border-line hover:bg-surface-2")}>
               <input type="radio" name="scenario" value={s.id} checked={scenario === s.id} onChange={() => setScenario(s.id)} className="mt-1 accent-[var(--accent)]" />
               <span>
                 <span className="block font-medium text-text">{s.title}</span>

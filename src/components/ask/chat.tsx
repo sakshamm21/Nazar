@@ -123,7 +123,7 @@ export function Chat({
           )}
 
           {error && (
-            <div className="no-print my-4 rounded-none border border-loss bg-loss-soft px-3 py-2 text-sm text-loss">
+            <div className="no-print my-4 rounded-lg border border-loss bg-loss-soft px-3 py-2 text-sm text-loss">
               {parseError(error.message)}
             </div>
           )}
@@ -134,7 +134,7 @@ export function Chat({
       <div className="no-print border-t border-line bg-surface-1">
         <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4">
         <form
-          className={`flex items-end gap-2 rounded-none border bg-surface-2 p-1.5 pl-4 transition-colors focus-within:border-accent ${tooLong ? "border-loss" : "border-line"}`}
+          className={`flex items-end gap-2 rounded-[26px] border bg-surface-2 p-1.5 pl-4 transition-colors focus-within:border-accent ${tooLong ? "border-loss" : "border-line"}`}
           onSubmit={(e) => {
             e.preventDefault();
             send(input);
@@ -155,11 +155,11 @@ export function Chat({
             className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-[15px] text-text outline-none placeholder:text-subtle"
           />
           {busy ? (
-            <button type="button" onClick={() => stop()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
+            <button type="button" onClick={() => stop()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text hover:brightness-110" aria-label="Stop">
               <Square className="h-4 w-4" />
             </button>
           ) : (
-            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
+            <button type="submit" disabled={!input.trim() || tooLong} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-40" aria-label="Send">
               <ArrowUp className="h-5 w-5" />
             </button>
           )}

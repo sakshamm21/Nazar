@@ -25,7 +25,7 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
   const active = (href: string) => path === href || path.startsWith(`${href}/`) || (href === "/home" && (path.startsWith("/risk") || path.startsWith("/stock") || path.startsWith("/reports")));
   return (
     <div className="min-h-dvh lg:flex">
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-none focus:bg-surface-1 focus:px-3 focus:py-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface-1 focus:px-3 focus:py-2">
         Skip to content
       </a>
       {/* Desktop sidebar */}
@@ -35,15 +35,15 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
         </Link>
         <nav className="mt-8 space-y-1" aria-label="Main">
           {NAV.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold uppercase tracking-[0.08em] transition-colors", active(href) ? "bg-cta text-cta-ink" : "text-muted hover:bg-surface-2 hover:text-text")}>
-              <Icon className="h-[18px] w-[18px]" />
+            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[15px] font-medium transition-colors", active(href) ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text")}>
+              <Icon className={cn("h-[18px] w-[18px]", active(href) && "text-accent")} />
               {label}
-              {href === "/alerts" && unread > 0 && <span className={cn("num ml-auto px-1.5 text-[11px] font-bold", active(href) ? "bg-cta-ink text-cta" : "bg-cta text-cta-ink")}>{unread > 99 ? "99+" : unread}</span>}
+              {href === "/alerts" && unread > 0 && <span className="num ml-auto rounded-full bg-cta px-1.5 text-[11px] font-semibold text-cta-ink">{unread > 99 ? "99+" : unread}</span>}
             </Link>
           ))}
         </nav>
         <div className="mt-auto space-y-2">
-          <Link href="/settings" className="flex items-center gap-2.5 rounded-none border border-line bg-surface-1 p-2.5 transition-colors hover:bg-surface-2">
+          <Link href="/settings" className="flex items-center gap-2.5 rounded-[18px] border border-line bg-surface-1 p-2.5 transition-colors hover:bg-surface-2">
             <Avatar name={user.name} size={36} />
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold text-text">{user.name}</span>
@@ -77,10 +77,10 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
         <ul className="mx-auto grid max-w-md grid-cols-5">
           {NAV.map(({ href, label, icon: Icon }) => (
             <li key={href}>
-              <Link href={href} aria-current={active(href) ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium", active(href) ? "text-hi" : "text-subtle")}>
+              <Link href={href} aria-current={active(href) ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium", active(href) ? "text-accent" : "text-subtle")}>
                 <Icon className="h-[22px] w-[22px]" />
                 {label}
-                {href === "/alerts" && unread > 0 && <span className="absolute right-[calc(50%-20px)] top-1.5 h-2 w-2 rounded-none bg-cta" aria-label={`${unread} unread`} />}
+                {href === "/alerts" && unread > 0 && <span className="absolute right-[calc(50%-20px)] top-1.5 h-2 w-2 rounded-full bg-cta" aria-label={`${unread} unread`} />}
               </Link>
             </li>
           ))}

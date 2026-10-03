@@ -85,7 +85,7 @@ export default async function HomePage() {
   const hindi = v.active?.language === "hi";
 
   return (
-    <div className="nz-stagger space-y-5 lg:space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="t-title-1 text-text">
@@ -134,8 +134,8 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
         <ValueChart dates={p.dates} values={p.values} nifty={p.nifty} footnote="The line is what you own today, priced on each past day. Drag along it to read any date." />
       </div>
 
-      <Link href="/home/today" data-tour="h2" className="group mt-4 flex items-start gap-3 rounded-none border border-line bg-surface-2 p-3.5 transition-colors hover:bg-surface-3">
-        <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-none", a.kind === "down" ? "bg-loss" : a.kind === "up" ? "bg-gain" : "bg-subtle")} aria-hidden />
+      <Link href="/home/today" data-tour="h2" className="group mt-4 flex items-start gap-3 rounded-[14px] border border-line bg-surface-2 p-3.5 transition-colors hover:bg-surface-3">
+        <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", a.kind === "down" ? "bg-loss" : a.kind === "up" ? "bg-gain" : "bg-subtle")} aria-hidden />
         <span className="flex-1 text-[15px] leading-6 text-text">{v.h2.line.en}</span>
         <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-subtle transition-transform group-hover:translate-x-0.5" aria-label="See the breakdown" />
       </Link>
@@ -192,7 +192,7 @@ function AttentionCard({ items, hindi }: { items: AttentionItem[]; hindi: boolea
         <ul className="mt-3 divide-y divide-line">
           {items.map((it, i) => (
             <li key={it.id} data-tour={i === firstAlert ? "h1" : KIND_TOUR[it.kind]}>
-              <Link href={it.href} className="group -mx-2 flex gap-3 rounded-none px-2 py-3.5 hover:bg-surface-2">
+              <Link href={it.href} className="group -mx-2 flex gap-3 rounded-[12px] px-2 py-3.5 hover:bg-surface-2">
                 <SeverityIcon severity={it.severity} className="mt-1" />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
@@ -262,7 +262,7 @@ function FamilyCard({ family }: { family: { id: string; label: string; language:
     return (
       <Card className="p-5 sm:p-6" data-tour="h6">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-none bg-surface-2 text-muted">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-surface-2 text-muted">
             <Users className="h-5 w-5" />
           </span>
           <div>
@@ -280,7 +280,7 @@ function FamilyCard({ family }: { family: { id: string; label: string; language:
       <CardHeader overline="Family" title="Shared with family" />
       <ul className="mt-3 space-y-3">
         {family.map((f) => (
-          <li key={f.id} className="rounded-none border border-line bg-surface-2 p-3.5">
+          <li key={f.id} className="rounded-[14px] border border-line bg-surface-2 p-3.5">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-text">{f.label}&apos;s portfolio</span>
               <Chip tone={f.language === "hi" ? "accent" : "neutral"}>{f.language === "hi" ? "Hindi · हिंदी" : "English"}</Chip>
@@ -342,7 +342,7 @@ function HoldingsCard({ v }: { v: FullPortfolioView }) {
       <ul className="mt-2 divide-y divide-line">
         {v.cards.map((c) => (
           <li key={c.symbol}>
-            <Link href={c.href ?? "/portfolio"} className="-mx-2 flex items-center gap-3 rounded-none px-2 py-3 transition-colors hover:bg-surface-2">
+            <Link href={c.href ?? "/portfolio"} className="-mx-2 flex items-center gap-3 rounded-[12px] px-2 py-3 transition-colors hover:bg-surface-2">
               <AssetIcon assetClass={c.assetClass} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium text-text">{c.name}</div>

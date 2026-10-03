@@ -35,7 +35,7 @@ export default async function RiskPage() {
   const div = v.risk.diversification;
   const conc = v.risk.concentration;
   return (
-    <div className="nz-stagger space-y-5 lg:space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <Link href="/home" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
         <ArrowLeft className="h-4 w-4" /> Home
       </Link>
@@ -90,7 +90,7 @@ export default async function RiskPage() {
             {conc.flags.length > 0 ? (
               <ul className="mt-4 space-y-2">
                 {conc.flags.map((f) => (
-                  <li key={f.label} className="rounded-none bg-warn-soft px-3 py-2 text-sm text-text">
+                  <li key={f.label} className="rounded-[12px] bg-warn-soft px-3 py-2 text-sm text-text">
                     {f.label} is {absPct(f.weight, 0)} of this portfolio, above the {absPct(f.limit, 0)} level where one {f.kind === "sector" ? "sector's" : "company's"} news moves everything.
                   </li>
                 ))}
@@ -112,7 +112,7 @@ export default async function RiskPage() {
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {div.clusters.length ? (
                 div.clusters.map((c, i) => (
-                  <div key={i} className="rounded-none border border-line bg-surface-2 p-4">
+                  <div key={i} className="rounded-[16px] border border-line bg-surface-2 p-4">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium text-text">Moves together</span>
                       <Chip tone="accent">{absPct(c.weight, 0)} of your money</Chip>

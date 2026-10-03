@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 /** Surface-1 card: hairline border, 20px radius, soft depth. */
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-none border border-line bg-surface-1 shadow-[var(--shadow-card)]", className)} {...props} />;
+  return <div className={cn("rounded-[var(--radius-card)] border border-line bg-surface-1 shadow-[var(--shadow-card)]", className)} {...props} />;
 }
 
 export function CardHeader({ overline, title, right, className }: { overline?: ReactNode; title?: ReactNode; right?: ReactNode; className?: string }) {

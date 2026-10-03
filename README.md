@@ -84,7 +84,7 @@ flowchart LR
 | Area | Choice |
 |---|---|
 | App | Next.js 16 (App Router), React 19, TypeScript |
-| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Big Shoulders, DM Serif Display, Outfit, Space Grotesk, Space Mono, Noto Sans Devanagari |
+| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Sora, Inter, IBM Plex Mono, Noto Sans Devanagari |
 | Data | PostgreSQL with Drizzle ORM: Neon in production, PGlite (Postgres in WebAssembly) for local development and tests |
 | Market data | Yahoo Finance via `yahoo-finance2`, AMFI NAVs, mfapi.in, the NSE equity and ETF lists, Google News RSS |
 | Auth | Email and password (bcrypt), a 6-digit email code, a signed session cookie (JWT) |
@@ -138,7 +138,7 @@ Dark ink-navy by default with a porcelain light theme, a cobalt accent, and a pi
 - calm empty states;
 - alert severity, shown by shape as well as colour.
 
-Type has five voices: Big Shoulders (condensed capitals) for headings, DM Serif Display italic for the emphasised word in a headline, Outfit for text and Space Grotesk for every number, with Space Mono for labels and tickers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
+Type has two voices: Sora for headings and Inter for text and numbers, with IBM Plex Mono for tickers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
 
 ## Test accounts
 

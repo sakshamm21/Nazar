@@ -157,7 +157,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
             </Field>
           )}
           {action === "less" && <p className="t-caption">Nazar keeps one position per holding, so a sale lowers the quantity and leaves the average price as it is.</p>}
-          {preview && <p className="num rounded-none bg-surface-2 px-3.5 py-2.5 text-sm text-text">{preview}</p>}
+          {preview && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">{preview}</p>}
         </div>
       )}
       <div className="mt-4">

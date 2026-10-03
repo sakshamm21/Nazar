@@ -29,8 +29,8 @@ export function QuoteView({ data }: { data: any }) {
             {range != null && (
               <div className="mt-3">
                 <div className="flex justify-between text-[11px] text-subtle"><span>52W low {fmt(q.fiftyTwoWeekLow, "currency", q.currency)}</span><span>high {fmt(q.fiftyTwoWeekHigh, "currency", q.currency)}</span></div>
-                <div className="relative mt-1 h-1.5 rounded-none bg-surface-3">
-                  <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-none border-2 border-line bg-accent" style={{ left: `${Math.min(100, Math.max(0, range * 100))}%` }} />
+                <div className="relative mt-1 h-1.5 rounded-full bg-surface-3">
+                  <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-line bg-accent" style={{ left: `${Math.min(100, Math.max(0, range * 100))}%` }} />
                 </div>
               </div>
             )}
@@ -133,7 +133,7 @@ export function FinancialsView({ data }: { data: any }) {
         {data.fields.map((f: any, i: number) => {
           const on = shown.includes(f.key);
           return (
-            <button key={f.key} onClick={() => setShown(on ? shown.filter((k) => k !== f.key) : [...shown, f.key])} className={`rounded-none border px-2 py-0.5 text-[11px] transition ${on ? "border-transparent text-accent-ink" : "border-line-strong text-muted hover:border-line-strong"}`} style={on ? { background: C.series[i % C.series.length] } : undefined}>
+            <button key={f.key} onClick={() => setShown(on ? shown.filter((k) => k !== f.key) : [...shown, f.key])} className={`rounded-full border px-2 py-0.5 text-[11px] transition ${on ? "border-transparent text-accent-ink" : "border-line-strong text-muted hover:border-line-strong"}`} style={on ? { background: C.series[i % C.series.length] } : undefined}>
               {f.label}
             </button>
           );

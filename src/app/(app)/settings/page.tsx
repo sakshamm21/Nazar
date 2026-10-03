@@ -34,7 +34,7 @@ export default async function SettingsPage() {
   const watching = await listWatching(user.id);
 
   return (
-    <div className="nz-stagger mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-5">
       <ProfileCard
         profile={{
           name: user.name,

@@ -41,9 +41,9 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="radiogroup" aria-label="Period" className="flex gap-1 rounded-none border border-line bg-surface-1 p-1">
+        <div role="radiogroup" aria-label="Period" className="flex gap-1 rounded-full border border-line bg-surface-1 p-1">
           {periods.map((p) => (
-            <button key={p.id} role="radio" aria-checked={period === p.id} onClick={() => { setPeriod(p.id); setAll(false); }} className={cn("num rounded-none px-3 py-1.5 text-[13px] font-semibold transition-colors", period === p.id ? "bg-text text-bg" : "text-muted hover:text-text")}>
+            <button key={p.id} role="radio" aria-checked={period === p.id} onClick={() => { setPeriod(p.id); setAll(false); }} className={cn("num rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors", period === p.id ? "bg-accent-soft text-accent" : "text-muted hover:text-text")}>
               {p.label}
             </button>
           ))}
@@ -73,7 +73,7 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
         <ul className="mt-3 space-y-1.5 text-[15px] leading-6 text-muted">
           {story.why.map((w) => (
             <li key={w} className="flex gap-2.5">
-              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-none bg-accent" aria-hidden />
+              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               <span>{w}</span>
             </li>
           ))}
@@ -81,13 +81,13 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
 
         {a.niftyPct != null && mk + own > 0 && (
           <div className="mt-5">
-            <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-none" role="img" aria-label={`Market ${signed(a.marketPart)}, your holdings ${signed(a.ownPart)}`}>
-              <div className="h-full rounded-l-none bg-subtle" style={{ width: `${(mk / (mk + own)) * 100}%` }} />
-              <div className="h-full flex-1 rounded-r-none bg-accent" />
+            <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label={`Market ${signed(a.marketPart)}, your holdings ${signed(a.ownPart)}`}>
+              <div className="h-full rounded-l-full bg-subtle" style={{ width: `${(mk / (mk + own)) * 100}%` }} />
+              <div className="h-full flex-1 rounded-r-full bg-accent" />
             </div>
             <div className="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-[13px]">
-              <span className="flex items-center gap-2 text-muted"><span className="h-2.5 w-2.5 rounded-none bg-subtle" aria-hidden />The market <span className={cn("num font-semibold", tone(a.marketPart))}>{signed(a.marketPart)}</span></span>
-              <span className="flex items-center gap-2 text-muted"><span className="h-2.5 w-2.5 rounded-none bg-accent" aria-hidden />Specific to what you own <span className={cn("num font-semibold", tone(a.ownPart))}>{signed(a.ownPart)}</span></span>
+              <span className="flex items-center gap-2 text-muted"><span className="h-2.5 w-2.5 rounded-full bg-subtle" aria-hidden />The market <span className={cn("num font-semibold", tone(a.marketPart))}>{signed(a.marketPart)}</span></span>
+              <span className="flex items-center gap-2 text-muted"><span className="h-2.5 w-2.5 rounded-full bg-accent" aria-hidden />Specific to what you own <span className={cn("num font-semibold", tone(a.ownPart))}>{signed(a.ownPart)}</span></span>
             </div>
           </div>
         )}
@@ -104,9 +104,9 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
                     {signed(c.amount)} <span className="opacity-80">({signedPct(c.pct)})</span>
                   </span>
                 </div>
-                <div className="relative mt-1.5 h-2 rounded-none bg-surface-2" aria-hidden>
+                <div className="relative mt-1.5 h-2 rounded-full bg-surface-2" aria-hidden>
                   <span className="absolute inset-y-0 left-1/2 w-px bg-line-strong" />
-                  <span className={cn("absolute inset-y-0 rounded-none", c.amount >= 0 ? "bg-gain" : "bg-loss")} style={c.amount >= 0 ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
+                  <span className={cn("absolute inset-y-0 rounded-full", c.amount >= 0 ? "bg-gain" : "bg-loss")} style={c.amount >= 0 ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
                 </div>
               </li>
             );
@@ -122,8 +122,8 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
         {a.groups.length > 1 && (
           <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-4">
             {a.groups.map((g) => (
-              <span key={g.group} className="inline-flex items-center gap-2 rounded-none border border-line px-3 py-1.5 text-[13px]">
-                <span className="h-2 w-2 rounded-none" style={{ background: GROUP_COLOR[g.group] }} aria-hidden />
+              <span key={g.group} className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[13px]">
+                <span className="h-2 w-2 rounded-full" style={{ background: GROUP_COLOR[g.group] }} aria-hidden />
                 <span className="text-text">{g.group}</span>
                 <span className={cn("num font-semibold", tone(g.amount))}>{inrCompact(g.amount, { sign: true })}</span>
               </span>
@@ -139,7 +139,7 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
         <ul className="mt-3 space-y-1.5 text-[15px] leading-6 text-muted">
           {story.how.map((w) => (
             <li key={w} className="flex gap-2.5">
-              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-none bg-accent" aria-hidden />
+              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
               <span>{w}</span>
             </li>
           ))}
@@ -152,7 +152,7 @@ export function Analyzer({ perf, name, alertDates, onSeeAlerts }: { perf: Perfor
             <Tile label="Days up / down" value={`${a.upDays} / ${a.downDays}`} cls="text-text" />
           </dl>
         )}
-        <button onClick={onSeeAlerts} className="mt-4 flex w-full items-center gap-3 rounded-none border border-line bg-surface-2 p-3.5 text-left text-sm transition-colors hover:bg-surface-3">
+        <button onClick={onSeeAlerts} className="mt-4 flex w-full items-center gap-3 rounded-[14px] border border-line bg-surface-2 p-3.5 text-left text-sm transition-colors hover:bg-surface-3">
           <Bell className="h-4 w-4 shrink-0 text-accent" />
           <span className="flex-1 text-text">{alertsIn === 0 ? "No alerts in this period." : `${alertsIn} ${alertsIn === 1 ? "alert" : "alerts"} in this period.`} <span className="text-muted">Each one explains a single event.</span></span>
           <span className="font-semibold text-accent">Open alerts</span>

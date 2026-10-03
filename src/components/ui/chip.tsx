@@ -12,7 +12,7 @@ const tones: Record<Tone, string> = {
 
 export function Chip({ tone = "neutral", children, className, title }: { tone?: Tone; children: ReactNode; className?: string; title?: string }) {
   return (
-    <span title={title} className={cn("inline-flex items-center gap-1 rounded-none border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap", tones[tone], className)}>
+    <span title={title} className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap", tones[tone], className)}>
       {children}
     </span>
   );

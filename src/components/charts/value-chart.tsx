@@ -45,7 +45,7 @@ export function ValueChart({ dates, values, nifty, height = 240, footnote }: { d
     });
   }, [dates, values, nifty, range]);
 
-  if (points.length < 2) return <div className="grid place-items-center rounded-none bg-surface-2 text-sm text-subtle" style={{ height }}>The chart fills in after a few days of prices.</div>;
+  if (points.length < 2) return <div className="grid place-items-center rounded-[14px] bg-surface-2 text-sm text-subtle" style={{ height }}>The chart fills in after a few days of prices.</div>;
 
   const first = points[0];
   const shown = points[hover != null && hover < points.length ? hover : points.length - 1];
@@ -93,12 +93,12 @@ export function ValueChart({ dates, values, nifty, height = 240, footnote }: { d
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <div role="radiogroup" aria-label="Time range" className="flex gap-1">
           {available.map((r) => (
-            <button key={r.id} role="radio" aria-checked={range === r.id} onClick={() => { setRange(r.id); setHover(null); }} className={cn("num rounded-none px-3 py-1.5 text-[13px] font-semibold transition-colors", range === r.id ? "bg-text text-bg" : "text-muted hover:bg-surface-2 hover:text-text")}>
+            <button key={r.id} role="radio" aria-checked={range === r.id} onClick={() => { setRange(r.id); setHover(null); }} className={cn("num rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors", range === r.id ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text")}>
               {r.id}
             </button>
           ))}
         </div>
-        <button aria-pressed={vsNifty} onClick={() => setVsNifty((v) => !v)} className={cn("rounded-none border px-3 py-1.5 text-[13px] font-medium transition-colors", vsNifty ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-text")}>
+        <button aria-pressed={vsNifty} onClick={() => setVsNifty((v) => !v)} className={cn("rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors", vsNifty ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-text")}>
           vs Nifty
         </button>
       </div>

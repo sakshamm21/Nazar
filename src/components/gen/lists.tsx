@@ -18,7 +18,7 @@ export function SearchView({ data, onPick }: { data: any; onPick?: (s: string) =
       <Search className="h-3.5 w-3.5" />
       <span>Looked up “{data.query}”:</span>
       {shown.map((r: any) => (
-        <button key={r.symbol} onClick={() => onPick?.(`Give me an overview of ${r.symbol}`)} title={`${r.name} · ${r.exchange}`} className="rounded-none border border-line bg-surface-1 px-1.5 py-0.5 font-mono text-[11px] text-text hover:border-accent">
+        <button key={r.symbol} onClick={() => onPick?.(`Give me an overview of ${r.symbol}`)} title={`${r.name} · ${r.exchange}`} className="rounded-md border border-line bg-surface-1 px-1.5 py-0.5 font-mono text-[11px] text-text hover:border-accent">
           {r.symbol}
         </button>
       ))}
@@ -43,7 +43,7 @@ export function ProfileView({ data }: { data: any }) {
       {data.officers?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {data.officers.map((o: any) => (
-            <span key={o.name} className="rounded-none bg-surface-3 px-2 py-1 text-[11px] text-text">{o.name} <span className="text-subtle">· {o.title}</span></span>
+            <span key={o.name} className="rounded-md bg-surface-3 px-2 py-1 text-[11px] text-text">{o.name} <span className="text-subtle">· {o.title}</span></span>
           ))}
         </div>
       )}
@@ -100,7 +100,7 @@ export function OwnershipView({ data }: { data: any }) {
   const inst = data.institutionsPct ?? 0;
   return (
     <Panel title={<span><span className="font-mono">{data.symbol}</span> · Ownership</span>} subtitle={data.institutionCount ? `${data.institutionCount.toLocaleString()} institutions` : undefined}>
-      <div className="flex h-3 overflow-hidden rounded-none bg-surface-3">
+      <div className="flex h-3 overflow-hidden rounded-full bg-surface-3">
         <div className="bg-warn" style={{ width: `${Math.min(100, ins * 100)}%` }} />
         <div className="bg-ice" style={{ width: `${Math.min(100, inst * 100)}%` }} />
       </div>
@@ -135,7 +135,7 @@ export function IndicesView({ data, onPick }: { data: any; onPick?: (s: string) 
     <Panel title={title} subtitle={marketLabel(data.indices.find((i: any) => i.marketState)?.marketState) ?? undefined}>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {data.indices.map((i: any) => (
-          <button key={i.symbol} onClick={() => onPick?.(`How has ${i.label} (${i.symbol}) performed over the last year?`)} className="rounded-none border border-line bg-surface-2 px-3 py-2 text-left transition hover:border-accent">
+          <button key={i.symbol} onClick={() => onPick?.(`How has ${i.label} (${i.symbol}) performed over the last year?`)} className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-left transition hover:border-accent">
             <div className="truncate text-[11px] text-subtle">{i.label}</div>
             <div className="text-sm font-semibold tabular-nums text-text">{i.price == null ? "—" : i.price.toLocaleString(i.currency === "INR" ? "en-IN" : "en-US", { maximumFractionDigits: 2 })}</div>
             <div className={`text-xs tabular-nums ${upDown(i.changePercent)}`}>{pct(i.changePercent, true)}</div>

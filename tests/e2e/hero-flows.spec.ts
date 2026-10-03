@@ -23,7 +23,7 @@ async function startDemo(page: Page, email?: string) {
 test.describe("Landing", () => {
   test("pitch, three things it does, and one tap into the demo", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Your money\s*is being\s*watched/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Your money,\s*watched/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Sign in", exact: true }).first()).toBeVisible();
     for (const t of ["See it move", "Know why", "Hear only what matters"]) await expect(page.getByRole("heading", { name: t })).toBeVisible();
     await expect(page.getByText(/No tips, no predictions/)).toBeVisible();

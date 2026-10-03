@@ -104,7 +104,7 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
       </Button>
       {chats.length === 0 && <p className="px-2 py-2 text-sm text-subtle">Your conversations are kept here so you can come back to them.</p>}
       {chats.map((c) => (
-        <div key={c.id} className={cn("group flex items-center rounded-none", c.id === chatId ? "bg-surface-2" : "hover:bg-surface-2")}>
+        <div key={c.id} className={cn("group flex items-center rounded-[12px]", c.id === chatId ? "bg-surface-2" : "hover:bg-surface-2")}>
           <button onClick={() => open(c.id)} className="min-w-0 flex-1 truncate px-3 py-2 text-left text-sm text-text">
             {c.title}
           </button>
@@ -114,7 +114,7 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
               if (c.id === chatId) fresh();
               refresh();
             }}
-            className="mr-1 rounded-none p-1.5 text-subtle opacity-100 hover:text-loss lg:opacity-0 lg:group-hover:opacity-100"
+            className="mr-1 rounded-full p-1.5 text-subtle opacity-100 hover:text-loss lg:opacity-0 lg:group-hover:opacity-100"
             aria-label={`Delete "${c.title}"`}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -130,10 +130,10 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
         <div className="t-overline mb-2 px-1">Conversations</div>
         {historyList}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-none border border-line bg-surface-1 print-expand">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface-1 print-expand">
         <div className="no-print flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2.5 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
-            <button onClick={() => setHistoryOpen(true)} className="rounded-none p-2 text-muted hover:bg-surface-2 lg:hidden" aria-label="Your conversations">
+            <button onClick={() => setHistoryOpen(true)} className="rounded-full p-2 text-muted hover:bg-surface-2 lg:hidden" aria-label="Your conversations">
               <History className="h-5 w-5" />
             </button>
             {hasMessages && <span className="hidden min-w-0 max-w-[220px] truncate text-sm font-semibold text-text md:block">{title}</span>}
@@ -224,7 +224,7 @@ function ShareSheet({ open, onClose, chatId, shareId, onChange }: { open: boolea
       {shareId ? (
         <div className="space-y-3">
           <div className="flex gap-2">
-            <input readOnly value={url} onFocus={(e) => e.target.select()} className="h-11 min-w-0 flex-1 rounded-none border border-line bg-surface-2 px-3 text-sm text-text" aria-label="Share link" />
+            <input readOnly value={url} onFocus={(e) => e.target.select()} className="h-11 min-w-0 flex-1 rounded-[14px] border border-line bg-surface-2 px-3 text-sm text-text" aria-label="Share link" />
             <Button
               onClick={async () => {
                 await navigator.clipboard.writeText(url).catch(() => {});

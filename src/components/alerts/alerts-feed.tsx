@@ -73,7 +73,7 @@ export function AlertsFeed({ alerts, portfolios }: { alerts: AlertDTO[]; portfol
       ))}
       {groups.length > visible.length && (
         <div className="flex justify-center">
-          <button onClick={() => setDays((d) => d + 14)} className="rounded-none border border-line px-4 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-text">
+          <button onClick={() => setDays((d) => d + 14)} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-text">
             Show older alerts
           </button>
         </div>

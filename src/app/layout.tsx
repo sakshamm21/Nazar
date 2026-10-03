@@ -1,15 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders, DM_Serif_Display, Noto_Sans_Devanagari, Outfit, Space_Grotesk, Space_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Noto_Sans_Devanagari, Sora } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-// Five voices: Big Shoulders (condensed capitals) for headlines, DM Serif italic for the one word that matters, Outfit for
-// reading, Space Grotesk for every number, Space Mono for labels and tickers.
-const shoulders = Big_Shoulders({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-shoulders", display: "swap" });
-const serif = DM_Serif_Display({ subsets: ["latin"], style: ["italic"], weight: "400", variable: "--font-serif", display: "swap" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
-const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-grotesk", display: "swap" });
-const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-space-mono", display: "swap" });
+const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-sora", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
 const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600"], variable: "--font-devanagari", display: "swap" });
 
 export const metadata: Metadata = {
@@ -21,8 +17,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-    { media: "(prefers-color-scheme: light)", color: "#f2eee3" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f1c" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f7fa" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -31,7 +27,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${shoulders.variable} ${serif.variable} ${outfit.variable} ${grotesk.variable} ${spaceMono.variable} ${devanagari.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${sora.variable} ${inter.variable} ${plexMono.variable} ${devanagari.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

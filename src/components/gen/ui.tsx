@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export function Panel({ title, subtitle, right, children }: { title: ReactNode; subtitle?: ReactNode; right?: ReactNode; children: ReactNode }) {
   return (
-    <div className="gen-in my-3 overflow-hidden rounded-none border border-line bg-surface-2 shadow-sm">
+    <div className="gen-in my-3 overflow-hidden rounded-xl border border-line bg-surface-2 shadow-sm">
       <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-2.5">
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-text">{title}</div>
@@ -27,9 +27,9 @@ export function Stat({ label, value, tone }: { label: string; value: ReactNode; 
 
 export function Skeleton({ label }: { label: string }) {
   return (
-    <div className="my-3 rounded-none border border-line bg-surface-2 p-4">
+    <div className="my-3 rounded-xl border border-line bg-surface-2 p-4">
       <div className="mb-3 flex items-center gap-2 text-xs text-muted">
-        <span className="inline-block h-2 w-2 animate-pulse rounded-none bg-accent" />
+        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-accent" />
         {label}
       </div>
       <div className="space-y-2">
@@ -42,7 +42,7 @@ export function Skeleton({ label }: { label: string }) {
 
 export function ErrorNote({ tool, message }: { tool: string; message: string }) {
   return (
-    <div className="my-2 rounded-none border border-loss bg-loss-soft px-3 py-2 text-xs text-loss">
+    <div className="my-2 rounded-lg border border-loss bg-loss-soft px-3 py-2 text-xs text-loss">
       <span className="font-mono">{tool}</span>: {message}
     </div>
   );

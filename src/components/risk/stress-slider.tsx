@@ -46,7 +46,7 @@ export function StressSlider({ holdings }: { holdings: H[] }) {
         value={shock}
         onChange={(e) => setShock(Number(e.target.value))}
         onPointerUp={() => trackClient("stress_slider", { shock })}
-        className="mt-5 h-2 w-full cursor-pointer appearance-none rounded-none bg-surface-3 accent-[var(--accent)]"
+        className="mt-5 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-3 accent-[var(--accent)]"
         aria-valuetext={`Nifty down ${shock} percent; estimated loss ${inr(Math.abs(loss))}`}
       />
       <div className="mt-1 flex justify-between text-[12px] text-subtle">

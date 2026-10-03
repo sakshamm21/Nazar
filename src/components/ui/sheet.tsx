@@ -57,13 +57,13 @@ export function Sheet({ open, onClose, title, description, children, footer, wid
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className={cn("relative max-h-[88dvh] w-full overflow-y-auto rounded-t-none border border-line bg-surface-1 shadow-[var(--shadow-pop)] sm:rounded-none", wide ? "sm:max-w-2xl" : "sm:max-w-md")}
+            className={cn("relative max-h-[88dvh] w-full overflow-y-auto rounded-t-[24px] border border-line bg-surface-1 shadow-[var(--shadow-pop)] sm:rounded-[24px]", wide ? "sm:max-w-2xl" : "sm:max-w-md")}
             initial={reduce ? { opacity: 0 } : { y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={reduce ? { opacity: 0 } : { y: 40, opacity: 0 }}
             transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="mx-auto mt-2.5 h-1 w-10 rounded-none bg-line-strong sm:hidden" aria-hidden />
+            <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-line-strong sm:hidden" aria-hidden />
             <div className="flex items-start justify-between gap-3 px-5 pb-2 pt-4 sm:px-6 sm:pt-6">
               <div>
                 <h2 id={titleId} className="t-title-2 text-text">
@@ -71,7 +71,7 @@ export function Sheet({ open, onClose, title, description, children, footer, wid
                 </h2>
                 {description && <p className="mt-1 text-sm text-muted">{description}</p>}
               </div>
-              <button data-close onClick={onClose} aria-label="Close" className="-mr-1 rounded-none p-2 text-muted hover:bg-surface-2 hover:text-text">
+              <button data-close onClick={onClose} aria-label="Close" className="-mr-1 rounded-full p-2 text-muted hover:bg-surface-2 hover:text-text">
                 <X className="h-5 w-5" />
               </button>
             </div>

@@ -74,7 +74,7 @@ export function ManualFields({ draft, onChange, idPrefix }: { draft: ManualDraft
         )}
       </div>
       {now != null && p.ok && Math.abs(now - p.body.value) >= 1 && (
-        <p className="rounded-none bg-surface-2 px-3.5 py-2.5 text-sm text-muted">
+        <p className="rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-muted">
           Worth about <span className="num font-medium text-text">{inr(now)}</span> today, at {p.body.ratePct}% a year since {p.body.valueAsOf}.
         </p>
       )}
