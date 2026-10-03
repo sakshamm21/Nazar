@@ -13,6 +13,8 @@ const HOW = [
   { broker: "Zerodha", steps: "Console → Portfolio → Holdings → Download (XLSX). Or Kite → Holdings → Download CSV." },
   { broker: "Groww", steps: "Stocks → Holdings → ⋮ → Download holdings report (XLSX)." },
   { broker: "Upstox", steps: "Portfolio → Holdings → Download (CSV or XLSX)." },
+  { broker: "Mutual funds (CAMS / KFintech)", steps: "On camsonline.com choose Statements → CAS (CAMS + KFintech), pick “Detailed” and “With zero balance folios: No”, and set a password. The PDF arrives by email in a few minutes; upload it here with that password." },
+  { broker: "Any other app", steps: "Export or build a sheet with the name (or ISIN), the units, and either the average price or the amount invested." },
 ];
 
 export default async function ImportPage() {
@@ -31,7 +33,7 @@ export default async function ImportPage() {
       </Link>
       <div>
         <h1 className="t-title-1 text-text">Import your holdings</h1>
-        <p className="mt-1 text-sm text-muted">Nazar detects the broker, maps every row to its NSE ticker (by ISIN first, so renames like Zomato → Eternal just work) and flags anything it can&apos;t match.</p>
+        <p className="mt-1 text-sm text-muted">Nazar detects the file, maps every row to the right stock, ETF or mutual fund (by ISIN first, so renames like Zomato → Eternal just work) and flags anything it can&apos;t match.</p>
       </div>
       <Importer portfolios={portfolios.map((p) => ({ id: p.id, label: p.ownerLabel ? `${p.ownerLabel}'s portfolio` : p.name }))} defaultId={portfolios.find((p) => p.id === sel)?.id ?? portfolios[0].id} />
       <Card className="p-5 sm:p-6">

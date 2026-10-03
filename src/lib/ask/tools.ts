@@ -1,4 +1,5 @@
 import "server-only";
+import { ASSET_META } from "@/lib/instruments/asset-classes";
 import { tool } from "ai";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -413,7 +414,7 @@ function userTools(userId: string) {
   return {
     getMyPortfolio: tool({
       description:
-        "Read-only view of the user's own portfolios as Nazar tracks them (from last night's checkup): value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
+        "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
       inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, e.g. \"Papa's portfolio\". Omit for the default.") }),
       execute: async ({ portfolio }) =>
         safe(async () => {
@@ -422,7 +423,7 @@ function userTools(userId: string) {
           const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
           const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase()) || (p.ownerLabel ?? "").toLowerCase().includes(portfolio.toLowerCase())) : null;
           const v = await buildPortfolioView(u, match?.id ?? null);
-          if (v.empty) return { portfolios: pfs.map((p) => p.name), empty: true, note: "No holdings yet. The user can import a Zerodha/Groww/Upstox file on the Portfolio page." };
+          if (v.empty) return { portfolios: pfs.map((p) => p.name), empty: true, note: "No holdings yet. On the Portfolio page the user can search and add stocks, funds, ETFs, gold, US stocks and crypto, add deposits and PF by hand, or import a broker file or mutual fund statement." };
           const alerts = (await listAlerts(userId, { portfolioId: v.active!.id, limit: 10, includeSimulated: false })).map((a) => ({ date: a.tradeDate, type: a.type, title: a.titleEn }));
           return {
             portfolios: pfs.map((p) => p.name),
@@ -443,8 +444,11 @@ function userTools(userId: string) {
               clusters: v.risk.diversification?.clusters.map((c) => ({ symbols: c.symbols, weight: c.weight, avgCorrelation: c.avgCorrelation })) ?? [],
               concentrationFlags: v.risk.concentration.flags.map((f) => `${f.label}: ${(f.weight * 100).toFixed(0)}%`),
             },
+            // What the money is in, by asset type (stocks, mutual funds, gold, deposits…).
+            allocation: v.allocation.map((a) => ({ type: a.group, weight: a.weight, value: Math.round(a.value), holdings: a.count })),
+            // Sector mix of the stock part only; funds, gold and deposits have no sector.
             sectors: v.sectors.map((s) => ({ sector: s.sector, weight: s.weight })),
-            holdings: v.cards.map((c) => ({ symbol: c.symbol, name: c.name, sector: c.sector, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
+            holdings: v.cards.map((c) => ({ symbol: c.href ? c.symbol : null, name: c.name, type: ASSET_META[c.assetClass].label, category: c.category, sector: c.assetClass === "stock" ? c.sector : null, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
             recentAlerts: alerts,
           };
         }),

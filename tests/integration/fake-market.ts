@@ -19,7 +19,7 @@ const SECTORS = [["Financial Services", "Banks - Regional"], ["Technology", "Inf
 function generic(s: string) {
   let h = 0;
   for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const calm = s.startsWith("MF:") || s.startsWith("CMD:");
+  const calm = s.startsWith("MF:") || s.startsWith("CMD:") || s.startsWith("US:");
   const [sector, industry] = SECTORS[h % SECTORS.length];
   return { base: 60 + (h % 1900), beta: calm ? 0.5 : 0.7 + (h % 7) / 10, k: h % 13, swing: calm ? 0.004 : 0.07, sector: calm || !s.endsWith(".NS") ? null : sector, industry: calm || !s.endsWith(".NS") ? null : industry, name: s };
 }

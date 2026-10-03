@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { parseAmfi } from "@/lib/data/amfi-parse";
 import { resolveLocal } from "@/lib/importers/resolve";
 import { manualValue } from "@/lib/instruments/asset-classes";
-import { classOfSymbol, getCatalog, searchCatalog } from "@/lib/instruments/catalog";
+import { findAdvice } from "@/lib/alerts/guard";
+import { classifyReason } from "@/lib/alerts/reason";
+import { REASON_LABEL, stockMoveText } from "@/lib/alerts/templates";
+import { classOfSymbol, foreignHits, getCatalog, searchCatalog } from "@/lib/instruments/catalog";
 import { getMaster } from "@/lib/instruments/master";
 import { assetAllocation, betaOf, concentration, stressTest, type HoldingState } from "@/lib/portfolio/math";
 import { mergeLot } from "@/lib/repo/portfolios";
@@ -115,5 +118,44 @@ describe("risk maths across asset classes", () => {
     const c = concentration([h({ symbol: "A", quantity: 1 }), h({ symbol: "MF:1", assetClass: "mf", sector: "Mutual funds", quantity: 40 }), h({ symbol: "MANUAL:1", assetClass: "property", sector: "Property", quantity: 1, price: 5900 })]);
     expect(c.flags.filter((f) => f.kind !== "top3")).toEqual([]);
     expect(concentration([h({ symbol: "A", quantity: 9 }), h({ symbol: "B", sector: "Banks", quantity: 1 })]).flags.some((f) => f.kind === "stock" && f.label === "A")).toBe(true);
+  });
+});
+
+describe("US stocks and crypto", () => {
+  it("are told apart by their symbol and never treated as an Indian company", () => {
+    expect(classOfSymbol("US:AAPL")).toBe("us");
+    expect(classOfSymbol("CRYPTO:BTC")).toBe("crypto");
+    expect(betaOf({ beta: 0.2, assetClass: "us" })).toBe(0.2);
+    expect(concentration([h({ symbol: "A", quantity: 1 }), h({ symbol: "CRYPTO:BTC", assetClass: "crypto", sector: "Crypto", quantity: 99 })]).flags.filter((f) => f.kind !== "top3")).toEqual([]);
+  });
+  it("live search keeps US listings and one entry per coin, as rupee-priced holdings", () => {
+    const quotes = [
+      { symbol: "AAPL", longname: "Apple Inc.", quoteType: "EQUITY", exchange: "NMS", exchDisp: "NASDAQ" },
+      { symbol: "APC.F", longname: "Apple Inc.", quoteType: "EQUITY", exchange: "FRA", exchDisp: "Frankfurt" },
+      { symbol: "VOO", shortname: "Vanguard S&P 500 ETF", quoteType: "ETF", exchange: "PCX", exchDisp: "NYSEArca" },
+      { symbol: "BTC-USD", shortname: "Bitcoin USD", quoteType: "CRYPTOCURRENCY", exchange: "CCC" },
+      { symbol: "BTC-EUR", shortname: "Bitcoin EUR", quoteType: "CRYPTOCURRENCY", exchange: "CCC" },
+      { symbol: "BTC=F", shortname: "Bitcoin Futures", quoteType: "FUTURE", exchange: "CME" },
+    ];
+    expect(foreignHits(quotes, "us").map((r) => [r.symbol, r.assetClass])).toEqual([["US:AAPL", "us"], ["US:VOO", "us"]]);
+    expect(foreignHits(quotes, "crypto")).toEqual([expect.objectContaining({ symbol: "CRYPTO:BTC", name: "Bitcoin", assetClass: "crypto" })]);
+  });
+});
+
+describe("why something that isn't a company moved", () => {
+  it("is the market when the market explains it, otherwise its own market: never 'company-specific'", () => {
+    expect(classifyReason({ stockPct: -0.03, niftyPct: -0.03, sectorPct: null, beta: 1, recentResults: false, assetClass: "mf" })).toBe("market");
+    expect(classifyReason({ stockPct: -0.06, niftyPct: 0.002, sectorPct: -0.06, beta: 0.1, recentResults: true, assetClass: "crypto" })).toBe("asset");
+    expect(classifyReason({ stockPct: -0.06, niftyPct: 0.002, sectorPct: null, beta: 0.9, recentResults: false })).toBe("company");
+  });
+  it("each kind gets its own plain explanation, in both languages, with no advice", () => {
+    for (const assetClass of ["mf", "etf", "gold", "us", "crypto", "reit"] as const) {
+      const t = stockMoveText({ assetClass, name: "X", changePct: -0.05, weight: 0.1, impact: -5000, reason: "asset", niftyPct: 0.001, sectorPct: null, sectorName: null, sectorNameHi: null, sectorIndexName: null });
+      expect(t.body.en).toMatch(/^Likely reason:/);
+      expect(t.body.en).not.toMatch(/sector|quarterly results/);
+      expect(findAdvice(`${t.title.en} ${t.body.en} ${t.title.hi} ${t.body.hi}`), assetClass).toEqual([]);
+    }
+    expect(stockMoveText({ assetClass: "mf", name: "Flexi Fund", changePct: -0.05, weight: 0.1, impact: -5000, reason: "asset", niftyPct: 0, sectorPct: null, sectorName: null, sectorNameHi: null, sectorIndexName: null }).body.en).toMatch(/A fund's price follows its holdings/);
+    expect(REASON_LABEL.asset.en).toBe("Its own market");
   });
 });

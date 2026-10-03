@@ -29,10 +29,10 @@ export const SCENARIOS: Record<string, Scenario> = {
   },
   "rate-shock": {
     id: "rate-shock",
-    label: "Rate shock: banks fall 4% after a surprise rate hike",
-    labelHi: "ब्याज दर का झटका: अचानक दर बढ़ने से बैंक 4% गिरे",
-    market: -0.019,
-    sectors: { Banks: -0.042, "Financial services": -0.047, Auto: -0.022, Realty: -0.05 },
+    label: "Rate shock: banks fall 6% after a surprise rate hike",
+    labelHi: "ब्याज दर का झटका: अचानक दर बढ़ने से बैंक 6% गिरे",
+    market: -0.024,
+    sectors: { Banks: -0.061, "Financial services": -0.066, Auto: -0.026, Realty: -0.07 },
     company: null,
   },
   "company-shock": {

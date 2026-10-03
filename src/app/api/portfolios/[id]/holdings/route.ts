@@ -15,7 +15,7 @@ const Item = z.object({
   buyDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   isin: z.string().max(12).nullable().optional(),
   rawName: z.string().max(120).nullable().optional(),
-  source: z.enum(["manual", "zerodha", "groww", "upstox", "generic", "screenshot"]).default("manual"),
+  source: z.enum(["manual", "zerodha", "groww", "upstox", "generic", "cas", "screenshot"]).default("manual"),
 });
 /** `mode`: "replace" overwrites a symbol already held (imports); "add" merges it in as a further purchase. */
 const Body = z.object({ holdings: z.array(Item).min(1).max(200), mode: z.enum(["replace", "add"]).default("replace") });

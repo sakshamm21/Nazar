@@ -6,6 +6,7 @@
  * Voice: calm, direct, slightly warm. Facts and context, never instructions.
  */
 import type { QuarterRow } from "@/lib/db/schema";
+import type { AssetClass } from "@/lib/instruments/asset-classes";
 import { absPct, dayLabel, inrApprox, inrWhole as inr, signedPct } from "@/lib/format";
 import type { Attribution } from "@/lib/portfolio/math";
 import type { ReasonKind } from "./reason";
@@ -27,6 +28,7 @@ const fellRose = (x: number): Bi => (x < 0 ? { en: "fell", hi: "गिरा" } 
 /* ------------------------------------------------------------------ */
 
 export function stockMoveText(a: {
+  assetClass?: AssetClass;
   name: string;
   changePct: number;
   weight: number;
@@ -52,9 +54,43 @@ export function stockMoveText(a: {
   return { title, body: { en: `${why.en} ${impact.en}`, hi: `${why.hi} ${impact.hi}` }, why, impact };
 }
 
-export function reasonText(a: { name: string; changePct: number; reason: ReasonKind; niftyPct: number | null; sectorPct: number | null; sectorName: string | null; sectorNameHi: string | null; sectorIndexName: string | null }): Bi {
+/** Why something that isn't a company moved when the Indian market doesn't explain it. */
+function assetReason(c: AssetClass | undefined, name: string, down: boolean): Bi {
+  switch (c) {
+    case "mf":
+    case "etf":
+      return {
+        en: `Likely reason: what ${name} owns ${down ? "fell" : "rose"} in value. A fund's price follows its holdings; there is no news about the fund itself to look for.`,
+        hi: `संभावित वजह: ${name} जिन चीज़ों में पैसा लगाता है, उनकी कीमत ${down ? "गिरी" : "बढ़ी"}। फंड का दाम उन्हीं के साथ चलता है; फंड की अपनी कोई ख़बर नहीं होती।`,
+      };
+    case "gold":
+      return {
+        en: `Likely reason: the gold or silver price ${down ? "fell" : "rose"}. It follows the international price and the rupee-dollar rate, not the stock market.`,
+        hi: `संभावित वजह: सोने या चाँदी का भाव ${down ? "गिरा" : "बढ़ा"}। यह अंतरराष्ट्रीय भाव और रुपये-डॉलर की दर के साथ चलता है, शेयर बाज़ार के साथ नहीं।`,
+      };
+    case "us":
+      return {
+        en: `Likely reason: ${name} moved in the US market overnight, or the rupee moved against the dollar. Its value here depends on both.`,
+        hi: `संभावित वजह: ${name} रात में अमेरिकी बाज़ार में हिला, या रुपया डॉलर के मुक़ाबले बदला। यहाँ इसकी वैल्यू दोनों पर निर्भर करती है।`,
+      };
+    case "crypto":
+      return {
+        en: `Likely reason: crypto prices trade around the clock and often swing sharply. The Indian stock market does not explain this move.`,
+        hi: `संभावित वजह: क्रिप्टो के दाम चौबीसों घंटे चलते हैं और अक्सर तेज़ी से बदलते हैं। भारतीय शेयर बाज़ार से यह बदलाव नहीं समझाया जा सकता।`,
+      };
+    default:
+      return {
+        en: `Likely reason: something specific to ${name}. The wider market does not explain a move this size.`,
+        hi: `संभावित वजह: ${name} से जुड़ी कोई बात। पूरे बाज़ार से इतना बड़ा बदलाव नहीं समझाया जा सकता।`,
+      };
+  }
+}
+
+export function reasonText(a: { assetClass?: AssetClass; name: string; changePct: number; reason: ReasonKind; niftyPct: number | null; sectorPct: number | null; sectorName: string | null; sectorNameHi: string | null; sectorIndexName: string | null }): Bi {
   const down = a.changePct < 0;
   switch (a.reason) {
+    case "asset":
+      return assetReason(a.assetClass, a.name, down);
     case "market":
       return {
         en: `Likely reason: the whole market ${down ? "fell" : "rose"} today (Nifty ${signedPct(a.niftyPct)}), and ${a.name} moved about as much as it usually does on days like this.`,
@@ -83,6 +119,7 @@ export const REASON_LABEL: Record<ReasonKind, Bi> = {
   sector: { en: "Sector-wide", hi: "पूरा सेक्टर" },
   results: { en: "After results", hi: "नतीजों के बाद" },
   company: { en: "Company-specific", hi: "कंपनी से जुड़ा" },
+  asset: { en: "Its own market", hi: "अपना बाज़ार" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -97,7 +134,7 @@ const list = (names: string[], lang: Lang) => {
 
 export function attributionLine(a: Attribution, ownerLabel?: string | null): Bi {
   const subj = { en: ownerLabel ? `${ownerLabel}'s portfolio is` : "You're", hi: "आपका पोर्टफोलियो" };
-  if (a.kind === "none") return { en: "Add holdings to see what moves your portfolio each day.", hi: "रोज़ के बदलाव देखने के लिए अपने शेयर जोड़ें।" };
+  if (a.kind === "none") return { en: "Add holdings to see what moves your portfolio each day.", hi: "रोज़ के बदलाव देखने के लिए अपने निवेश जोड़ें।" };
   if (a.kind === "flat") return { en: "A quiet day: your portfolio barely moved.", hi: "शांत दिन: आज आपके पोर्टफोलियो में लगभग कोई बदलाव नहीं हुआ।" };
   const down = a.kind === "down";
   const names = a.drivers.map((d) => d.name);
@@ -121,15 +158,15 @@ export function marketSplitLine(a: Attribution): Bi | null {
   if (Math.sign(m) === Math.sign(sp) || m === 0 || sp === 0) {
     const dir = a.kind === "down" ? { en: "fall", hi: "गिरावट" } : { en: "rise", hi: "बढ़त" };
     return {
-      en: `${inr(Math.abs(m))} of today's ${dir.en} was the market moving; ${inr(Math.abs(sp))} was specific to your stocks.`,
-      hi: `आज की ${dir.hi} में ${inr(Math.abs(m))} बाज़ार की वजह से था; ${inr(Math.abs(sp))} आपके शेयरों से जुड़ा था।`,
+      en: `${inr(Math.abs(m))} of today's ${dir.en} was the market moving; ${inr(Math.abs(sp))} was specific to what you own.`,
+      hi: `आज की ${dir.hi} में ${inr(Math.abs(m))} बाज़ार की वजह से था; ${inr(Math.abs(sp))} आपके निवेश से जुड़ा था।`,
     };
   }
   // The parts pulled in opposite directions: say what the market alone would have done.
   const better = sp > 0;
   return {
-    en: `The market alone would have ${m < 0 ? "cost you" : "added"} ${inr(Math.abs(m))} today; your stocks did ${inr(Math.abs(sp))} ${better ? "better" : "worse"} than that.`,
-    hi: `सिर्फ़ बाज़ार की वजह से आज ${inr(Math.abs(m))} ${m < 0 ? "घटते" : "बढ़ते"}; आपके शेयरों ने उससे ${inr(Math.abs(sp))} ${better ? "बेहतर" : "कमज़ोर"} किया।`,
+    en: `The market alone would have ${m < 0 ? "cost you" : "added"} ${inr(Math.abs(m))} today; what you own did ${inr(Math.abs(sp))} ${better ? "better" : "worse"} than that.`,
+    hi: `सिर्फ़ बाज़ार की वजह से आज ${inr(Math.abs(m))} ${m < 0 ? "घटते" : "बढ़ते"}; आपके निवेश ने उससे ${inr(Math.abs(sp))} ${better ? "बेहतर" : "कमज़ोर"} किया।`,
   };
 }
 

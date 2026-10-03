@@ -53,7 +53,7 @@ describe("H2: why did my portfolio move today", () => {
   });
   it("explains offsetting parts honestly", () => {
     const a = attribution([h({ symbol: "A", quantity: 10, price: 101, prevClose: 100 })], -0.02);
-    expect(marketSplitLine(a)!.en).toMatch(/The market alone would have cost you ₹20 today; your stocks did ₹30 better than that\./);
+    expect(marketSplitLine(a)!.en).toMatch(/The market alone would have cost you ₹20 today; what you own did ₹30 better than that\./);
   });
   it("has a Hindi line too", () => {
     expect(attributionLine(attribution(down, -0.01)).hi).toContain("आपका पोर्टफोलियो आज ₹1,050 नीचे है");

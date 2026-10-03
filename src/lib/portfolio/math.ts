@@ -161,6 +161,7 @@ export function betaOf(h: Pick<HoldingState, "beta" | "assetClass">): number {
   const c = h.assetClass ?? "stock";
   if (isManualClass(c)) return 0;
   if (c === "stock" || c === "reit") return adjustedBeta(h.beta);
+  // Unknown beta: assume a fund or foreign holding moves with the market; gold doesn't.
   if (h.beta == null || !Number.isFinite(h.beta)) return c === "gold" ? 0 : 1;
   return Math.min(2.5, Math.max(0, h.beta));
 }

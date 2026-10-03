@@ -113,7 +113,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
         <div>
           <div className="t-overline">
             {company ? sec.label : (i?.category ?? ASSET_META[assetClass].label)}
-            {assetClass !== "mf" && assetClass !== "gold" && (
+            {(company || assetClass === "etf" || assetClass === "reit") && (
               <>
                 {" "}· <span className="font-mono normal-case tracking-normal">{symbol}</span>
               </>
@@ -123,7 +123,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
           <div className="mt-1 flex flex-wrap items-baseline gap-x-3">
             <span className="num text-[28px] font-semibold text-text">{inr(snap.price, { decimals: 2 })}</span>
             {snap.tradeDate === date && <Delta pct={snap.changePct} />}
-            <span className="t-caption">{assetClass === "mf" ? "latest NAV" : assetClass === "gold" ? "indicative price per gram" : `as of ${dayLabel(snap.tradeDate, "en")} close`}</span>
+            <span className="t-caption">{assetClass === "mf" ? "latest NAV" : assetClass === "gold" ? "indicative price per gram" : assetClass === "us" || assetClass === "crypto" ? "dollar price in rupees" : `as of ${dayLabel(snap.tradeDate, "en")} close`}</span>
           </div>
         </div>
         <div className="flex gap-2">
@@ -224,6 +224,10 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
               <p className="mt-3 text-sm text-muted">
                 {assetClass === "mf"
                   ? "The NAV comes from AMFI, which publishes it once a day, usually late in the evening. Today's NAV therefore shows up the next morning."
+                  : assetClass === "us"
+                    ? "Priced in dollars on a US exchange and shown in rupees at the day's dollar rate, so its value here moves with both the share and the rupee. It trades overnight, India time, and Nazar treats it like a fund: price and risk, without the company checks it runs for Indian stocks."
+                    : assetClass === "crypto"
+                      ? "Priced in dollars around the clock and shown in rupees at the day's dollar rate. Nazar shows the value at each Indian market session."
                   : assetClass === "gold"
                     ? "Valued from the international price and the rupee-dollar rate, plus India's import duty. A jeweller's rate also adds GST and making charges, and a Sovereign Gold Bond can trade a little above or below this."
                     : "Priced like a share on the NSE. It holds a basket of assets, so company checks such as the health score and results don't apply."}

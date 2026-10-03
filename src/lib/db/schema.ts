@@ -71,7 +71,7 @@ export const holdings = pgTable(
     rawName: text("raw_name"),
     /** Manual assets only: the value the user entered and how it grows. */
     details: jsonb("details").$type<ManualDetails | null>(),
-    source: text("source").$type<"manual" | "zerodha" | "groww" | "upstox" | "generic" | "screenshot">().notNull().default("manual"),
+    source: text("source").$type<"manual" | "zerodha" | "groww" | "upstox" | "generic" | "cas" | "screenshot">().notNull().default("manual"),
     createdAt: created(),
     updatedAt: ts("updated_at").defaultNow().notNull(),
   },
@@ -271,7 +271,7 @@ export type AlertData = {
   impactInr?: number;
   weight?: number;
   portfolioValue?: number;
-  reason?: { kind: "market" | "sector" | "results" | "company"; marketPct?: number | null; sectorPct?: number | null; sectorName?: string | null };
+  reason?: { kind: "market" | "sector" | "results" | "company" | "asset"; marketPct?: number | null; sectorPct?: number | null; sectorName?: string | null };
   headlines?: { title: string; source: string; link: string; published: string }[];
   resultsEventId?: string;
   healthBefore?: number | null;

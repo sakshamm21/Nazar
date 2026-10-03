@@ -167,7 +167,7 @@ test.describe("Accounts", () => {
     await page.getByRole("button", { name: /Riya, the saver/ }).click();
     await page.waitForURL(/\/home/);
     await page.goto("/portfolio");
-    for (const group of ["Mutual funds", "ETFs", "Gold & silver", "Retirement", "Fixed income", "Stocks"]) await expect(page.getByRole("heading", { name: group })).toBeVisible();
+    for (const group of ["Mutual funds", "ETFs", "Gold & silver", "Retirement", "Fixed income", "Stocks", "US stocks", "Crypto"]) await expect(page.getByRole("heading", { name: new RegExp(`^${group}\\s*\\d+$`) })).toBeVisible();
     await expect(page.getByText("price on its way")).toHaveCount(0);
   });
 

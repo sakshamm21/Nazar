@@ -66,10 +66,11 @@ export function evaluate(day: DayInput, s: EffectiveSettings): Candidate[] {
       const impact = h.quantity * (h.price - h.prevClose);
       if (v.value && Math.abs(impact) < s.materiality * v.value) continue;
       const sec = sectorOf(h.sectorRaw, h.industry);
-      const sectorPct = sec.index ? (day.sectorPct[sec.index] ?? null) : null;
+      const company = (h.assetClass ?? "stock") === "stock";
+      const sectorPct = company && sec.index ? (day.sectorPct[sec.index] ?? null) : null;
       const recentResults = !!h.results && daysBetween(h.results.detectedOn, day.tradeDate) <= 2;
-      const reason = classifyReason({ stockPct: h.changePct, niftyPct: day.niftyPct, sectorPct, beta: h.beta, recentResults });
-      const t = stockMoveText({ name: h.name, changePct: h.changePct, weight: w.get(h.symbol) ?? 0, impact, ownerLabel: owner, reason, niftyPct: day.niftyPct, sectorPct, sectorName: sec.label, sectorNameHi: sec.labelHi, sectorIndexName: sec.indexName });
+      const reason = classifyReason({ stockPct: h.changePct, niftyPct: day.niftyPct, sectorPct, beta: h.beta, recentResults, assetClass: h.assetClass });
+      const t = stockMoveText({ assetClass: h.assetClass, name: h.name, changePct: h.changePct, weight: w.get(h.symbol) ?? 0, impact, ownerLabel: owner, reason, niftyPct: day.niftyPct, sectorPct, sectorName: sec.label, sectorNameHi: sec.labelHi, sectorIndexName: sec.indexName });
       const critical = movePct >= 2 * s.stockMove || (v.value > 0 && Math.abs(impact) >= 0.01 * v.value);
       out.push({
         type: "stock_move",

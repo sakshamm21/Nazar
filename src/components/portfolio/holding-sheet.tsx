@@ -26,7 +26,7 @@ export type HoldingRow = {
 
 type Action = "more" | "less" | "edit";
 const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/,/g, "")));
-const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: 3 });
+const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
 /** Change one holding: buy more, sell some, correct it, or remove it. Manual assets get their own form. */
 export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: HoldingRow | null; portfolioId: string | null; onClose: () => void; onRemove: (r: HoldingRow) => void }) {

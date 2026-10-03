@@ -9,10 +9,13 @@
  * - Zerodha Kite holdings CSV: Instrument, Qty., Avg. cost, LTP, Cur. val, P&L, Net chg., Day chg.
  * - Groww stocks holdings XLSX: Stock Name, ISIN, Quantity, Average buy price, Buy value, Closing price, …
  * - Upstox holdings: Scrip Name / Company Name, ISIN, Qty / Quantity, Avg. Price, LTP, …
- * - Generic: any file with a name/symbol column, a quantity column and an average price column.
+ * - Generic: any file with a name/symbol column, a quantity (or units) column, and either an average
+ *   price (or NAV) column or an invested-amount column. This also covers mutual fund holdings sheets
+ *   (Groww, Kuvera, Coin: "Scheme Name, Units, Invested Value…").
+ * - A mutual fund statement PDF (CAMS / KFintech) is parsed separately, in cas.ts.
  */
 
-export type Broker = "zerodha" | "groww" | "upstox" | "generic";
+export type Broker = "zerodha" | "groww" | "upstox" | "generic" | "cas";
 
 export type ParsedHolding = {
   line: number;
@@ -24,13 +27,14 @@ export type ParsedHolding = {
   buyDate: string | null;
 };
 
-export type ParseResult = { broker: Broker; format: string; rows: ParsedHolding[]; skipped: { line: number; reason: string }[] };
+export type ParseResult = { broker: Broker; format: string; rows: ParsedHolding[]; skipped: { line: number; reason: string }[]; notes?: string[] };
 
 const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[^a-z0-9&()]+/g, " ").trim();
 
 type ColSpec = { [field: string]: string[] };
 
-const FORMATS: { broker: Broker; format: string; required: string[]; cols: ColSpec; qtyCols?: string[] }[] = [
+/** `oneOf`: at least one of these columns must also be present. */
+const FORMATS: { broker: Broker; format: string; required: string[]; oneOf?: string[]; cols: ColSpec; qtyCols?: string[] }[] = [
   {
     broker: "zerodha",
     format: "Zerodha Console holdings",
@@ -67,12 +71,15 @@ const FORMATS: { broker: Broker; format: string; required: string[]; cols: ColSp
   {
     broker: "generic",
     format: "Generic holdings",
-    required: ["name", "qty", "avg"],
+    required: ["name", "qty"],
+    oneOf: ["avg", "invested"],
     cols: {
-      name: ["symbol", "ticker", "instrument", "stock", "stock name", "scrip", "company", "company name", "name", "security"],
+      name: ["symbol", "ticker", "instrument", "stock", "stock name", "scrip", "company", "company name", "name", "security", "scheme name", "scheme", "fund name", "fund", "mutual fund"],
       isin: ["isin"],
-      qty: ["quantity", "qty", "shares", "units", "no of shares", "holding"],
-      avg: ["average price", "avg price", "avg cost", "average cost", "buy price", "purchase price", "cost price", "avg buy price", "average buy price"],
+      qty: ["quantity", "qty", "shares", "units", "no of shares", "holding", "balance units", "unit balance", "closing units", "total units"],
+      avg: ["average price", "avg price", "avg cost", "average cost", "buy price", "purchase price", "cost price", "avg buy price", "average buy price", "average nav", "avg nav", "avg. nav", "purchase nav", "average cost nav"],
+      // With no average, the amount put in ÷ units is the average.
+      invested: ["invested", "invested value", "invested amount", "amount invested", "investment", "cost value", "total cost", "purchase value", "buy value", "cost"],
       buyDate: ["buy date", "purchase date", "date"],
     },
   },
@@ -107,6 +114,26 @@ function toIsoDate(v: unknown): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
+/** A workbook can keep stocks and mutual funds on separate sheets: parse every sheet that holds a recognisable table. */
+export function parseSheets(tables: unknown[][][]): ParseResult {
+  const parsed: ParseResult[] = [];
+  let firstError: unknown = null;
+  for (const t of tables) {
+    try {
+      parsed.push(parseHoldings(t));
+    } catch (e) {
+      firstError ??= e;
+    }
+  }
+  if (!parsed.length) throw firstError ?? new Error("That file is empty.");
+  const seen = new Set<string>();
+  const rows = parsed.flatMap((p) => p.rows).filter((r) => {
+    const k = `${r.isin ?? r.symbol ?? r.rawName}|${r.quantity}|${r.avgPrice}`;
+    return seen.has(k) ? false : (seen.add(k), true);
+  });
+  return { broker: parsed[0].broker, format: [...new Set(parsed.map((p) => p.format))].join(" + "), rows: rows.map((r, i) => ({ ...r, line: i + 1 })), skipped: parsed.flatMap((p) => p.skipped) };
+}
+
 /** Detects the format from the first 25 rows and maps every data row. */
 export function parseHoldings(table: unknown[][]): ParseResult {
   const scan = Math.min(table.length, 25);
@@ -115,7 +142,7 @@ export function parseHoldings(table: unknown[][]): ParseResult {
       const header = (table[r] ?? []).map((c) => String(c ?? ""));
       const idx: Record<string, number> = {};
       for (const [field, aliases] of Object.entries(f.cols)) idx[field] = findCol(header, aliases);
-      if (!f.required.every((k) => idx[k] >= 0)) continue;
+      if (!f.required.every((k) => idx[k] >= 0) || (f.oneOf && !f.oneOf.some((k) => idx[k] >= 0))) continue;
       return mapRows(table, r, f, idx);
     }
   }
@@ -131,7 +158,8 @@ function mapRows(table: unknown[][], headerRow: number, f: (typeof FORMATS)[numb
     const nameCell = String(cell("name") ?? cell("symbol") ?? "").trim();
     if (!nameCell || /^(total|grand total|net)\b/i.test(nameCell)) continue;
     const qty = f.qtyCols ? f.qtyCols.reduce((a, k) => a + (toNumber(cell(k)) ?? 0), 0) : toNumber(cell("qty"));
-    const avg = toNumber(cell("avg"));
+    const invested = toNumber(cell("invested"));
+    const avg = toNumber(cell("avg")) ?? (invested != null && qty ? invested / qty : null);
     if (qty == null || qty <= 0) {
       skipped.push({ line: r + 1, reason: `${nameCell}: no quantity` });
       continue;

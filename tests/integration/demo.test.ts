@@ -66,8 +66,8 @@ describe("test accounts run on live data", () => {
     for (const email of ["demo@nazar.dev", "riya@nazar.dev"]) {
       const held = await holdingsOf((await userByEmail(email)).id);
       expect(new Set(held.map((h) => h.assetClass)), email).toEqual(expect.objectContaining(new Set()));
-      for (const c of ["stock", "mf", "etf", "reit", "gold", "fd", "ppf", "epf"]) expect(held.some((h) => h.assetClass === c), `${email} ${c}`).toBe(true);
-      expect(new Set(held.map((h) => groupOf(h.assetClass))).size).toBeGreaterThanOrEqual(7);
+      for (const c of ["stock", "mf", "etf", "reit", "gold", "us", "crypto", "fd", "ppf", "epf"]) expect(held.some((h) => h.assetClass === c), `${email} ${c}`).toBe(true);
+      expect(new Set(held.map((h) => groupOf(h.assetClass))).size).toBeGreaterThanOrEqual(9);
       for (const h of held) {
         expect(h.quantity, h.symbol).toBeGreaterThan(0);
         expect(h.avgPrice, h.symbol).toBeGreaterThan(0);
@@ -85,6 +85,11 @@ describe("test accounts run on live data", () => {
     expect(new Set(alerts.map((a) => a.tradeDate)).size).toBeGreaterThan(8); // spread over many sessions
     for (const a of alerts) expect(findAdvice(`${a.titleEn}\n${a.bodyEn}\n${a.titleHi}\n${a.bodyHi}`), a.titleEn).toEqual([]);
     expect(alerts.filter((a) => a.isSimulated)).toHaveLength(0);
+    // A coin's alert is explained as crypto moving, never as news about a company.
+    const coin = alerts.find((a) => a.type === "stock_move" && a.symbol?.startsWith("CRYPTO:"));
+    expect(coin, "a crypto move alert").toBeTruthy();
+    expect(["asset", "market"]).toContain((coin!.data as { reason?: { kind: string } }).reason?.kind);
+    expect(alerts.filter((a) => a.type === "stock_move" && !a.symbol?.endsWith(".NS") && (a.data as { reason?: { kind: string } }).reason?.kind === "company")).toHaveLength(0);
   });
 
   it("the tuner learned from the persona's ratings: small-move alerts raised to 5%", async () => {

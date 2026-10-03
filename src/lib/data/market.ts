@@ -1,5 +1,5 @@
 import "server-only";
-import { BULLION_IMPORT_DUTY, COMMODITIES, GRAMS_PER_TROY_OUNCE, isCommoditySymbol, isMfSymbol, isSyntheticSymbol, mfCode } from "@/lib/instruments/asset-classes";
+import { BULLION_IMPORT_DUTY, COMMODITIES, CRYPTO_PREFIX, GRAMS_PER_TROY_OUNCE, US_PREFIX, isCommoditySymbol, isCryptoSymbol, isForeignSymbol, isMfSymbol, isSyntheticSymbol, mfCode } from "@/lib/instruments/asset-classes";
 import { parseAmfi, type AmfiScheme } from "./amfi-parse";
 import { istDate, yahooProvider, type MarketDataProvider, type SymbolSummary } from "./provider";
 import { withRetry } from "./resilience";
@@ -11,7 +11,9 @@ import type { Quote } from "./yahoo";
  *   Mutual funds  AMFI's daily NAV file (one download covers every scheme) for today's NAV, and
  *                 mfapi.in for a scheme's NAV history.
  *   Gold, silver  the international futures price × USD/INR, per gram, plus India's import duty.
- * Symbols tell the sources apart: "MF:<scheme code>", "CMD:<metal>", anything else is Yahoo's.
+ *   US stocks, crypto  Yahoo's dollar price × USD/INR, so the whole app stays in rupees.
+ * Symbols tell the sources apart: "MF:<scheme code>", "CMD:<metal>", "US:<ticker>", "CRYPTO:<coin>";
+ * anything else is Yahoo's own symbol.
  */
 const AMFI_NAV_URL = "https://www.amfiindia.com/spages/NAVAll.txt";
 const MFAPI = "https://api.mfapi.in/mf";
@@ -112,6 +114,37 @@ async function commodityHistory(symbol: string, from: Date) {
 }
 
 /* ------------------------------------------------------------------ */
+/* US stocks and crypto                                                */
+/* ------------------------------------------------------------------ */
+
+/** "US:AAPL" → "AAPL"; "CRYPTO:BTC" → "BTC-USD" (Yahoo quotes every coin against the dollar). */
+export const foreignYahoo = (symbol: string) => (isCryptoSymbol(symbol) ? `${symbol.slice(CRYPTO_PREFIX.length)}-USD` : symbol.slice(US_PREFIX.length));
+
+async function foreignQuotes(symbols: string[]): Promise<Quote[]> {
+  if (!symbols.length) return [];
+  const quotes = new Map((await yahooProvider.quotes([...symbols.map(foreignYahoo), USDINR])).map((q) => [q.symbol, q]));
+  const fx = quotes.get(USDINR);
+  if (fx?.price == null) return [];
+  return symbols.flatMap((s) => {
+    const q = quotes.get(foreignYahoo(s).toUpperCase());
+    if (q?.price == null) return [];
+    const prev = q.previousClose != null ? q.previousClose * (fx.previousClose ?? fx.price!) : null;
+    return [syntheticQuote(s, q.name.replace(/ USD$/, ""), q.price * fx.price!, prev, q.asOf ?? new Date().toISOString())];
+  });
+}
+
+async function foreignHistory(symbol: string, from: Date) {
+  const [bars, fx] = await Promise.all([yahooProvider.dailyHistory(foreignYahoo(symbol), from), yahooProvider.dailyHistory(USDINR, from)]);
+  let rate: number | null = null, i = 0;
+  const out: { date: string; close: number; volume: number | null }[] = [];
+  for (const bar of bars) {
+    while (i < fx.length && fx[i].date <= bar.date) rate = fx[i++].close;
+    if (rate != null) out.push({ date: bar.date, close: bar.close * rate, volume: bar.volume });
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
 
 const emptySummary = (name: string | null): SymbolSummary => ({ raw: {}, name, sector: null, industry: null, currency: "INR", reportingCurrency: "INR", marketCap: null, nextResultsDate: null, exDividendDate: null, quarters: [] });
 
@@ -119,15 +152,16 @@ export const marketProvider: MarketDataProvider = {
   name: "market",
   async quotes(symbols) {
     const list = [...new Set(symbols.map((s) => s.trim().toUpperCase()))];
-    const funds = list.filter(isMfSymbol), metals = list.filter(isCommoditySymbol), listed = list.filter((s) => !isSyntheticSymbol(s));
+    const funds = list.filter(isMfSymbol), metals = list.filter(isCommoditySymbol), foreign = list.filter(isForeignSymbol), listed = list.filter((s) => !isSyntheticSymbol(s));
     // One source failing (AMFI down, say) must not lose the others' prices.
-    const parts = await Promise.all([listed.length ? yahooProvider.quotes(listed) : [], fundQuotes(funds).catch(() => []), commodityQuotes(metals).catch(() => [])]);
+    const parts = await Promise.all([listed.length ? yahooProvider.quotes(listed) : [], fundQuotes(funds).catch(() => []), commodityQuotes(metals).catch(() => []), foreignQuotes(foreign).catch(() => [])]);
     return parts.flat();
   },
-  dailyHistory: (symbol, from) => (isMfSymbol(symbol) ? fundHistory(symbol, from) : isCommoditySymbol(symbol) ? commodityHistory(symbol, from) : yahooProvider.dailyHistory(symbol, from)),
+  dailyHistory: (symbol, from) => (isMfSymbol(symbol) ? fundHistory(symbol, from) : isCommoditySymbol(symbol) ? commodityHistory(symbol, from) : isForeignSymbol(symbol) ? foreignHistory(symbol, from) : yahooProvider.dailyHistory(symbol, from)),
   async summary(symbol) {
     if (isMfSymbol(symbol)) return emptySummary((await amfiNavs()).get(mfCode(symbol))?.name ?? null);
     if (isCommoditySymbol(symbol)) return emptySummary(commodity(symbol)?.short ?? null);
+    if (isForeignSymbol(symbol)) return emptySummary((await foreignQuotes([symbol]).catch(() => []))[0]?.name ?? null);
     return yahooProvider.summary(symbol);
   },
   annualFundamentals: (symbol) => (isSyntheticSymbol(symbol) ? Promise.resolve([]) : yahooProvider.annualFundamentals(symbol)),

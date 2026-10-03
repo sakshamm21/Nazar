@@ -6,13 +6,13 @@ import type { DB } from "@/lib/db";
 import { schema } from "@/lib/db";
 import { marketProvider } from "@/lib/data/market";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
-import { isMfSymbol, isCommoditySymbol } from "@/lib/instruments/asset-classes";
+import { isCryptoSymbol, isMfSymbol } from "@/lib/instruments/asset-classes";
 import { classOfSymbol } from "@/lib/instruments/catalog";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { latestTradeDate, priceHistory, shiftDate, snapshotsAsOf } from "@/lib/market/store";
 import { collectBatch, collectQuotes } from "@/lib/pipeline/collect";
 import { logger } from "@/lib/logger";
-import { HISTORY_DAYS, PERSONAS, PERSONA_SYMBOLS, TEST_ACCOUNTS, TEST_PASSWORD, templateEmail, type Persona, type PersonaHolding } from "./config";
+import { HISTORY_DAYS, PERSONAS, PERSONA_SYMBOLS, PERSONA_VERSION, TEST_ACCOUNTS, TEST_PASSWORD, templateEmail, type Persona, type PersonaHolding } from "./config";
 
 /**
  * Test accounts on live data. There is no captured or hand-written market data anywhere: a test
@@ -51,7 +51,8 @@ export type EnsureResult = { today: string; rebuilt: boolean; built?: string[]; 
 export async function ensureTestAccounts(db: DB, opts: { force?: boolean; provider?: MarketDataProvider; now?: Date; budgetMs?: number } = {}): Promise<EnsureResult> {
   const today = istDate(opts.now ?? new Date());
   const m = await marker(db);
-  if (!opts.force && m?.runDate === today && m.status === "done" && m.stage === "accounts") return { today, rebuilt: false };
+  // Already done today, for the personas as they are now defined.
+  if (!opts.force && m?.runDate === today && m.status === "done" && m.stage === "accounts" && (m.stats as { version?: string })?.version === PERSONA_VERSION) return { today, rebuilt: false };
   // Claim the run so two instances don't rebuild at once.
   const lockedUntil = new Date(Date.now() + 300_000);
   if (m) {
@@ -79,7 +80,7 @@ export async function ensureTestAccounts(db: DB, opts: { force?: boolean; provid
     }
     await resetAccounts(db);
     // Without market data the personas can't be built: leave the run open so the next call retries.
-    await finish(date ? "done" : "failed", { ms: Date.now() - t0, built, date });
+    await finish(date ? "done" : "failed", { ms: Date.now() - t0, built, date, version: PERSONA_VERSION });
     logger.info({ today, date, built, ms: Date.now() - t0 }, "test accounts ready");
     return { today, rebuilt: true, built, reason: date ? undefined : "no market data" };
   } catch (e) {
@@ -181,7 +182,7 @@ async function backfillSessions(db: DB, date: string) {
 const unitsFor = (symbol: string, value: number, price: number) => {
   const raw = value / price;
   if (isMfSymbol(symbol)) return Math.round(raw * 1000) / 1000;
-  if (isCommoditySymbol(symbol)) return Math.max(1, Math.round(raw));
+  if (isCryptoSymbol(symbol)) return Math.round(raw * 1e5) / 1e5; // coins are held in fractions
   return Math.max(1, Math.round(raw));
 };
 

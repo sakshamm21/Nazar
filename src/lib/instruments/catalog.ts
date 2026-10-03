@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { parseCsv } from "@/lib/importers/csv";
-import { COMMODITIES, isCommoditySymbol, isManualSymbol, isMfSymbol, mfSymbol, type MarketClass } from "./asset-classes";
+import { COMMODITIES, CRYPTO_PREFIX, US_PREFIX, classOfPrefix, isManualSymbol, mfSymbol, type MarketClass } from "./asset-classes";
 import { DISPLAY_NAMES, getMaster, normalizeName, shortName, toYahoo } from "./master";
 
 /**
@@ -65,9 +65,7 @@ export const catalogItem = (symbol: string) => getCatalog().bySymbol.get(symbol.
 export function classOfSymbol(symbol: string): MarketClass | null {
   const s = symbol.toUpperCase();
   if (isManualSymbol(s)) return null;
-  if (isMfSymbol(s)) return "mf";
-  if (isCommoditySymbol(s)) return "gold";
-  return catalogItem(s)?.assetClass ?? "stock";
+  return classOfPrefix(s) ?? catalogItem(s)?.assetClass ?? "stock";
 }
 
 /** Score one item against a query; 0 = no match. Every query word must appear in the name. */
@@ -85,6 +83,29 @@ function score(it: CatalogItem, q: string, tokens: string[], upper: string): num
 }
 
 export type SearchHit = Pick<CatalogItem, "symbol" | "name" | "assetClass" | "isin" | "sub">;
+
+/** What a provider's symbol search returns (Yahoo's `search`). */
+export type RemoteQuote = { symbol?: string; longname?: string; shortname?: string; quoteType?: string; exchange?: string; exchDisp?: string };
+const US_EXCHANGES = new Set(["NMS", "NYQ", "NGM", "NCM", "PCX", "ASE", "BTS", "NAS", "NYS"]);
+
+/**
+ * US stocks, US ETFs and crypto have no bundled list (there are too many), so they are searched
+ * live. This turns the provider's results into hits: US listings only, and one entry per coin.
+ */
+export function foreignHits(quotes: RemoteQuote[], cls: "us" | "crypto"): SearchHit[] {
+  const out = new Map<string, SearchHit>();
+  for (const q of quotes) {
+    if (!q.symbol) continue;
+    const name = q.longname ?? q.shortname ?? q.symbol;
+    if (cls === "us" && (q.quoteType === "EQUITY" || q.quoteType === "ETF") && US_EXCHANGES.has(q.exchange ?? "") && /^[A-Z][A-Z.-]{0,9}$/.test(q.symbol))
+      out.set(q.symbol, { symbol: `${US_PREFIX}${q.symbol}`, name, assetClass: "us", isin: null, sub: `${q.symbol} · ${q.quoteType === "ETF" ? "US ETF" : "US stock"} · ${q.exchDisp ?? "US"}` });
+    if (cls === "crypto" && q.quoteType === "CRYPTOCURRENCY" && /^[A-Z0-9]{2,10}-USD$/.test(q.symbol)) {
+      const coin = q.symbol.slice(0, -4);
+      out.set(coin, { symbol: `${CRYPTO_PREFIX}${coin}`, name: name.replace(/ USD$/, ""), assetClass: "crypto", isin: null, sub: `${coin} · priced in rupees at the day's dollar rate` });
+    }
+  }
+  return [...out.values()];
+}
 
 /**
  * Search across every asset class. With `classes` unset, results are balanced so that a stock, its

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@electric-sql/pglite", "yahoo-finance2", "pino"],
+  serverExternalPackages: ["@electric-sql/pglite", "yahoo-finance2", "pino", "unpdf"],
   // Hide the floating dev-mode badge (it overlaps the bottom tab bar in screenshots).
   devIndicators: false,
   // Pin the project root (a stray lockfile higher up the tree otherwise confuses Next's inference).

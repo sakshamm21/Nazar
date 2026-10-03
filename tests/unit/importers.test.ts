@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseHoldings, toNumber } from "@/lib/importers/brokers";
+import { parseHoldings, parseSheets, toNumber } from "@/lib/importers/brokers";
+import { parseCas } from "@/lib/importers/cas";
+import { getCatalog } from "@/lib/instruments/catalog";
 import { parseCsv, sniffDelimiter } from "@/lib/importers/csv";
-import { readTable } from "@/lib/importers/read";
+import { isPdf, readPdfText, readTable, readTables } from "@/lib/importers/read";
 import { resolve, resolveLocal } from "@/lib/importers/resolve";
 import { buildIndex, getMaster, normalizeName, shortName } from "@/lib/instruments/master";
 
@@ -142,3 +144,98 @@ describe("Ticker resolution", () => {
     expect(shortName("Infosys Limited")).toBe("Infosys");
   });
 });
+
+describe("mutual funds: sheets and statements", () => {
+  it("a fund sheet with units and the amount invested works out the average NAV", () => {
+    const r = parseHoldings([["Scheme Name", "ISIN", "Units", "Invested Value", "Current Value"], ["Parag Parikh Flexi Cap Fund Direct Growth", "INF879O01027", "1,000.500", "75,000", "88,300"], ["Total", "", "", "75,000", ""]]);
+    expect(r.broker).toBe("generic");
+    expect(r.rows).toHaveLength(1);
+    expect(r.rows[0]).toMatchObject({ isin: "INF879O01027", quantity: 1000.5 });
+    expect(r.rows[0].avgPrice).toBeCloseTo(74.9625, 3);
+  });
+
+  it("a workbook with stocks on one sheet and funds on another imports both", async () => {
+    const ExcelJS = (await import("exceljs")).default;
+    const wb = new ExcelJS.Workbook();
+    const eq = wb.addWorksheet("Equity");
+    eq.addRow(["Symbol", "ISIN", "Sector", "Quantity Available", "Quantity Discrepant", "Quantity Long Term", "Quantity Pledged (Margin)", "Quantity Pledged (Loan)", "Average Price"]);
+    eq.addRow(["INFY", "INE009A01021", "IT", 10, 0, 0, 0, 0, 1500]);
+    eq.addRow(["TCS", "INE467B01029", "IT", 5, 0, 0, 0, 0, 3200]);
+    const mf = wb.addWorksheet("Mutual Funds");
+    mf.addRow(["Symbol", "ISIN", "Instrument Type", "Quantity Available", "Quantity Discrepant", "Quantity Long Term", "Quantity Pledged (Margin)", "Quantity Pledged (Loan)", "Average Price"]);
+    mf.addRow(["PARAG PARIKH FLEXI CAP FUND - DIRECT PLAN", "INF879O01027", "MF", 250.75, 0, 0, 0, 0, 71.2]);
+    const tables = await readTables(new Uint8Array((await wb.xlsx.writeBuffer()) as ArrayBuffer), "holdings.xlsx");
+    expect(tables).toHaveLength(2);
+    const r = parseSheets(tables);
+    expect(r.rows.map((x) => x.isin)).toEqual(["INE009A01021", "INE467B01029", "INF879O01027"]);
+    expect(getCatalog().byIsin.get(r.rows[2].isin!)).toMatchObject({ assetClass: "mf", symbol: "MF:122639" });
+  });
+
+  const CAS = [
+    "Consolidated Account Statement 01-Apr-2025 To 30-Sep-2026",
+    "PPFAS Mutual Fund",
+    "Folio No: 12345678 / 0",
+    "PP001ZG-Parag Parikh Flexi Cap Fund - Direct Plan - Growth (Advisor: DIRECT) - ISIN: INF879O01027",
+    "Opening Unit Balance: 0.000",
+    "10-Apr-2025 Purchase 2,00,000.00 2,800.112 71.4257 2,800.112",
+    "Closing Unit Balance: 3,965.696 NAV on 30-Sep-2026: INR 88.2569 Total Cost Value: 3,00,000.00 Market Value on 30-Sep-2026: INR 3,50,000.12",
+    "Folio No: 99887766 / 0",
+    "PP001ZG-Parag Parikh Flexi Cap Fund - Direct Plan - Growth (Advisor: DIRECT) - ISIN: INF879O01027",
+    "Closing Unit Balance: 34.304 NAV on 30-Sep-2026: INR 88.2569 Total Cost Value: 2,500.00 Market Value on 30-Sep-2026: INR 3,027.56",
+    "UTI Mutual Fund",
+    "Folio No: 555 / 12",
+    "120716-UTI Nifty 50 Index Fund - Direct Plan - Growth (Advisor: DIRECT) - ISIN: INF789F01XA0",
+    "Closing Unit Balance: 1,000.000 NAV on 30-Sep-2026: INR 157.8901 Market Value on 30-Sep-2026: INR 1,57,890.10",
+    "HDFC Mutual Fund",
+    "H02T-HDFC Liquid Fund - Direct Plan - Growth - ISIN: INF179KB1HP9",
+    "Closing Unit Balance: 0.000 NAV on 30-Sep-2026: INR 5,598.08 Total Cost Value: 0.00 Market Value on 30-Sep-2026: INR 0.00",
+  ].join("\n");
+
+  it("a CAMS / KFintech statement: units and cost per scheme, folios added together", () => {
+    const r = parseCas(CAS);
+    expect(r).toMatchObject({ broker: "cas", format: "Mutual fund statement (CAMS / KFintech)" });
+    expect(r.rows).toHaveLength(2);
+    const flexi = r.rows.find((x) => x.isin === "INF879O01027")!;
+    expect(flexi.quantity).toBe(4000);
+    expect(flexi.avgPrice).toBeCloseTo(302_500 / 4000, 4);
+    expect(flexi.rawName).toMatch(/^Parag Parikh Flexi Cap Fund - Direct Plan - Growth/);
+    // No cost in the statement: valued at the NAV, and the user is told.
+    expect(r.rows.find((x) => x.isin === "INF789F01XA0")).toMatchObject({ quantity: 1000, avgPrice: 157.8901 });
+    expect(r.notes[0]).toMatch(/One fund has no cost/);
+    expect(r.skipped).toEqual([expect.objectContaining({ reason: expect.stringMatching(/HDFC Liquid Fund.*fully redeemed/) })]);
+  });
+
+  it("refuses a PDF that isn't a fund statement", () => {
+    expect(() => parseCas("Invoice 42\nTotal due: 100")).toThrow(/doesn't look like a mutual fund statement/);
+  });
+
+  it("reads the statement out of a real PDF file", async () => {
+    const text = await readPdfText(pdfOf(CAS.split("\n")));
+    expect(isPdf(pdfOf(["x"]), "statement.bin")).toBe(true);
+    const r = parseCas(text);
+    expect(r.rows.map((x) => [x.isin, x.quantity])).toEqual([["INF879O01027", 4000], ["INF789F01XA0", 1000]]);
+  });
+});
+
+/** A minimal one-page PDF with one line of text per entry (enough for a text extractor to read). */
+function pdfOf(lines: string[]): Uint8Array {
+  const esc = (s: string) => s.replace(/[\\()]/g, (c) => "\\" + c);
+  const stream = "BT /F1 9 Tf 40 780 Td 12 TL\n" + lines.map((l) => `(${esc(l)}) Tj T*`).join("\n") + "\nET";
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let out = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  objs.forEach((o, i) => {
+    offsets.push(out.length);
+    out += `${i + 1} 0 obj\n${o}\nendobj\n`;
+  });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new TextEncoder().encode(out);
+}

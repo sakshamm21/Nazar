@@ -7,15 +7,16 @@ import { IrisLoader } from "@/components/rings/iris";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { FormAlert, Select } from "@/components/ui/field";
+import { Field, FormAlert, Input, Select } from "@/components/ui/field";
 import { inr } from "@/lib/format";
-import { apiCall } from "@/lib/api-client";
+import { ApiError, apiCall } from "@/lib/api-client";
+import { shortCode } from "@/lib/instruments/asset-classes";
 
 type Resolution = { status: "matched"; symbol: string; name: string; isin: string | null; via: string } | { status: "ambiguous"; candidates: { symbol: string; name: string }[] } | { status: "unmatched"; reason: string };
 type Row = { line: number; rawName: string; symbol: string | null; isin: string | null; quantity: number; avgPrice: number; buyDate: string | null; resolution: Resolution };
 
 const VIA: Record<string, string> = { isin: "ISIN", symbol: "Symbol", alias: "Renamed ticker", name: "Name", partial: "Name", search: "Search" };
-const BROKER: Record<string, string> = { zerodha: "Zerodha", groww: "Groww", upstox: "Upstox", generic: "spreadsheet" };
+const BROKER: Record<string, string> = { zerodha: "Zerodha", groww: "Groww", upstox: "Upstox", generic: "your spreadsheet", cas: "your fund statement" };
 
 export function Importer({ portfolios, defaultId }: { portfolios: { id: string; label: string }[]; defaultId: string | null }) {
   const router = useRouter();
@@ -23,23 +24,32 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
   const [target, setTarget] = useState(defaultId ?? portfolios[0]?.id ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<{ broker: string; format: string; rows: Row[]; skipped: { line: number; reason: string }[] } | null>(null);
+  const [preview, setPreview] = useState<{ broker: string; format: string; rows: Row[]; skipped: { line: number; reason: string }[]; notes?: string[] } | null>(null);
+  // A statement PDF that needs its password: kept in memory until the user types it.
+  const [locked, setLocked] = useState<{ file: File; wrong: boolean } | null>(null);
+  const [password, setPassword] = useState("");
   const [choice, setChoice] = useState<Record<number, string>>({});
   const [drag, setDrag] = useState(false);
 
-  const upload = async (file: File) => {
+  const upload = async (file: File, pdfPassword?: string) => {
     setBusy(true);
     setError(null);
     setPreview(null);
     try {
       const fd = new FormData();
       fd.append("file", file);
+      if (pdfPassword) fd.append("password", pdfPassword);
       const j = await apiCall(`/api/portfolios/${target}/import`, "POST", fd, "Couldn't read that file.");
       setPreview(j);
       const init: Record<number, string> = {};
       for (const r of j.rows as Row[]) init[r.line] = r.resolution.status === "matched" ? r.resolution.symbol : r.resolution.status === "ambiguous" ? r.resolution.candidates[0].symbol : "";
       setChoice(init);
+      setLocked(null);
+      setPassword("");
     } catch (e) {
+      const code = e instanceof ApiError ? e.code : undefined;
+      if (code === "PDF_PASSWORD" || code === "PDF_PASSWORD_WRONG") return setLocked({ file, wrong: code === "PDF_PASSWORD_WRONG" });
+      setLocked(null);
       setError((e as Error).message);
     } finally {
       setBusy(false);
@@ -83,7 +93,33 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
         </div>
       )}
 
-      {!preview && (
+      {!preview && locked && (
+        <Card className="p-5 sm:p-6">
+          <h2 className="t-title-2 text-text">This statement needs its password</h2>
+          <p className="mt-1 text-sm text-muted">It is the password you chose when you requested the statement from CAMS or KFintech. Nazar uses it once to open the file and doesn&apos;t keep it.</p>
+          <form
+            className="mt-4 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (password) void upload(locked.file, password);
+            }}
+          >
+            <div className="flex-1">
+              <Field label="Statement password" htmlFor="pdf-password" error={locked.wrong ? "That password didn't open it. Try again." : null}>
+                <Input id="pdf-password" type="password" autoFocus autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} />
+              </Field>
+            </div>
+            <Button type="submit" loading={busy}>
+              Open statement
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => { setLocked(null); setPassword(""); }}>
+              Cancel
+            </Button>
+          </form>
+        </Card>
+      )}
+
+      {!preview && !locked && (
         <Card
           className={`grid place-items-center border-dashed p-10 text-center transition-colors ${drag ? "border-accent bg-accent-soft" : ""}`}
           onDragOver={(e) => {
@@ -100,7 +136,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
         >
           {busy ? (
             <div className="flex flex-col items-center gap-3 text-sm text-muted">
-              <IrisLoader size={36} label="Reading your file" /> Reading your file and matching NSE tickers…
+              <IrisLoader size={36} label="Reading your file" /> Reading your file and matching each holding…
             </div>
           ) : (
             <>
@@ -108,8 +144,8 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
                 <FileSpreadsheet className="h-6 w-6" />
               </span>
               <h2 className="t-title-2 mt-4 text-text">Drop your holdings file here</h2>
-              <p className="mt-1 max-w-md text-sm text-muted">CSV or XLSX from Zerodha (Console or Kite), Groww or Upstox, or any sheet with name, quantity and average price. Nothing is saved until you confirm.</p>
-              <input ref={input} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+              <p className="mt-1 max-w-md text-sm text-muted">A holdings file from Zerodha, Groww or Upstox (CSV or XLSX), a mutual fund statement from CAMS or KFintech (PDF), or any sheet with name, quantity and average price. Nothing is saved until you confirm.</p>
+              <input ref={input} type="file" accept=".csv,.xlsx,.pdf,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
               <Button className="mt-5" onClick={() => input.current?.click()}>
                 <Upload className="h-4 w-4" /> Choose a file
               </Button>
@@ -134,7 +170,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
                 Choose another file
               </Button>
               <Button loading={busy} onClick={confirm}>
-                Import {matched} from {BROKER[preview.broker]}
+                Import {matched} from {BROKER[preview.broker] ?? "your file"}
               </Button>
             </div>
           </div>
@@ -153,12 +189,12 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
                   </div>
                   {res.status === "matched" ? (
                     <span className="flex items-center gap-2">
-                      <span className="font-mono text-[13px] text-text">{res.symbol.replace(/\.NS$/, "")}</span>
+                      <span className="max-w-[14rem] truncate font-mono text-[13px] text-text">{res.symbol.startsWith("MF:") ? res.name : shortCode(res.symbol)}</span>
                       <Chip>{VIA[res.via]}</Chip>
                     </span>
                   ) : (
                     <Select aria-label={`Match for ${r.rawName}`} className="h-9 w-56 text-sm" value={choice[r.line] ?? ""} onChange={(e) => setChoice({ ...choice, [r.line]: e.target.value })}>
-                      {res.status === "ambiguous" && res.candidates.map((c) => <option key={c.symbol} value={c.symbol}>{`${c.symbol.replace(/\.NS$/, "")} · ${c.name}`}</option>)}
+                      {res.status === "ambiguous" && res.candidates.map((c) => <option key={c.symbol} value={c.symbol}>{c.symbol.startsWith("MF:") ? c.name : `${shortCode(c.symbol)} · ${c.name}`}</option>)}
                       <option value="">{res.status === "unmatched" ? "Not found: skip this row" : "Skip this row"}</option>
                     </Select>
                   )}
@@ -166,7 +202,12 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
               );
             })}
           </ul>
-          {preview.skipped.length > 0 && <p className="t-caption mt-3">Skipped {preview.skipped.length} rows without a quantity or price ({preview.skipped.map((s) => s.reason).slice(0, 3).join("; ")}).</p>}
+          {preview.notes?.map((n) => (
+            <p key={n} className="mt-3 rounded-[12px] bg-warn-soft px-3.5 py-2.5 text-sm text-text">
+              {n}
+            </p>
+          ))}
+          {preview.skipped.length > 0 && <p className="t-caption mt-3">Skipped {preview.skipped.length} {preview.skipped.length === 1 ? "row" : "rows"} ({preview.skipped.map((s) => s.reason).slice(0, 3).join("; ")}).</p>}
         </Card>
       )}
     </div>

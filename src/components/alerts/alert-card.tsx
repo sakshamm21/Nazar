@@ -26,7 +26,7 @@ export type AlertDTO = {
   portfolio: { id: string; label: string; language: "en" | "hi" } | null;
 };
 
-const REASON: Record<string, string> = { market: "Whole market", sector: "Sector-wide", results: "After results", company: "Company-specific" };
+const REASON: Record<string, string> = { market: "Whole market", sector: "Sector-wide", results: "After results", company: "Company-specific", asset: "Its own market" };
 
 function analysisHref(a: AlertDTO) {
   if (a.type === "portfolio_move") return "/home/today";

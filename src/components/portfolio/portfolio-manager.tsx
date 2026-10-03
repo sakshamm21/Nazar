@@ -30,7 +30,7 @@ const SORTS: { value: SortKey; label: string }[] = [
   { value: "changePct", label: "Today's movers first" },
   { value: "name", label: "Name (A to Z)" },
 ];
-const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: 3 });
+const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
 export function PortfolioManager({ portfolios, activeId, rows, totals, allocation, watching, isDemo }: { portfolios: Pf[]; activeId: string | null; rows: Row[]; totals: Totals; allocation: Slice[]; watching: Watch[]; isDemo: boolean }) {
   const router = useRouter();
@@ -215,7 +215,7 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRemove: () => void }) {
   const manual = isManualClass(r.assetClass);
   const meta = ASSET_META[r.assetClass];
-  const sub = manual ? [meta.label, r.details?.ratePct ? `${r.details.ratePct}% a year` : null, r.details?.maturityDate ? `matures ${r.details.maturityDate}` : null] : [r.assetClass === "mf" || r.assetClass === "gold" ? null : shortCode(r.symbol), r.category];
+  const sub = manual ? [meta.label, r.details?.ratePct ? `${r.details.ratePct}% a year` : null, r.details?.maturityDate ? `matures ${r.details.maturityDate}` : null] : [r.assetClass === "mf" || r.assetClass === "gold" ? null : shortCode(r.symbol), r.category ?? (r.assetClass === "us" || r.assetClass === "crypto" ? meta.label : null)];
   const title = <span className="block truncate font-medium text-text">{r.name}</span>;
   return (
     <li className="flex items-center gap-3 px-5 py-3.5 sm:px-6">

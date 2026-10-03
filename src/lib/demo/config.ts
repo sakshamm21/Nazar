@@ -18,7 +18,7 @@ const FUND = { flexi: "MF:122639", nifty: "MF:120716", small: "MF:125497", balan
 /** Stocks first, with funds, ETFs, a REIT, gold and deposits around them; plus a parent's portfolio in Hindi. */
 const INVESTOR: Persona = {
   id: "investor",
-  watching: ["TITAN.NS", "ASIANPAINT.NS", "ETERNAL.NS", "JUNIORBEES.NS"],
+  watching: ["TITAN.NS", "ASIANPAINT.NS", "ETERNAL.NS", "JUNIORBEES.NS", "US:NVDA"],
   portfolios: [
     {
       name: "My portfolio",
@@ -46,6 +46,9 @@ const INVESTOR: Persona = {
         { symbol: "GOLDBEES.NS", value: 80_000, daysAgo: 190 },
         { symbol: "EMBASSY.BO", value: 90_000, daysAgo: 230 },
         { symbol: "CMD:SGB", value: 200_000, daysAgo: 300 },
+        { symbol: "US:AAPL", value: 150_000, daysAgo: 280 },
+        { symbol: "US:MSFT", value: 120_000, daysAgo: 240 },
+        { symbol: "CRYPTO:BTC", value: 90_000, daysAgo: 200 },
       ],
       manual: [
         { assetClass: "fd", name: "SBI fixed deposit", invested: 300_000, value: 300_000, valueDaysAgo: 400, ratePct: 7.25, startDaysAgo: 400, maturesInDays: 695 },
@@ -97,6 +100,8 @@ const SAVER: Persona = {
         { symbol: "MINDSPACE.BO", value: 70_000, daysAgo: 180 },
         { symbol: "CMD:GOLD24", value: 160_000, daysAgo: 310 },
         { symbol: "CMD:SILVER", value: 60_000, daysAgo: 150 },
+        { symbol: "US:VOO", value: 200_000, daysAgo: 300 },
+        { symbol: "CRYPTO:ETH", value: 40_000, daysAgo: 170 },
         { symbol: "TCS.NS", value: 110_000, daysAgo: 270 },
         { symbol: "HDFCBANK.NS", value: 130_000, daysAgo: 300 },
         { symbol: "ITC.NS", value: 70_000, daysAgo: 220 },
@@ -125,8 +130,8 @@ export const PERSONA_SYMBOLS = [...new Set(Object.values(PERSONAS).flatMap((p) =
 export const TEST_PASSWORD = "nazar123";
 export type TestAccount = { email: string; name: string; persona: Persona["id"] | null; label: string; blurb: string };
 export const TEST_ACCOUNTS: TestAccount[] = [
-  { email: "demo@nazar.dev", name: "Aarav Mehta", persona: "investor", label: "Aarav, the investor", blurb: "14 stocks plus funds, ETFs, a REIT, gold and deposits. Also tracks his father's portfolio in Hindi." },
-  { email: "riya@nazar.dev", name: "Riya Kapoor", persona: "saver", label: "Riya, the saver", blurb: "Mostly mutual funds and ETFs, with gold, silver, PPF, EPF, NPS and an emergency fund." },
+  { email: "demo@nazar.dev", name: "Aarav Mehta", persona: "investor", label: "Aarav, the investor", blurb: "14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits. Also tracks his father's portfolio in Hindi." },
+  { email: "riya@nazar.dev", name: "Riya Kapoor", persona: "saver", label: "Riya, the saver", blurb: "Mostly mutual funds and ETFs, with gold, silver, a US index fund, PPF, EPF, NPS and an emergency fund." },
   { email: "tester1@nazar.dev", name: "Kabir Shah", persona: "investor", label: "Kabir (a second investor)", blurb: "A separate copy of the investor account, for a second tester." },
   { email: "tester2@nazar.dev", name: "Meera Nair", persona: "saver", label: "Meera (a second saver)", blurb: "A separate copy of the saver account, for a second tester." },
   { email: "new@nazar.dev", name: "Isha Rao", persona: null, label: "Isha, brand new", blurb: "An empty account: build a portfolio from scratch." },
@@ -135,6 +140,13 @@ export const isTestEmail = (email: string) => TEST_ACCOUNTS.some((a) => a.email 
 
 /** Internal: the hidden account each persona's history is built on; test accounts are copies of it. */
 export const templateEmail = (persona: Persona["id"]) => `template+${persona}@nazar.internal`;
+
+/** Changes whenever the personas or accounts above change, so existing accounts are rebuilt to match. */
+export const PERSONA_VERSION = (() => {
+  let h = 0;
+  for (const c of JSON.stringify([PERSONAS, TEST_ACCOUNTS.map((a) => [a.email, a.name, a.persona])])) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h.toString(36);
+})();
 
 /** Sessions of real market history the alert engine is replayed over when a persona is first built. */
 export const HISTORY_DAYS = 45;

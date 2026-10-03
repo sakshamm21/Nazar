@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { badRequest } from "@/lib/errors";
 import { marketProvider } from "@/lib/data/market";
 import { istDate } from "@/lib/data/provider";
-import { isManualSymbol } from "@/lib/instruments/asset-classes";
+import { isForeignSymbol, isManualSymbol } from "@/lib/instruments/asset-classes";
 import { catalogItem } from "@/lib/instruments/catalog";
 import { rateLimit } from "@/lib/limits";
 import { snapshotsAsOf, sourcesFor } from "@/lib/market/store";
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
 export const GET = api(async (req) => {
   const u = await requireUser(req);
   const symbol = new URL(req.url).searchParams.get("symbol")?.trim().toUpperCase() ?? "";
-  if (!symbol || isManualSymbol(symbol) || !catalogItem(symbol)) throw badRequest("Unknown instrument.");
+  if (!symbol || isManualSymbol(symbol) || !(catalogItem(symbol) || (isForeignSymbol(symbol) && /^[A-Z]+:[A-Z0-9.-]{1,12}$/.test(symbol)))) throw badRequest("Unknown instrument.");
   const db = await getDb();
   const stored = (await snapshotsAsOf(db, [symbol], istDate(new Date()), sourcesFor(u))).get(symbol);
   if (stored?.price != null) return json({ symbol, price: stored.price, asOf: stored.tradeDate });

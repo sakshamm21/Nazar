@@ -4,10 +4,12 @@
  * Market assets have a symbol and a daily price from a free source:
  *   stock, etf, reit → Yahoo ("INFY.NS")      mf → AMFI daily NAV ("MF:122639")
  *   gold → the gold or silver price in rupees per gram ("CMD:GOLD24")
+ *   us → a US-listed stock or ETF ("US:AAPL")   crypto → a coin ("CRYPTO:BTC")
+ *        both from Yahoo in dollars, converted to rupees at the day's USD/INR rate
  * Manual assets (deposits, provident funds, property, cash…) have no price feed anywhere. Their
  * symbol is "MANUAL:<id>" and their value is what the user entered, growing at the rate they gave.
  */
-export const MARKET_CLASSES = ["stock", "etf", "mf", "reit", "gold"] as const;
+export const MARKET_CLASSES = ["stock", "etf", "mf", "reit", "gold", "us", "crypto"] as const;
 export const MANUAL_CLASSES = ["fd", "ppf", "epf", "nps", "bond", "property", "cash", "other"] as const;
 export const ASSET_CLASSES = [...MARKET_CLASSES, ...MANUAL_CLASSES] as const;
 
@@ -15,7 +17,7 @@ export type MarketClass = (typeof MARKET_CLASSES)[number];
 export type ManualClass = (typeof MANUAL_CLASSES)[number];
 export type AssetClass = (typeof ASSET_CLASSES)[number];
 
-export type AssetGroup = "Stocks" | "ETFs" | "Mutual funds" | "REITs & InvITs" | "Gold & silver" | "Fixed income" | "Retirement" | "Property" | "Cash" | "Other";
+export type AssetGroup = "Stocks" | "ETFs" | "Mutual funds" | "REITs & InvITs" | "US stocks" | "Crypto" | "Gold & silver" | "Fixed income" | "Retirement" | "Property" | "Cash" | "Other";
 
 type Meta = { label: string; plural: string; group: AssetGroup; unit: string; priceLabel: string };
 
@@ -25,6 +27,8 @@ export const ASSET_META: Record<AssetClass, Meta> = {
   mf: { label: "Mutual fund", plural: "Mutual funds", group: "Mutual funds", unit: "units", priceLabel: "Average NAV" },
   reit: { label: "REIT / InvIT", plural: "REITs & InvITs", group: "REITs & InvITs", unit: "units", priceLabel: "Average price" },
   gold: { label: "Gold & silver", plural: "Gold & silver", group: "Gold & silver", unit: "grams", priceLabel: "Average price per gram" },
+  us: { label: "US stock", plural: "US stocks", group: "US stocks", unit: "shares", priceLabel: "Average price" },
+  crypto: { label: "Crypto", plural: "Crypto", group: "Crypto", unit: "coins", priceLabel: "Average price per coin" },
   fd: { label: "Fixed deposit", plural: "Fixed deposits", group: "Fixed income", unit: "", priceLabel: "" },
   bond: { label: "Bond", plural: "Bonds", group: "Fixed income", unit: "", priceLabel: "" },
   ppf: { label: "PPF", plural: "PPF", group: "Retirement", unit: "", priceLabel: "" },
@@ -36,12 +40,14 @@ export const ASSET_META: Record<AssetClass, Meta> = {
 };
 
 /** Display order of groups, and the colour token each one uses in allocation bars. */
-export const GROUP_ORDER: AssetGroup[] = ["Stocks", "Mutual funds", "ETFs", "REITs & InvITs", "Gold & silver", "Fixed income", "Retirement", "Property", "Cash", "Other"];
+export const GROUP_ORDER: AssetGroup[] = ["Stocks", "Mutual funds", "ETFs", "REITs & InvITs", "US stocks", "Gold & silver", "Crypto", "Fixed income", "Retirement", "Property", "Cash", "Other"];
 export const GROUP_COLOR: Record<AssetGroup, string> = {
   Stocks: "var(--accent)",
   "Mutual funds": "var(--gain)",
   ETFs: "var(--ice)",
   "REITs & InvITs": "#b08cff",
+  "US stocks": "#8fb6ff",
+  Crypto: "#ff9d5c",
   "Gold & silver": "var(--warn)",
   "Fixed income": "#5ec2e8",
   Retirement: "#e08bc0",
@@ -60,18 +66,26 @@ export const isManualClass = (c: string | null | undefined): c is ManualClass =>
 
 export const MF_PREFIX = "MF:";
 export const CMD_PREFIX = "CMD:";
+export const US_PREFIX = "US:";
+export const CRYPTO_PREFIX = "CRYPTO:";
 export const MANUAL_PREFIX = "MANUAL:";
 
 export const isMfSymbol = (s: string) => s.startsWith(MF_PREFIX);
 export const isCommoditySymbol = (s: string) => s.startsWith(CMD_PREFIX);
 export const isManualSymbol = (s: string) => s.startsWith(MANUAL_PREFIX);
-/** Priced by Nazar from a non-exchange source: there is one value a day, pinned to the market session. */
-export const isSyntheticSymbol = (s: string) => isMfSymbol(s) || isCommoditySymbol(s);
+export const isUsSymbol = (s: string) => s.startsWith(US_PREFIX);
+export const isCryptoSymbol = (s: string) => s.startsWith(CRYPTO_PREFIX);
+/** Quoted in dollars abroad and converted to rupees. */
+export const isForeignSymbol = (s: string) => isUsSymbol(s) || isCryptoSymbol(s);
+/** Priced by Nazar rather than quoted on an Indian exchange: there is one value a day, pinned to the Indian market session. */
+export const isSyntheticSymbol = (s: string) => isMfSymbol(s) || isCommoditySymbol(s) || isForeignSymbol(s);
+/** The class a symbol's prefix implies, or null for an exchange symbol (looked up in the catalogue). */
+export const classOfPrefix = (s: string): MarketClass | null => (isMfSymbol(s) ? "mf" : isCommoditySymbol(s) ? "gold" : isUsSymbol(s) ? "us" : isCryptoSymbol(s) ? "crypto" : null);
 export const mfSymbol = (schemeCode: string | number) => `${MF_PREFIX}${schemeCode}`;
 export const mfCode = (symbol: string) => symbol.slice(MF_PREFIX.length);
 
 /** "INFY.NS" → "INFY", "MF:122639" → "122639": the short code shown under a name. */
-export const shortCode = (symbol: string) => symbol.replace(/\.(NS|BO)$/, "").replace(/^(MF|CMD|MANUAL):/, "");
+export const shortCode = (symbol: string) => symbol.replace(/\.(NS|BO)$/, "").replace(/^(MF|CMD|US|CRYPTO|MANUAL):/, "");
 
 /**
  * Gold and silver, priced per gram in rupees from the international price and USD/INR.

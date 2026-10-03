@@ -38,7 +38,7 @@ Signing in is required: there is no anonymous demo. See [the test accounts](#tes
 | **H6** | Family portfolios in Hindi | Track a parent's portfolio separately. A confirmed family member gets a Sunday report and the important alerts by email, in Hindi. |
 | | Test accounts | Five, one tap each on the sign-in page, all on live data: two investors, two savers and an empty one. "Simulate a bad day" and a guided tour. |
 | | Profile | Your name, email, what you track at a glance, password change and account deletion, under **You**. |
-| | Portfolios | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Import from Zerodha, Groww or Upstox (CSV/Excel), keep a "Watching" list, set price levels. Prices refresh when you open the app. |
+| | Portfolios | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver, US stocks and crypto; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Import a holdings file from Zerodha, Groww or Upstox (CSV/Excel) or a mutual fund statement from CAMS / KFintech (PDF), keep a "Watching" list, set price levels. Prices refresh when you open the app. |
 | | Ask | An AI research assistant with 28 tools over live market data and read-only access to your portfolio. It opens with a guided start: how it works, and example questions by topic that name your own holdings. It is the only part of Nazar that uses an AI model. |
 
 ## How it works
@@ -67,13 +67,14 @@ flowchart LR
 
   Pages read only from the database, so they are fast and keep showing the last known prices when a data source is down.
 - **Built for free-tier limits.** Vercel's free plan runs each cron job once a day and stops functions at 300 seconds. So the checkup is a resumable state machine: it keeps a lock, a cursor and a 240-second budget, and three evening runs each continue where the last one stopped. Every write is idempotent, so a re-run never duplicates an alert or an email.
-- **Every asset class from free sources.** Exchange-traded assets come from Yahoo; mutual fund NAVs from AMFI's daily file (history from mfapi.in); gold and silver per gram from the international price and USD/INR plus import duty. Deposits, provident funds, property and cash have no price feed, so they hold the value the user entered and grow at the rate the user gave.
+- **Every asset class from free sources.** Exchange-traded assets come from Yahoo; mutual fund NAVs from AMFI's daily file (history from mfapi.in); gold and silver per gram from the international price and USD/INR plus import duty; US stocks and crypto from Yahoo's dollar price converted to rupees at the day's rate. Deposits, provident funds, property and cash have no price feed, so they hold the value the user entered and grow at the rate the user gave.
 - **Refresh on open.** Opening the app makes one batched quote call for that user's holdings, at most every 15 minutes, stored exactly as the nightly checkup stores it. Pages still read only from the database, and alerts are still decided once a day.
-- **Explainable rules, not a black box.** The "likely reason" compares a stock's move with the Nifty × its beta and with its sector index. The learning step raises a threshold only when your ratings clearly separate useful alerts from the rest.
+- **Explainable rules, not a black box.** The "likely reason" compares a stock's move with the Nifty × its beta and with its sector index. A fund, gold, a US stock or a coin is never called "company-specific": it is either the market, or its own market, with a plain sentence saying which. The learning step raises a threshold only when your ratings clearly separate useful alerts from the rest.
 - **No advice, enforced.** Alerts and reports come from fixed templates, not from an AI model, so every sentence is reproducible and testable. A guard with English, Hindi and Hinglish patterns checks every alert, report and email before it is saved or sent.
 - **No captured or hand-written market data.** The test accounts are ordinary accounts on the same live sources as everyone else. When one is first built, the real alert engine is replayed over the last 45 real market sessions and the real tuner learns from the persona's ratings, so its history is genuine. Only "Simulate a bad day" is generated, and it is labelled as a simulation everywhere it appears.
 
 - **Functions run next to the database.** The free Neon database is in AWS us-east-1, so Vercel functions run in `iad1` too. A page pays the long hop to India once per request instead of once per query.
+- **One rupee view.** Everything is held and shown in rupees. A US stock or a coin is converted at the day's dollar rate, so its value here moves with both its price and the rupee.
 - **Deliberately not built.** Analyst ratings and target prices (they are recommendations), dividend alerts (Yahoo's NSE dividend dates are unreliable), live intraday prices (a daily watchdog, not a trading screen), and Telegram, WhatsApp or push notifications (more outside services to run).
 
 ## Tech stack
@@ -110,7 +111,7 @@ src/
     pipeline/             The nightly checkup: collect, evaluate, deliver, first look for new stocks
     data/                 Market-data provider (Yahoo) with retries, rate limiting and a circuit breaker
     market/               Reading stored prices and snapshots for a portfolio and a day
-    importers/            Broker file parsers (Zerodha, Groww, Upstox) and NSE symbol resolution
+    importers/            Broker file parsers (Zerodha, Groww, Upstox), mutual fund statements (CAMS / KFintech PDF) and symbol resolution
     reports/              Weekly reports (EN/HI)
     demo/                 Test accounts (personas on live data) and "Simulate a bad day"
     ask/                  The Ask assistant: tools, prompt, topic filter, model catalog
@@ -143,8 +144,8 @@ Signing in is required. The sign-in page lists five test accounts, one tap each 
 
 | Account | What it holds |
 |---|---|
-| `demo@nazar.dev` · Aarav, the investor | 14 stocks, three mutual funds, two ETFs, a REIT, a Sovereign Gold Bond, an FD, PPF and EPF; plus "Papa's portfolio" in Hindi (stocks, a fund, jewellery, a post office deposit, savings) |
-| `riya@nazar.dev` · Riya, the saver | Five mutual funds, three ETFs, a REIT, gold, silver, three stocks, an FD, PPF, EPF, NPS, a bond and an emergency fund |
+| `demo@nazar.dev` · Aarav, the investor | 14 stocks, three mutual funds, two ETFs, a REIT, a Sovereign Gold Bond, Apple, Microsoft, Bitcoin, an FD, PPF and EPF; plus "Papa's portfolio" in Hindi (stocks, a fund, jewellery, a post office deposit, savings) |
+| `riya@nazar.dev` · Riya, the saver | Five mutual funds, three ETFs, a REIT, gold, silver, a US index fund, Ethereum, three stocks, an FD, PPF, EPF, NPS, a bond and an emergency fund |
 | `tester1@nazar.dev` · Kabir | A separate copy of the investor |
 | `tester2@nazar.dev` · Meera | A separate copy of the saver |
 | `new@nazar.dev` · Isha | Empty, for building a portfolio from scratch |
@@ -180,7 +181,7 @@ Every variable is documented, one per line, in `.env.example`.
 | Command | What it does |
 |---|---|
 | `npm run dev` | Run the app locally with the test accounts |
-| `npm test` | Unit and integration tests (228 tests, about 20 seconds) |
+| `npm test` | Unit and integration tests (237 tests, about 30 seconds) |
 | `npm run test:e2e` | Playwright click-through of every hero flow, on its own database |
 | `npm run lint` · `npm run typecheck` | ESLint and TypeScript checks |
 | `npm run demo:reset` | Rebuild the local database and test accounts (stop `npm run dev` first) |
@@ -192,7 +193,7 @@ Every variable is documented, one per line, in `.env.example`.
 ## Testing
 
 - **Unit tests** cover the logic that decides what users are told:
-  - broker file parsing and symbol resolution;
+  - broker file parsing, mutual fund statements (PDF) and symbol resolution;
   - portfolio maths and the quant models;
   - every alert rule, the likely reason and de-duplication;
   - the learning step and family routing;

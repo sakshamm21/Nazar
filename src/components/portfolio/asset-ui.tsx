@@ -1,4 +1,4 @@
-import { Building2, Coins, Home, Landmark, Layers, Package, PieChart, PiggyBank, ScrollText, ShieldCheck, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
+import { Bitcoin, Building2, Coins, Globe2, Home, Landmark, Layers, Package, PieChart, PiggyBank, ScrollText, ShieldCheck, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { ASSET_META, GROUP_COLOR, groupOf, type AssetClass, type AssetGroup } from "@/lib/instruments/asset-classes";
 import { cn } from "@/lib/cn";
 
@@ -8,6 +8,8 @@ export const ASSET_ICON: Record<AssetClass, LucideIcon> = {
   etf: Layers,
   reit: Building2,
   gold: Coins,
+  us: Globe2,
+  crypto: Bitcoin,
   fd: Landmark,
   bond: ScrollText,
   ppf: PiggyBank,
