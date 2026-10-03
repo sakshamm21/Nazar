@@ -41,7 +41,8 @@ const fmtUnits = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigit
 /** Units and average price for a line, however it was entered; null until it is complete. */
 function resolved(l: Line): { quantity: number; avgPrice: number } | null {
   if (l.mode === "units") {
-    const quantity = num(l.qty), avgPrice = num(l.price);
+    // No price typed: today's price stands in, so a quantity alone is enough.
+    const quantity = num(l.qty), avgPrice = l.price.trim() === "" ? (l.live ?? NaN) : num(l.price);
     return quantity > 0 && avgPrice > 0 ? { quantity, avgPrice } : null;
   }
   // Amount mode: today's value ÷ today's NAV gives the units; what was paid ÷ units gives the average.
@@ -102,6 +103,9 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
     if (lines.some((l) => l.hit.symbol === hit.symbol)) return setLines((ls) => ls.filter((l) => l.hit.symbol !== hit.symbol));
     setLines((ls) => [...ls, { hit, mode: BY_AMOUNT.has(hit.assetClass) ? "amount" : "units", qty: "", price: "", invested: "", current: "", date: "", live: undefined }]);
     setError(null);
+    // Close the results so the form for what was just picked is the next thing on screen.
+    setQ("");
+    setHits([]);
     // The latest price pre-fills the form and turns a rupee amount into units.
     apiCall<{ price: number | null }>(`/api/price?symbol=${encodeURIComponent(hit.symbol)}`)
       .then((j) => patch(hit.symbol, { live: j.price }))
@@ -113,9 +117,8 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
   const totalInvested = ready.reduce((a, x) => a + (x.r ? x.r.quantity * x.r.avgPrice : 0), 0) + [...manuals, ...(manual ? [manual] : [])].reduce((a, m) => a + (num(m.invested) || 0), 0);
 
   const submit = async () => {
-    if (!portfolioId) return;
     const incomplete = ready.find((x) => !x.r);
-    if (incomplete) return setError(incomplete.l.mode === "amount" && !incomplete.l.live ? `Nazar couldn't get today's price for ${incomplete.l.hit.name}. Switch it to "I know the units" and enter the units and average price.` : `Fill in ${incomplete.l.hit.name}, or remove it.`);
+    if (incomplete) return setError(incomplete.l.mode === "amount" && !incomplete.l.live ? `Nazar couldn't get today's price for ${incomplete.l.hit.name}. Switch it to "I know the units" and enter the units and average price.` : incomplete.l.mode === "amount" ? `Enter the amount you invested in ${incomplete.l.hit.name}, or remove it.` : num(incomplete.l.qty) > 0 ? `Enter the price you paid for ${incomplete.l.hit.name}.` : `Enter how many ${ASSET_META[incomplete.l.hit.assetClass].unit || "units"} of ${incomplete.l.hit.name} you own, or remove it.`);
     const drafts = [...manuals, ...(manual ? [manual] : [])];
     const payloads = drafts.map(manualPayload);
     const bad = payloads.find((p) => !p.ok);
@@ -124,12 +127,19 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
     setBusy(true);
     setError(null);
     try {
+      // A brand-new account has no portfolio yet: make the first one on the way.
+      let pid = portfolioId;
+      if (!pid) {
+        const j = await apiCall<{ portfolio: { id: string } }>("/api/portfolios", "POST", { name: "My portfolio", language: "en" });
+        pid = j.portfolio.id;
+        document.cookie = `nazar_pf=${pid}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
+      }
       if (ready.length)
-        await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", {
+        await apiCall(`/api/portfolios/${pid}/holdings`, "POST", {
           mode: "add",
           holdings: ready.map(({ l, r }) => ({ symbol: l.hit.symbol, quantity: r!.quantity, avgPrice: r!.avgPrice, buyDate: l.date || null, isin: l.hit.isin, rawName: l.hit.name, source: "manual" })),
         });
-      for (const p of payloads) if (p.ok) await apiCall(`/api/portfolios/${portfolioId}/assets`, "POST", p.body);
+      for (const p of payloads) if (p.ok) await apiCall(`/api/portfolios/${pid}/assets`, "POST", p.body);
       toast(count === 1 ? `${lines[0]?.hit.name ?? drafts[0].name} added. Nazar is watching it now.` : `${count} holdings added. Nazar is watching them now.`);
       onClose();
       router.refresh();
@@ -149,13 +159,16 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
       description="Search stocks, mutual funds, ETFs, REITs, gold, US stocks and crypto, or add deposits, PF, property and cash. Pick as many as you like."
       footer={
         count > 0 && (
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm text-muted">
-              {count} selected{totalInvested > 0 && <> · <span className="num text-text">{inr(totalInvested)}</span> invested</>}
+          <div className="space-y-3">
+            <FormAlert message={error} />
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm text-muted">
+                {count} selected{totalInvested > 0 && <> · <span className="num text-text">{inr(totalInvested)}</span> invested</>}
+              </div>
+              <Button loading={busy} onClick={submit}>
+                Add {count === 1 ? "to portfolio" : `${count} to portfolio`}
+              </Button>
             </div>
-            <Button loading={busy} onClick={submit}>
-              Add {count === 1 ? "to portfolio" : `${count} to portfolio`}
-            </Button>
           </div>
         )
       }
@@ -265,9 +278,11 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
           </ul>
         </div>
       )}
-      <div className="mt-4">
-        <FormAlert message={error} />
-      </div>
+      {count === 0 && (
+        <div className="mt-4">
+          <FormAlert message={error} />
+        </div>
+      )}
     </Sheet>
   );
 }
@@ -305,7 +320,7 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
       {l.mode === "amount" ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <Labelled label="Amount invested (₹)" htmlFor={id("inv")}>
-            <Input id={id("inv")} className={small} inputMode="decimal" value={l.invested} onChange={(e) => onChange({ invested: e.target.value })} placeholder="50,000" />
+            <Input id={id("inv")} autoFocus className={small} inputMode="decimal" value={l.invested} onChange={(e) => onChange({ invested: e.target.value })} placeholder="50,000" />
           </Labelled>
           <Labelled label="Worth today (₹)" htmlFor={id("cur")}>
             <Input id={id("cur")} className={small} inputMode="decimal" value={l.current} onChange={(e) => onChange({ current: e.target.value })} placeholder="from your app" />
@@ -317,7 +332,7 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <Labelled label={meta.unit ? meta.unit[0].toUpperCase() + meta.unit.slice(1) : "Quantity"} htmlFor={id("qty")}>
-            <Input id={id("qty")} className={small} inputMode="decimal" value={l.qty} onChange={(e) => onChange({ qty: e.target.value })} placeholder={l.hit.assetClass === "gold" ? "10" : "25"} />
+            <Input id={id("qty")} autoFocus className={small} inputMode="decimal" value={l.qty} onChange={(e) => onChange({ qty: e.target.value })} placeholder={l.hit.assetClass === "gold" ? "10" : "25"} />
           </Labelled>
           <Labelled label={`${meta.priceLabel} (₹)`} htmlFor={id("avg")}>
             <Input id={id("avg")} className={small} inputMode="decimal" value={l.price} onChange={(e) => onChange({ price: e.target.value })} placeholder={l.live ? l.live.toFixed(2) : "1450.50"} />
@@ -329,11 +344,7 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
       )}
 
       <div className="num mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-subtle">
-        {l.mode === "units" && l.live != null && l.price.trim() === "" && (
-          <button onClick={() => onChange({ price: l.live!.toFixed(2) })} className="font-medium text-accent">
-            Use today&apos;s {l.hit.assetClass === "mf" ? "NAV" : "price"}
-          </button>
-        )}
+        {l.mode === "units" && l.live != null && l.price.trim() === "" && <span>Leave the price empty to use today&apos;s {l.hit.assetClass === "mf" ? "NAV" : "price"}.</span>}
         {r && (
           <span>
             {l.mode === "amount" ? `${r.quantity.toLocaleString("en-IN", { maximumFractionDigits: l.hit.assetClass === "crypto" ? 6 : 3 })} ${meta.unit} at an average of ${inr(r.avgPrice, { decimals: 2 })}` : `Invested ${inr(r.quantity * r.avgPrice)}`}

@@ -8,63 +8,68 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0a0f1c;
-  --surface-1: #0f1627;
-  --surface-2: #141d31;
-  --surface-3: #1b253c;
-  --line: #1f2a43;
-  --line-strong: #2c3854;
-  --text: #e9eef8;
-  --muted: #9da9c2;
-  --subtle: #8792ad;
-  --accent: #668eff;
-  --accent-ink: #06102b;
-  --accent-soft: rgb(102 142 255 / 0.14);
-  --ice: #a9c4ff;
-  --gain: #3ccba8;
-  --gain-soft: rgb(60 203 168 / 0.12);
-  --loss: #ff8169;
-  --loss-soft: rgb(255 129 105 / 0.12);
-  --warn: #f2b85b;
-  --warn-soft: rgb(242 184 91 / 0.12);
-  --overlay: rgb(3 6 14 / 0.66);
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.025) inset, 0 10px 30px -12px rgb(0 0 0 / 0.55);
-  --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.7);
-  --chart-grid: #1a2338;
-  /* The second voice: used in gradients and highlights, never for body text. */
-  --pop: #ff7ac6;
-  --pop-2: #7ce7ff;
-  --glow: rgb(102 142 255 / 0.22);
+  --bg: #0a0a0f;
+  --surface-1: #13131a;
+  --surface-2: #1a1a23;
+  --surface-3: #23232e;
+  --line: #24242f;
+  --line-strong: #353544;
+  --text: #f5f5f7;
+  --muted: #a5a5b8;
+  --subtle: #8c8ca1;
+  --accent: #a48bff;
+  --accent-ink: #12082e;
+  --accent-soft: rgb(164 139 255 / 0.15);
+  --ice: #d9cfff;
+  --gain: #34d399;
+  --gain-soft: rgb(52 211 153 / 0.12);
+  --loss: #fb7185;
+  --loss-soft: rgb(251 113 133 / 0.12);
+  --warn: #fbbf24;
+  --warn-soft: rgb(251 191 36 / 0.12);
+  --overlay: rgb(4 4 8 / 0.7);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 10px 30px -14px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.75);
+  --chart-grid: #1e1e28;
+  /* The loud one: the main button and the brand mark. Never body text. */
+  --cta: #c8ff4d;
+  --cta-ink: #0a0a0f;
+  /* Second voices, for gradients and highlights only. */
+  --pop: #ff7ad9;
+  --pop-2: #c8ff4d;
+  --glow: rgb(164 139 255 / 0.2);
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f6f5f0;
   --surface-1: #ffffff;
-  --surface-2: #f0f3f8;
-  --surface-3: #e6ebf3;
-  --line: #e1e6ef;
-  --line-strong: #cbd3e1;
-  --text: #0e1424;
-  --muted: #4c586f;
-  --subtle: #58647c;
-  --accent: #2b54f0;
+  --surface-2: #f1f0ea;
+  --surface-3: #e7e5dc;
+  --line: #e5e3da;
+  --line-strong: #cfccc0;
+  --text: #111116;
+  --muted: #55556a;
+  --subtle: #63637a;
+  --accent: #6a3df0;
   --accent-ink: #ffffff;
-  --accent-soft: rgb(43 84 240 / 0.09);
-  --ice: #dce6ff;
-  --gain: #08705c;
-  --gain-soft: rgb(8 112 92 / 0.09);
-  --loss: #b33824;
-  --loss-soft: rgb(179 56 36 / 0.08);
-  --warn: #9a5b00;
-  --warn-soft: rgb(154 91 0 / 0.08);
-  --overlay: rgb(14 20 36 / 0.4);
-  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 28px -14px rgb(16 24 40 / 0.14);
-  --shadow-pop: 0 20px 50px -16px rgb(16 24 40 / 0.28);
-  --chart-grid: #e8edf4;
+  --accent-soft: rgb(106 61 240 / 0.09);
+  --ice: #e6deff;
+  --gain: #08754d;
+  --gain-soft: rgb(8 117 77 / 0.09);
+  --loss: #c0263f;
+  --loss-soft: rgb(192 38 63 / 0.08);
+  --warn: #8a5100;
+  --warn-soft: rgb(138 81 0 / 0.08);
+  --overlay: rgb(17 17 22 / 0.4);
+  --shadow-card: 0 1px 2px rgb(17 17 22 / 0.04), 0 10px 28px -14px rgb(17 17 22 / 0.14);
+  --shadow-pop: 0 20px 50px -16px rgb(17 17 22 / 0.28);
+  --chart-grid: #ebe9e1;
+  --cta: #111116;
+  --cta-ink: #d4ff5c;
   --pop: #d6249f;
-  --pop-2: #0a8fb3;
-  --glow: rgb(43 84 240 / 0.12);
+  --pop-2: #6a3df0;
+  --glow: rgb(106 61 240 / 0.12);
 }
 
 @theme inline {
@@ -89,10 +94,12 @@
   --color-warn-soft: var(--warn-soft);
   --color-overlay: var(--overlay);
   --color-pop: var(--pop);
+  --color-cta: var(--cta);
+  --color-cta-ink: var(--cta-ink);
 
   --font-sans: var(--font-figtree), var(--font-devanagari), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --font-display: var(--font-syne), var(--font-devanagari), var(--font-figtree), ui-sans-serif, sans-serif;
-  --font-accent: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-bricolage), var(--font-devanagari), var(--font-figtree), ui-sans-serif, sans-serif;
+  --font-accent: var(--font-instrument), Georgia, serif;
   --font-num: var(--font-grotesk), var(--font-figtree), ui-sans-serif, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Consolas, monospace;
 
@@ -127,14 +134,14 @@ body {
 /* Type scale */
 .t-display { font-family: var(--font-num); font-weight: 700; font-size: 34px; line-height: 38px; letter-spacing: -0.035em; }
 @media (min-width: 768px) { .t-display { font-size: 46px; line-height: 50px; } }
-.t-title-1 { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 30px; letter-spacing: -0.03em; }
+.t-title-1 { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 30px; letter-spacing: -0.035em; }
 @media (min-width: 768px) { .t-title-1 { font-size: 32px; line-height: 36px; } }
 .t-title-2 { font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 24px; letter-spacing: -0.02em; }
-.t-overline { font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
+.t-overline { font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); }
 /* The italic serif word inside a headline. */
-.t-accent { font-family: var(--font-accent); font-style: italic; font-weight: 500; letter-spacing: -0.02em; }
+.t-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; }
 /* Gradient ink for a headline word or a big number. Falls back to the accent colour. */
-.nz-grad { color: var(--accent); background: linear-gradient(100deg, var(--accent) 0%, var(--pop) 55%, var(--pop-2) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.nz-grad { color: var(--accent); background: linear-gradient(100deg, var(--accent) 0%, var(--pop) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 /* A soft two-colour glow behind a hero area. Decorative only. */
 .nz-aura { position: relative; isolation: isolate; }
 .nz-aura::before {

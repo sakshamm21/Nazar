@@ -1,12 +1,14 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { ArrowRight, ChevronRight, FileText, Upload, Users } from "lucide-react";
+import { ArrowRight, ChevronRight, FileText, Plus, Upload, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { HeroValue } from "@/components/home/hero-value";
 import { PortfolioSwitcher } from "@/components/home/portfolio-switcher";
 import { SimulateCard } from "@/components/home/simulate-card";
-import { AllocationBar, AssetIcon } from "@/components/portfolio/asset-ui";
+import { AssetIcon } from "@/components/portfolio/asset-ui";
+import { AllocationDonut } from "@/components/charts/allocation-donut";
+import { Heatmap } from "@/components/charts/heatmap";
+import { ValueChart } from "@/components/charts/value-chart";
 import { Tour } from "@/components/home/tour";
 import { Sparkline } from "@/components/charts/sparkline";
 import { QuietRings } from "@/components/rings/quiet-rings";
@@ -21,7 +23,7 @@ import { SeverityIcon } from "@/components/ui/severity";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { getDb, schema } from "@/lib/db";
 import { absPct, dayLabel, inr, inrCompact, istTime, signedPct } from "@/lib/format";
-import { ASSET_META, shortCode } from "@/lib/instruments/asset-classes";
+import { ASSET_META, groupOf, shortCode } from "@/lib/instruments/asset-classes";
 import { cn } from "@/lib/cn";
 import { buildPortfolioView, type AttentionItem, type FullPortfolioView } from "@/lib/views/portfolio";
 
@@ -50,17 +52,16 @@ export default async function HomePage() {
             title={view.active ? "Add your holdings and Nazar starts watching" : "Let's set up your first portfolio"}
             body={
               <>
-                Import your holdings file from Zerodha, Groww or Upstox, or add stocks by hand. Nazar checks them every evening and only messages you when something important happens.
-                <span className="mt-3 block text-subtle">We watch and explain; you decide. Nazar never tells you what to do with your money.</span>
+                Search any stock, fund, ETF, gold, US stock or coin and add it in seconds, or import a broker file. Nazar then keeps the prices fresh and tells you what moved and why.
               </>
             }
             action={
               <div className="flex flex-wrap justify-center gap-2">
-                <ButtonLink href="/portfolio/import">
-                  <Upload className="h-4 w-4" /> Import holdings
+                <ButtonLink href="/portfolio?add=1">
+                  <Plus className="h-4 w-4" /> Add what you own
                 </ButtonLink>
-                <ButtonLink href="/portfolio?add=1" variant="secondary">
-                  Add a stock
+                <ButtonLink href="/portfolio/import" variant="secondary">
+                  <Upload className="h-4 w-4" /> Import a file
                 </ButtonLink>
               </div>
             }
@@ -106,16 +107,16 @@ export default async function HomePage() {
         <div className="contents lg:col-span-8 lg:block lg:space-y-6">
           <div className="order-1"><HeroCard v={v} /></div>
           <div className="order-2"><AttentionCard items={v.attention} hindi={hindi} /></div>
-          <div className="order-6"><HoldingsCard v={v} /></div>
+          <div className="order-4"><HeatmapCard v={v} /></div>
+          <div className="order-8"><HoldingsCard v={v} /></div>
         </div>
 
         {/* Right column */}
         <div className="contents lg:col-span-4 lg:block lg:space-y-6">
-          <div className="order-3"><HealthCard v={v} /></div>
-          {user.isTestAccount && <div className="order-4"><SimulateCard active={Boolean(user.simState)} /></div>}
-          <div className="order-5"><FamilyCard family={family.map((p) => ({ id: p.id, label: p.ownerLabel!, language: p.language, report: reports.find((r) => r.portfolioId === p.id) ?? null, recipient: recipients.find((r) => r.portfolioId === p.id) ?? null }))} /></div>
-          {v.allocation.length > 1 && <div className="order-7"><AllocationCard v={v} /></div>}
-          {v.sectors.length > 0 && <div className="order-7"><SectorsCard v={v} /></div>}
+          <div className="order-3"><AllocationCard v={v} /></div>
+          <div className="order-5"><HealthCard v={v} /></div>
+          {user.isTestAccount && <div className="order-6"><SimulateCard active={Boolean(user.simState)} /></div>}
+          <div className="order-7"><FamilyCard family={family.map((p) => ({ id: p.id, label: p.ownerLabel!, language: p.language, report: reports.find((r) => r.portfolioId === p.id) ?? null, recipient: recipients.find((r) => r.portfolioId === p.id) ?? null }))} /></div>
         </div>
       </div>
     </div>
@@ -126,8 +127,9 @@ export default async function HomePage() {
 
 function HeroCard({ v }: { v: FullPortfolioView }) {
   const a = v.attribution;
+  const p = v.performance;
   return (
-    <Card className="p-5 sm:p-6">
+    <Card className="nz-ring p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="t-overline">
           {v.active!.ownerLabel ? `${v.active!.ownerLabel}'s portfolio` : v.active!.name} · {v.simulated ? "simulated session" : `as of ${dayLabel(v.tradeDate!, "en")} close`}
@@ -135,12 +137,7 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
         <InfoTip k="value" />
       </div>
       <div className="mt-2">
-        <HeroValue value={v.valuation.value} />
-      </div>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-        <Delta amount={v.valuation.dayChange} pct={v.valuation.dayChangePct} />
-        <span className="text-sm text-subtle">today</span>
-        {v.niftyPct != null && <span className="text-sm text-subtle">· Nifty {signedPct(v.niftyPct)}</span>}
+        <ValueChart dates={p.dates} values={p.values} nifty={p.nifty} footnote="The line is what you own today, priced on each past day. Drag along it to read any date." />
       </div>
 
       <Link href="/home/today" data-tour="h2" className="group mt-4 flex items-start gap-3 rounded-[14px] border border-line bg-surface-2 p-3.5 transition-colors hover:bg-surface-3">
@@ -149,12 +146,16 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
         <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-subtle transition-transform group-hover:translate-x-0.5" aria-label="See the breakdown" />
       </Link>
 
-      <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-line pt-4">
-        <Stat label="Unrealised P&L" tip="unrealised">
+      <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-line pt-4 sm:grid-cols-4">
+        <Stat label="Today">
+          <Delta amount={v.valuation.dayChange} compact showArrow={false} size="sm" />
+          <div className="num text-[12px] text-subtle">{signedPct(v.valuation.dayChangePct)}{v.niftyPct != null ? ` · Nifty ${signedPct(v.niftyPct)}` : ""}</div>
+        </Stat>
+        <Stat label="Gain or loss so far" tip="unrealised">
           <Delta amount={v.valuation.unrealised} compact showArrow={false} size="sm" />
           <div className="num text-[12px] text-subtle">{signedPct(v.valuation.unrealisedPct)}</div>
         </Stat>
-        <Stat label="XIRR" tip="xirr">
+        <Stat label="Yearly return (XIRR)" tip="xirr">
           <div className="num text-[15px] font-medium text-text">{v.xirr.xirr != null ? `${(v.xirr.xirr * 100).toFixed(1)}%` : "—"}</div>
           <div className="num text-[12px] text-subtle">{v.xirr.niftyXirr != null ? `Nifty ${(v.xirr.niftyXirr * 100).toFixed(1)}%` : v.xirr.dated ? "" : "add purchase dates"}</div>
         </Stat>
@@ -163,6 +164,9 @@ function HeroCard({ v }: { v: FullPortfolioView }) {
           <div className="num text-[12px] text-subtle">{v.cards.length} holdings</div>
         </Stat>
       </dl>
+      <Link href="/alerts" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+        See what moved it, and why <ArrowRight className="h-4 w-4" />
+      </Link>
     </Card>
   );
 }
@@ -315,70 +319,49 @@ function FamilyCard({ family }: { family: { id: string; label: string; language:
 }
 
 function AllocationCard({ v }: { v: FullPortfolioView }) {
+  const slices = v.allocation.map((sl) => ({ ...sl, top: v.cards.filter((c) => groupOf(c.assetClass) === sl.group).slice(0, 3).map((c) => ({ name: c.name, value: c.value })) }));
   return (
     <Card className="p-5 sm:p-6">
       <CardHeader overline="Allocation" title="What you own" />
       <div className="mt-4">
-        <AllocationBar slices={v.allocation} format={inrCompact} />
+        <AllocationDonut slices={slices} total={v.valuation.value} />
       </div>
     </Card>
   );
 }
 
-function SectorsCard({ v }: { v: FullPortfolioView }) {
+function HeatmapCard({ v }: { v: FullPortfolioView }) {
   return (
     <Card className="p-5 sm:p-6">
-      <CardHeader overline="Stocks by sector" title="Where your stock money is" right={<InfoTip k="sector" />} />
-      <ul className="mt-4 space-y-3">
-        {v.sectors.slice(0, 7).map((s) => (
-          <li key={s.sector}>
-            <div className="flex items-baseline justify-between text-sm">
-              <span className="text-text">{s.sector}</span>
-              <span className="num text-muted">{absPct(s.weight, 0)}</span>
-            </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
-              <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(2, s.weight * 100)}%`, opacity: 0.35 + Math.min(0.65, s.weight * 1.6) }} />
-            </div>
-          </li>
-        ))}
-      </ul>
+      <CardHeader overline="Your money, at a glance" title="What is up, what is down" />
+      <div className="mt-4">
+        <Heatmap tiles={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, today: c.href == null ? null : c.changePct, total: c.pnlPct, href: c.href }))} />
+      </div>
     </Card>
   );
 }
-
-const trendWord = { uptrend: "Uptrend", downtrend: "Downtrend", sideways: "Sideways", unknown: "Trend n/a" } as const;
-const valWord = { cheaper: "Cheaper than peers", similar: "In line with peers", pricier: "Pricier than peers", unknown: null } as const;
 
 function HoldingsCard({ v }: { v: FullPortfolioView }) {
   return (
     <Card className="p-5 sm:p-6">
       <CardHeader overline="Holdings" title={`${v.cards.length} holdings`} right={<Link href="/portfolio" className="text-sm font-medium text-accent">Manage</Link>} />
-      <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <ul className="mt-2 divide-y divide-line">
         {v.cards.map((c) => (
-          <li key={c.symbol} className="min-w-0">
-            <Link href={c.href ?? "/portfolio"} className="block h-full rounded-[16px] border border-line bg-surface-2/60 p-4 transition-colors hover:bg-surface-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-2.5">
-                  {c.assetClass !== "stock" && <AssetIcon assetClass={c.assetClass} size="sm" />}
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-text">{c.name}</div>
-                    <div className="truncate text-[12px] text-subtle">
-                      {c.assetClass === "stock" ? <span className="font-mono">{shortCode(c.symbol)}</span> : ASSET_META[c.assetClass].label} · {absPct(c.weight, 0)}
-                    </div>
-                  </div>
+          <li key={c.symbol}>
+            <Link href={c.href ?? "/portfolio"} className="-mx-2 flex items-center gap-3 rounded-[12px] px-2 py-3 transition-colors hover:bg-surface-2">
+              <AssetIcon assetClass={c.assetClass} size="sm" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium text-text">{c.name}</div>
+                <div className="truncate text-[12px] text-subtle">
+                  {c.assetClass === "stock" ? <span className="font-mono">{shortCode(c.symbol)}</span> : ASSET_META[c.assetClass].label} · {absPct(c.weight, 0)}
+                  {c.health != null && <> · health {c.health}</>}
+                  {c.stale && <> · old price</>}
                 </div>
-                {c.sparkline.length > 1 && <Sparkline values={c.sparkline} width={72} height={28} />}
               </div>
-              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                <span className="num text-[15px] font-medium text-text">{inr(c.value)}</span>
+              {c.sparkline.length > 1 && <Sparkline values={c.sparkline} width={64} height={26} className="hidden shrink-0 sm:block" />}
+              <div className="shrink-0 text-right">
+                <div className="num text-[15px] font-medium text-text">{inr(c.value)}</div>
                 {c.href == null ? <Delta amount={c.pnl} pct={c.pnlPct} size="sm" compact showArrow={false} /> : c.dayImpact != null ? <Delta amount={c.dayImpact} pct={c.changePct} size="sm" compact /> : c.price == null ? <span className="t-caption">no price today</span> : null}
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {c.health != null && <Chip tone={c.health >= 70 ? "gain" : c.health >= 45 ? "neutral" : "loss"}>Health {c.health}</Chip>}
-                {c.beta != null && <Chip title="Beta vs Nifty, 1 year">β {c.beta.toFixed(2)}</Chip>}
-                {valWord[c.valuation.label] && <Chip>{valWord[c.valuation.label]}</Chip>}
-                {c.trend.label !== "unknown" && <Chip>{trendWord[c.trend.label]}</Chip>}
-                {c.stale && <Chip tone="warn">Old price</Chip>}
               </div>
             </Link>
           </li>

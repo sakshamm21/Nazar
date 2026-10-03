@@ -1,19 +1,19 @@
 "use client";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
 import { Field, FormAlert, Input } from "@/components/ui/field";
 import { linkClass } from "./auth-card";
+import { DemoButton } from "./demo-button";
 import { ApiError, apiCall } from "@/lib/api-client";
 
-function PasswordInput({ id, value, onChange, autoComplete, placeholder }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; placeholder?: string }) {
+function PasswordInput({ id, value, onChange, autoComplete, placeholder, label }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; placeholder?: string; label?: string }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <Input id={id} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-11" required />
+      <Input id={id} aria-label={label} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-11" required />
       <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-[10px] text-subtle hover:bg-surface-3 hover:text-text">
         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>
@@ -21,27 +21,27 @@ function PasswordInput({ id, value, onChange, autoComplete, placeholder }: { id:
   );
 }
 
-/** Sign in, with the one-tap test accounts. */
-export function SignInForm({ testAccounts, password: testPassword }: { testAccounts: { label: string; blurb: string; email: string }[]; password: string }) {
+/** Sign in: one tap into the demo, or your own email and password. */
+export function SignInForm({ demo }: { demo: { email: string; password: string } | null }) {
   const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState(params.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const submit = async (e?: React.FormEvent, creds?: { email: string; password: string }) => {
-    e?.preventDefault();
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setBusy(true);
     try {
-      await apiCall("/api/auth/login", "POST", creds ?? { email, password });
+      await apiCall("/api/auth/login", "POST", { email, password });
       router.push(params.get("next") ?? "/home");
       router.refresh();
     } catch (err) {
       const code = err instanceof ApiError ? err.code : undefined;
       if (code === "EMAIL_NOT_VERIFIED") {
-        await apiCall("/api/auth/resend", "POST", { email: creds?.email ?? email }).catch(() => null);
-        router.push(`/verify?email=${encodeURIComponent(creds?.email ?? email)}`);
+        await apiCall("/api/auth/resend", "POST", { email }).catch(() => null);
+        router.push(`/verify?email=${encodeURIComponent(email)}`);
         return;
       }
       setError((err as Error).message);
@@ -50,57 +50,26 @@ export function SignInForm({ testAccounts, password: testPassword }: { testAccou
   };
   return (
     <>
-      <form onSubmit={submit} className="space-y-4" noValidate>
-        <Field label="Email" htmlFor="email">
-          <Input id="email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
-        </Field>
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="password" className="text-[13px] font-medium text-muted">
-              Password
-            </label>
-            <Link href={`/forgot${email ? `?email=${encodeURIComponent(email)}` : ""}`} className="text-[13px] font-medium text-muted hover:text-text">
-              Forgot password?
-            </Link>
-          </div>
-          <PasswordInput id="password" value={password} onChange={setPassword} autoComplete="current-password" placeholder="Your password" />
-        </div>
-        <FormAlert message={error} />
-        <Button type="submit" size="lg" loading={busy} className="w-full">
-          Sign in
-        </Button>
-      </form>
-      {testAccounts.length > 0 && (
+      {demo && (
         <>
-          <div className="my-6 flex items-center gap-3 text-[12px] uppercase tracking-[0.1em] text-subtle" aria-hidden>
-            <span className="h-px flex-1 bg-line" /> or try a test account <span className="h-px flex-1 bg-line" />
+          <DemoButton email={demo.email} password={demo.password} className="w-full" />
+          <p className="t-caption mt-2.5 text-center">One tap. A full portfolio on live prices, nothing to type.</p>
+          <div className="my-6 flex items-center gap-3 text-[12px] text-subtle" aria-hidden>
+            <span className="h-px flex-1 bg-line" /> or use your account <span className="h-px flex-1 bg-line" />
           </div>
-          <ul className="space-y-2">
-            {testAccounts.map((a, i) => (
-              <li key={a.email}>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    setEmail(a.email);
-                    setPassword(testPassword);
-                    void submit(undefined, { email: a.email, password: testPassword });
-                  }}
-                  className={`${i === 0 ? "nz-ring " : "border border-line "}group flex w-full items-center gap-3 rounded-[18px] bg-surface-2 px-4 py-3 text-left transition-colors hover:bg-surface-3 disabled:opacity-60`}
-                >
-                  <Avatar name={a.label.split(",")[0].split(" (")[0]} size={36} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] font-semibold text-text">{a.label}</span>
-                    <span className="mt-0.5 block text-[13px] leading-5 text-muted">{a.blurb}</span>
-                  </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-accent transition-transform group-hover:translate-x-0.5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="t-caption mt-3 text-center">One tap signs you in. Live market data; shared, and put back every night.</p>
         </>
       )}
+      <form onSubmit={submit} className="space-y-3" noValidate>
+        <Input id="email" aria-label="Email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
+        <PasswordInput id="password" label="Password" value={password} onChange={setPassword} autoComplete="current-password" placeholder="Password" />
+        <FormAlert message={error} />
+        <Button type="submit" variant={demo ? "secondary" : "primary"} size="lg" loading={busy} className="w-full">
+          Sign in
+        </Button>
+        <Link href={`/forgot${email ? `?email=${encodeURIComponent(email)}` : ""}`} className="block text-center text-[13px] font-medium text-muted hover:text-text">
+          Forgot password?
+        </Link>
+      </form>
     </>
   );
 }

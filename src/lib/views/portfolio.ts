@@ -4,11 +4,12 @@ import { getDb, schema } from "@/lib/db";
 import { correlationMatrix, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { attributionLine, marketSplitLine } from "@/lib/alerts/templates";
 import { effectiveSettings } from "@/lib/alerts/thresholds";
-import { isManualSymbol } from "@/lib/instruments/asset-classes";
+import { groupOf, isManualSymbol, manualValue } from "@/lib/instruments/asset-classes";
 import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
-import { assetAllocation, attribution, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
+import { buildPerformance } from "@/lib/portfolio/performance";
+import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { getSettings, getThresholds, listThresholdChanges, unreadCount } from "@/lib/repo/alerts";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
 
@@ -120,6 +121,31 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     })
     .sort((a, b) => b.value - a.value);
 
+  // The value of today's holdings on each past session, and why it changed over each period.
+  const dates = [...nifty.keys()].filter((d) => d <= tradeDate);
+  if (dates.at(-1) !== tradeDate) dates.push(tradeDate);
+  const rowOf = new Map(holdingsRows.map((r) => [r.symbol, r]));
+  const performance = buildPerformance(
+    day.holdings.map((h) => {
+      const row = rowOf.get(h.symbol)!;
+      const manual = isManualSymbol(h.symbol);
+      return {
+        symbol: h.symbol,
+        name: h.name,
+        group: groupOf(h.assetClass),
+        quantity: h.quantity,
+        avgPrice: h.avgPrice,
+        price: h.price,
+        prevClose: h.prevClose,
+        beta: betaOf(h),
+        closes: manual ? null : [...(hist.get(h.symbol)?.entries() ?? [])],
+        valueOn: manual ? (d: string) => manualValue(row.assetClass, row.details, row.avgPrice, d) : undefined,
+      };
+    }),
+    dates,
+    nifty,
+  );
+
   const attention = await attentionItems(user, active.id, tradeDate, day, conc, div);
   const settings = await getSettings(user.id);
   const eff = effectiveSettings(settings.sensitivity, await getThresholds(user.id));
@@ -139,6 +165,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     risk: { portfolioBeta: stress10.portfolioBeta, stress10: { loss: stress10.loss, lossPct: stress10.lossPct }, diversification: div, concentration: conc },
     sectors: sectorAllocation(states.filter((h) => (h.assetClass ?? "stock") === "stock")),
     allocation: assetAllocation(states),
+    performance,
     cards,
     attention,
     staleCount: cards.filter((c) => c.stale).length,

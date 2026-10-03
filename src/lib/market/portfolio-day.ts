@@ -1,7 +1,7 @@
 import "server-only";
 import type { DB } from "@/lib/db";
 import type { schema } from "@/lib/db";
-import { ASSET_META, groupOf, isManualSymbol, manualValue, type AssetClass } from "@/lib/instruments/asset-classes";
+import { ASSET_META, groupOf, isManualSymbol, manualValue, shortCode, type AssetClass } from "@/lib/instruments/asset-classes";
 import { catalogItem } from "@/lib/instruments/catalog";
 import { DISPLAY_NAMES, shortName } from "@/lib/instruments/master";
 import { NIFTY, SECTOR_INDICES, sectorOf } from "@/lib/instruments/sectors";
@@ -48,7 +48,7 @@ function manualRow(h: HoldingRow, date: string, prevWeight: number | null) {
 }
 
 export function displayName(symbol: string, inst?: Instrument | null): string {
-  return DISPLAY_NAMES[symbol] ?? inst?.shortName ?? (inst?.name ? shortName(inst.name) : (catalogItem(symbol)?.name ?? symbol.replace(/\.(NS|BO)$/, "")));
+  return DISPLAY_NAMES[symbol] ?? inst?.shortName ?? (inst?.name ? shortName(inst.name) : (catalogItem(symbol)?.name ?? shortCode(symbol)));
 }
 
 export type PortfolioDay = {

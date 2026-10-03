@@ -11,8 +11,8 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function Page() {
   return (
-    <AuthCard title="Welcome back" accent="back" subtitle="Your portfolio is right where you left it." footer={<>New to Nazar? <Link href="/signup" className={linkClass}>Create an account</Link></>}>
-      <Suspense><SignInForm testAccounts={showDemo ? TEST_ACCOUNTS.map((a) => ({ label: a.label, blurb: a.blurb, email: a.email })) : []} password={TEST_PASSWORD} /></Suspense>
+    <AuthCard title="Jump back in" accent="in" footer={<>New here? <Link href="/signup" className={linkClass}>Create an account</Link></>}>
+      <Suspense><SignInForm demo={showDemo ? { email: TEST_ACCOUNTS[0].email, password: TEST_PASSWORD } : null} /></Suspense>
     </AuthCard>
   );
 }

@@ -35,20 +35,19 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
         </Link>
         <nav className="mt-8 space-y-1" aria-label="Main">
           {NAV.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors", active(href) ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text")}>
-              <Icon className="h-[18px] w-[18px]" />
+            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined} className={cn("flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors", active(href) ? "bg-surface-2 text-text" : "text-muted hover:bg-surface-2 hover:text-text")}>
+              <Icon className={cn("h-[18px] w-[18px]", active(href) && "text-accent")} />
               {label}
-              {href === "/alerts" && unread > 0 && <span className="num ml-auto rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-ink">{unread > 99 ? "99+" : unread}</span>}
+              {href === "/alerts" && unread > 0 && <span className="num ml-auto rounded-full bg-cta px-1.5 text-[11px] font-semibold text-cta-ink">{unread > 99 ? "99+" : unread}</span>}
             </Link>
           ))}
         </nav>
         <div className="mt-auto space-y-2">
-          <Link href="/ask/research" className="block px-4 text-[13px] text-muted hover:text-text">Research tools</Link>
           <Link href="/settings" className="flex items-center gap-2.5 rounded-[18px] border border-line bg-surface-1 p-2.5 transition-colors hover:bg-surface-2">
             <Avatar name={user.name} size={36} />
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold text-text">{user.name}</span>
-              <span className="block truncate text-[12px] text-subtle">{user.isTestAccount ? "Test account" : "Profile and settings"}</span>
+              <span className="block truncate text-[12px] text-subtle">{user.isTestAccount ? "Demo account" : "Profile and settings"}</span>
             </span>
           </Link>
         </div>
@@ -56,23 +55,19 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
 
       <div className="min-w-0 flex-1">
         {user.sim && <SimBanner label={user.sim.label} />}
-        {!user.sim && user.isTestAccount && <DemoRibbon />}
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/90 px-4 py-3 backdrop-blur lg:hidden">
           <Link href="/home" aria-label="Nazar home">
             <Wordmark />
           </Link>
-          <span className="flex items-center gap-3">
-            <Link href="/ask/research" className="text-[13px] text-muted">Research</Link>
-            <Link href="/settings" aria-label="Your profile">
-              <Avatar name={user.name} size={32} />
-            </Link>
-          </span>
+          <Link href="/settings" aria-label="Your profile">
+            <Avatar name={user.name} size={32} />
+          </Link>
         </header>
         <main id="main" className="mx-auto w-full max-w-[1120px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
           {children}
           <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">
-            We watch and explain; you decide. Nazar is not a SEBI-registered investment adviser and never tells you what to do with your money. Market data comes from Yahoo Finance via nightly checks and may be delayed or occasionally wrong.
+            Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.
           </footer>
         </main>
       </div>
@@ -85,7 +80,7 @@ export function AppShell({ user, unread, children }: { user: ShellUser; unread: 
               <Link href={href} aria-current={active(href) ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium", active(href) ? "text-accent" : "text-subtle")}>
                 <Icon className="h-[22px] w-[22px]" />
                 {label}
-                {href === "/alerts" && unread > 0 && <span className="absolute right-[calc(50%-20px)] top-1.5 h-2 w-2 rounded-full bg-accent" aria-label={`${unread} unread`} />}
+                {href === "/alerts" && unread > 0 && <span className="absolute right-[calc(50%-20px)] top-1.5 h-2 w-2 rounded-full bg-cta" aria-label={`${unread} unread`} />}
               </Link>
             </li>
           ))}
@@ -116,17 +111,6 @@ function SimBanner({ label }: { label: string }) {
       >
         Back to normal
       </button>
-    </div>
-  );
-}
-
-function DemoRibbon() {
-  return (
-    <div className="border-b border-line bg-surface-1 px-4 py-2 text-center text-[13px] text-muted">
-      You&apos;re in a shared test account on live market data. It is put back to its starting state every night.{" "}
-      <Link href="/signup" className="font-medium text-accent">
-        Create your own
-      </Link>
     </div>
   );
 }

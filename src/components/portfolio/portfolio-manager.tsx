@@ -36,18 +36,11 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
   const router = useRouter();
   const params = useSearchParams();
   const [builder, setBuilder] = useState<null | "all" | "manual">(params.get("add") === "1" ? "all" : null);
-  const [creating, setCreating] = useState<null | "self" | "family">(params.get("new") === "family" ? "family" : portfolios.length ? null : "self");
+  const [creating, setCreating] = useState<null | "self" | "family">(params.get("new") === "family" ? "family" : null);
   const [editing, setEditing] = useState<Row | null>(null);
   const [sort, setSort] = useState<SortKey>("value");
   const [filter, setFilter] = useState("");
   const active = portfolios.find((p) => p.id === activeId) ?? null;
-
-  // Deleting the last portfolio opens "create" straight away.
-  const [count, setCount] = useState(portfolios.length);
-  if (portfolios.length !== count) {
-    setCount(portfolios.length);
-    if (!portfolios.length) setCreating("self");
-  }
 
   const groups = useMemo(() => {
     const f = filter.trim().toLowerCase();
@@ -105,7 +98,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
 
       <PortfolioSwitcher portfolios={portfolios} activeId={activeId} />
 
-      {active && rows.length === 0 && <EmptyPortfolio onSearch={() => setBuilder("all")} onManual={() => setBuilder("manual")} settingsHref={`/portfolio/${active.id}/settings`} />}
+      {rows.length === 0 && <EmptyPortfolio onSearch={() => setBuilder("all")} onManual={() => setBuilder("manual")} settingsHref={active ? `/portfolio/${active.id}/settings` : null} />}
 
       {active && rows.length > 0 && (
         <>
@@ -253,7 +246,7 @@ function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRe
   );
 }
 
-function EmptyPortfolio({ onSearch, onManual, settingsHref }: { onSearch: () => void; onManual: () => void; settingsHref: string }) {
+function EmptyPortfolio({ onSearch, onManual, settingsHref }: { onSearch: () => void; onManual: () => void; settingsHref: string | null }) {
   const tile = "flex h-full w-full flex-col items-start gap-3 rounded-[16px] border border-line bg-surface-2/60 p-5 text-left transition-colors hover:bg-surface-2";
   return (
     <Card className="p-5 sm:p-6">
@@ -261,9 +254,11 @@ function EmptyPortfolio({ onSearch, onManual, settingsHref }: { onSearch: () => 
         overline="Start here"
         title="Build your portfolio"
         right={
-          <Link href={settingsHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-text">
-            <Settings2 className="h-4 w-4" /> Settings
-          </Link>
+          settingsHref && (
+            <Link href={settingsHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-text">
+              <Settings2 className="h-4 w-4" /> Settings
+            </Link>
+          )
         }
       />
       <p className="mt-1 text-sm text-muted">Add what you own in any order. You can mix all three ways, and change anything later.</p>
