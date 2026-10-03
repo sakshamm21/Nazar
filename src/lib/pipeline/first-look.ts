@@ -1,25 +1,35 @@
 import "server-only";
-import { getDb } from "@/lib/db";
-import { yahooProvider } from "@/lib/data/provider";
+import { and, eq, sql } from "drizzle-orm";
+import { getDb, schema } from "@/lib/db";
+import { yahooProvider, type MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY } from "@/lib/instruments/sectors";
 import { latestTradeDate } from "@/lib/market/store";
 import { collectBatch, collectQuotes, missingLive } from "./collect";
+
+/** Days of Nifty history needed for a meaningful 1-year beta. */
+const NIFTY_HISTORY_MIN = 200;
 
 /**
  * A one-time "first look" for symbols Nazar has never fetched (right after an import), so a new
  * user sees their portfolio immediately instead of waiting for tonight's checkup. Once per symbol,
  * ever — never per page view.
  */
-export async function firstLook(symbols: string[]) {
+export async function firstLook(symbols: string[], provider: MarketDataProvider = yahooProvider) {
   const db = await getDb();
-  const missing = await missingLive(db, [...new Set(symbols)]);
+  const missing = (await missingLive(db, [...new Set(symbols)])).slice(0, 59);
   if (!missing.length) return { fetched: 0 };
-  const hasNifty = await latestTradeDate(db, ["live"]);
-  // The Nifty is always quoted (it defines the session date); its history is fetched only once.
-  const q = await collectQuotes(db, yahooProvider, [NIFTY, ...missing.slice(0, 59)], "live");
-  const date = q.marketDate ?? hasNifty;
-  if (!date) return { fetched: q.count };
-  const list = hasNifty ? missing.slice(0, 59) : [NIFTY, ...missing.slice(0, 59)];
-  const r = await collectBatch(db, yahooProvider, list, 0, date, Date.now() + 45_000, "live");
+  // The Nifty is always quoted: it defines the session date.
+  const q = await collectQuotes(db, provider, [NIFTY, ...missing], "live");
+  const date = q.marketDate ?? (await latestTradeDate(db, ["live"]));
+  if (!date) return { fetched: 0 };
+  const deadline = Date.now() + 45_000;
+  // Beta is computed against stored Nifty history, so make sure it exists before the stocks.
+  // (A snapshot alone isn't enough: holiday runs store today's Nifty quote without history.)
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.priceDaily)
+    .where(and(eq(schema.priceDaily.symbol, NIFTY), eq(schema.priceDaily.source, "live")));
+  if (Number(n) < NIFTY_HISTORY_MIN) await collectBatch(db, provider, [NIFTY], 0, date, deadline, "live");
+  const r = await collectBatch(db, provider, missing, 0, date, deadline, "live");
   return { fetched: r.processed };
 }

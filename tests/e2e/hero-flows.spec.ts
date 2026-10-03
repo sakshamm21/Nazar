@@ -8,9 +8,14 @@ async function startDemo(page: Page) {
   await page.waitForURL(/\/home/);
 }
 
+/** A new demo always opens the tour once the page has settled (later on a slow network); close it. */
 async function skipTour(page: Page) {
   const skip = page.getByRole("button", { name: "Skip tour" });
-  if (await skip.isVisible().catch(() => false)) await skip.click();
+  const shown = await skip.waitFor({ timeout: 15_000 }).then(() => true, () => false);
+  if (shown) {
+    await skip.click();
+    await expect(skip).toHaveCount(0);
+  }
 }
 
 test.describe("Landing", () => {
