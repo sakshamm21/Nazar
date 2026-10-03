@@ -117,6 +117,17 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
   const totalInvested = ready.reduce((a, x) => a + (x.r ? x.r.quantity * x.r.avgPrice : 0), 0) + [...manuals, ...(manual ? [manual] : [])].reduce((a, m) => a + (num(m.invested) || 0), 0);
 
   const submit = async () => {
+    // Tapping Add before a price has arrived must not fail: wait for the prices still on their way.
+    const waiting = lines.filter((l) => l.live === undefined && (l.mode === "amount" || l.price.trim() === ""));
+    let current = lines;
+    if (waiting.length) {
+      setBusy(true);
+      const got = new Map(await Promise.all(waiting.map(async (l) => [l.hit.symbol, await apiCall<{ price: number | null }>(`/api/price?symbol=${encodeURIComponent(l.hit.symbol)}`).then((j) => j.price, () => null)] as const)));
+      current = lines.map((l) => (got.has(l.hit.symbol) ? { ...l, live: got.get(l.hit.symbol)! } : l));
+      setLines(current);
+      setBusy(false);
+    }
+    const ready = current.map((l) => ({ l, r: resolved(l) }));
     const incomplete = ready.find((x) => !x.r);
     if (incomplete) return setError(incomplete.l.mode === "amount" && !incomplete.l.live ? `Nazar couldn't get today's price for ${incomplete.l.hit.name}. Switch it to "I know the units" and enter the units and average price.` : incomplete.l.mode === "amount" ? `Enter the amount you invested in ${incomplete.l.hit.name}, or remove it.` : num(incomplete.l.qty) > 0 ? `Enter the price you paid for ${incomplete.l.hit.name}.` : `Enter how many ${ASSET_META[incomplete.l.hit.assetClass].unit || "units"} of ${incomplete.l.hit.name} you own, or remove it.`);
     const drafts = [...manuals, ...(manual ? [manual] : [])];
