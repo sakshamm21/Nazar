@@ -76,7 +76,9 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
       .then((j) => j && setChats(j.chats))
       .catch(() => {});
     if ("openId" in start) void fetchChat(start.openId).then((j) => j && showChat(start.openId, j));
-    else history.replaceState(null, "", "/ask"); // drop ?q= so a reload doesn't ask again
+    // Drop ?q= so a reload doesn't ask again. Only when there is one: rewriting the URL for no reason
+    // can cancel a navigation the user started while the page was still loading.
+    else if (location.pathname === "/ask" && location.search) history.replaceState(null, "", "/ask");
     // Runs once on mount: `start` describes the first load only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -210,7 +212,8 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
               remaining={remaining}
               prompt={prompt}
               onFinished={() => {
-                history.replaceState(null, "", `/ask?c=${chatId}`);
+                // The answer may finish after the user has moved to another page.
+                if (location.pathname === "/ask") history.replaceState(null, "", `/ask?c=${chatId}`);
                 refresh();
               }}
             />
