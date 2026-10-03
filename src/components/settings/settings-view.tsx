@@ -89,7 +89,7 @@ export function SettingsView(props: {
                   <span className="font-medium text-text">{TYPE[c.alertType] ?? c.alertType}</span>
                   {c.muted ? <Chip tone="accent">Muted</Chip> : <Chip tone="accent">{c.oldValue}% → {c.newValue}%</Chip>}
                   {c.undoneAt && <Chip>Undone</Chip>}
-                  <span className="t-caption ml-auto">{new Date(c.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+                  <span className="t-caption ml-auto">{new Date(c.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}</span>
                 </div>
                 <p className="mt-2 text-sm text-text">“{c.messageEn}”</p>
                 <p className="t-caption mt-1.5">
