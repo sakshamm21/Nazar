@@ -4,7 +4,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { inr } from "@/lib/format";
 
 /**
- * Nazar chart style (docs/DESIGN.md §6): thin line, fading gradient fill, crosshair tooltip, no gridlines.
+ * Nazar chart style: thin line, fading gradient fill, crosshair tooltip, no gridlines.
  * `points` are { date, value }; colour follows the period's direction unless `tone` is given.
  */
 export function PriceChart({ points, height = 220, tone, format = (v: number) => inr(v), compare }: { points: { date: string; value: number; compare?: number | null }[]; height?: number; tone?: "accent" | "gain" | "loss"; format?: (v: number) => string; compare?: { label: string } }) {

@@ -5,7 +5,7 @@ import { Wordmark } from "@/components/rings/nazar-mark";
 
 export const metadata: Metadata = { title: "Design system" };
 
-/** Live style guide: every token and component, dark and light side by side (docs/DESIGN.md). */
+/** Live style guide: every token and component, dark and light side by side. */
 export default function DesignPage() {
   return (
     <div>
@@ -13,7 +13,7 @@ export default function DesignPage() {
         <Link href="/" aria-label="Nazar home">
           <Wordmark />
         </Link>
-        <p className="text-sm text-muted">Design system · “The watchful eye” · see docs/DESIGN.md</p>
+        <p className="text-sm text-muted">Design system · “The watchful eye”</p>
       </header>
       <StyleGuide />
     </div>

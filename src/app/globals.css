@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------ */
-/* Nazar design tokens (see docs/DESIGN.md). Themes differ only in tokens.  */
+/* Nazar design tokens. Themes differ only in token values.            */
 /* Dark is the default; light is opted into with data-theme="light".   */
 /* ------------------------------------------------------------------ */
 
@@ -106,7 +106,7 @@ body {
   min-height: 100dvh;
 }
 
-/* Tabular figures for every number (docs/DESIGN.md §3). */
+/* Tabular figures for every number. */
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
@@ -136,7 +136,7 @@ body {
 /* Scrollbars stay quiet */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 
-/* ---------------- Motion (docs/DESIGN.md §7) ---------------- */
+/* ---------------- Motion ---------------- */
 @keyframes nz-breathe {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.06); opacity: 0.55; }

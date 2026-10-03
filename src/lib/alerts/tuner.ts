@@ -1,5 +1,5 @@
 /**
- * H5 — alerts that learn. Rule-based and explainable on purpose (docs/DECISIONS.md D-5):
+ * H5 — alerts that learn. Rule-based and explainable on purpose:
  *
  * Magnitude types (stock_move, portfolio_move, concentration): look at the user's last 10 rated
  * alerts of that type (90 days, only those rated since the last change). Find ladder steps T above

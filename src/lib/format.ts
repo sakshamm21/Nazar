@@ -54,7 +54,7 @@ export function pct(v: number | null | undefined, alreadyPercent = false) {
   return `${x > 0 ? "+" : ""}${x.toFixed(2)}%`;
 }
 
-/** Semantic gain/loss text colour (design tokens; see docs/DESIGN.md). */
+/** Semantic gain/loss text colour (design tokens). */
 export const upDown = (v: number | null | undefined) => (v == null || v === 0 ? "text-muted" : v > 0 ? "text-gain" : "text-loss");
 
 /* ------------------------------------------------------------------ */

@@ -24,7 +24,7 @@ Nazar runs a checkup on every portfolio each evening after the market closes. It
 2. Press **Simulate a bad day**. The Nifty falls 3.2%, autos and IT fall harder, and one of your stocks has bad news of its own. Alerts arrive, each with the likely reason for the move and what it cost you.
 3. Open **Risk** and drag the stress-test slider. Then open **Settings** to see the alert threshold Nazar learned from past 👍/👎 ratings, with the evidence and an Undo button.
 
-Prefer a fixed login? The sign-in page has one-click test accounts (see [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md)).
+Prefer a fixed login? Use one of the [test accounts](#test-accounts) below.
 
 ## Features
 
@@ -39,8 +39,6 @@ Prefer a fixed login? The sign-in page has one-click test accounts (see [docs/TE
 | | Demo | "Try the demo" with no sign-up, "Simulate a bad day", a guided tour, real NSE data that works even when the data provider is down. |
 | | Portfolios | Import from Zerodha, Groww or Upstox (CSV/Excel), add stocks by hand, keep a "Watching" list, set price levels. |
 | | Ask | An AI research assistant with 28 tools over live market data and read-only access to your portfolio. It is the only part of Nazar that uses an AI model. |
-
-Every feature is described in detail, with where its code and tests are, in [docs/FEATURES.md](docs/FEATURES.md).
 
 ## How it works
 
@@ -70,7 +68,8 @@ flowchart LR
 - **No advice, enforced.** Alerts and reports come from fixed templates, not from an AI model, so every sentence is reproducible and testable. A guard with English, Hindi and Hinglish patterns checks every alert, report and email before it is saved or sent.
 - **An honest demo.** Real NSE prices are captured into a file and date-shifted so the latest session is always recent. The demo's 60 sessions of alert history were produced by replaying the real alert engine, not written by hand.
 
-The reasoning behind these choices is in [docs/DECISIONS.md](docs/DECISIONS.md).
+- **Functions run next to the database.** The free Neon database is in AWS us-east-1, so Vercel functions run in `iad1` too. A page pays the long hop to India once per request instead of once per query.
+- **Deliberately not built.** Analyst ratings and target prices (they are recommendations), dividend alerts (Yahoo's NSE dividend dates are unreliable), live intraday prices (a daily watchdog, not a trading screen), and Telegram, WhatsApp or push notifications (more outside services to run).
 
 ## Tech stack
 
@@ -119,8 +118,35 @@ tests/
   unit/                   Pure logic: alerts, maths, importers, news filter, auth, contrast, no-advice
   integration/            Real SQL on in-memory Postgres: pipeline, authorization, demo, first look
   e2e/                    Browser click-through of every hero flow
-docs/                     Features, decisions, design system, test accounts
 ```
+
+## Design
+
+Dark ink-navy by default with a porcelain light theme and a single cobalt accent. Concentric rings, after the *nazar* amulet, are the only brand shape, and each one has a job:
+- the logo;
+- the portfolio-health gauge (outer ring: financial health, inner ring: diversification);
+- the "Nazar is watching" status;
+- loading states;
+- calm empty states;
+- alert severity, shown by shape as well as colour.
+
+Type is Sora for headings, Inter for text, IBM Plex Mono for numbers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
+
+## Test accounts
+
+Each account also has a one-click button on the sign-in page. The password for all of them is `nazar123`.
+
+| Email | What it is |
+|---|---|
+| `demo@nazar.dev` | The full demo: two portfolios ("My portfolio" with 14 stocks, "Papa's portfolio" in Hindi), 60 sessions of alert history, a learned threshold and weekly reports |
+| `tester1@nazar.dev` | A second copy of the full demo |
+| `new@nazar.dev` | An empty account on live market data, for trying imports and onboarding |
+| `tester2@nazar.dev` | A second empty account |
+
+Things to know:
+- These accounts are shared and reset to a clean state every night.
+- Demo accounts never send email.
+- **Try the demo** on the landing page creates a private 24-hour copy of the demo instead (up to 15 per network per day).
 
 ## Run it locally
 
@@ -178,16 +204,6 @@ Every variable is documented, one per line, in `.env.example`.
 1. Create a free Postgres database (for example on Neon) and a free Brevo account with a verified sender.
 2. Import the repository on Vercel and set at least `NAZAR_DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, `BREVO_API_KEY`, `MAIL_FROM` and `OPENAI_API_KEY`.
 3. Deploy. The build applies migrations and loads the demo data. `vercel.json` schedules the nightly checkup (weekday evenings IST), the Sunday reports and the nightly maintenance.
-
-## Documentation
-
-| Document | Contents |
-|---|---|
-| [docs/FEATURES.md](docs/FEATURES.md) | Every feature: what the user sees, how it works, where the code and tests are |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decisions and their trade-offs |
-| [docs/DESIGN.md](docs/DESIGN.md) | Design system: colour tokens, type, components, motion and voice |
-| [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md) | Logins for reviewers and testers |
-| [CHANGELOG.md](CHANGELOG.md) | What changed in each version |
 
 ## Disclaimer
 

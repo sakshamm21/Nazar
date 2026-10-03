@@ -17,7 +17,7 @@ async function main() {
     installDb(db);
     await getDb();
     await closeDb(db);
-    console.log(`Local database ready in ${((Date.now() - t) / 1000).toFixed(1)}s. Test accounts: demo@nazar.dev / nazar123 (see docs/TEST_ACCOUNTS.md)`);
+    console.log(`Local database ready in ${((Date.now() - t) / 1000).toFixed(1)}s. Test accounts: demo@nazar.dev / nazar123`);
   }
   const port = process.env.PORT ?? "3000";
   const child = spawn(`npx next dev -p ${Number(port) || 3000}`, { stdio: "inherit", shell: true });

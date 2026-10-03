@@ -1,7 +1,7 @@
 import { adjustedBeta } from "@/lib/portfolio/math";
 
 /**
- * H1 "likely reason" for a big move: deterministic and explainable (docs/DECISIONS.md D-6):
+ * H1 "likely reason" for a big move: deterministic and explainable:
  * 1. market:  the Nifty moved ≥1% the same way and beta × Nifty explains at least ~2/3 of the stock's
  *             move (what is left over is under 35% of it)
  * 2. sector:  its Nifty sector index moved the same way by ≥60% of the stock's move

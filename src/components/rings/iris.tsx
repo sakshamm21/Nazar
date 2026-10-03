@@ -1,4 +1,4 @@
-/** Loading = rings expanding like an iris (docs/DESIGN.md §1). Never a spinner. */
+/** Loading = rings expanding like an iris. Never a spinner. */
 export function IrisLoader({ size = 28, label = "Loading" }: { size?: number; label?: string }) {
   return (
     <span role="status" aria-label={label} className="nz-iris relative inline-block shrink-0" style={{ width: size, height: size }}>

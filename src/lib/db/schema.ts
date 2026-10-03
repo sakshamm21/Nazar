@@ -22,7 +22,7 @@ export const users = pgTable("users", {
   /** Per-visitor demo account ("Try the demo"): isolated, deleted after `demoExpiresAt`. */
   isDemo: boolean("is_demo").notNull().default(false),
   demoExpiresAt: ts("demo_expires_at"),
-  /** Public test account listed on the sign-in page (docs/TEST_ACCOUNTS.md). */
+  /** Public test account listed on the sign-in page. */
   isTestAccount: boolean("is_test_account").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
   tourCompletedAt: ts("tour_completed_at"),

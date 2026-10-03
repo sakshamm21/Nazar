@@ -3,7 +3,7 @@ import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 
-/** Dark by default (docs/DESIGN.md); light is a user choice in Settings or on /design. */
+/** Dark by default; light is a user choice in Settings or on /design. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false} themes={["dark", "light"]} disableTransitionOnChange>

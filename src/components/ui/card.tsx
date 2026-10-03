@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-/** Surface-1 card: hairline border, 20px radius, soft depth (docs/DESIGN.md §4). */
+/** Surface-1 card: hairline border, 20px radius, soft depth. */
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("rounded-[var(--radius-card)] border border-line bg-surface-1 shadow-[var(--shadow-card)]", className)} {...props} />;
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-/** Faint, still rings behind calm copy: empty and "all quiet" states (docs/DESIGN.md §1). */
+/** Faint, still rings behind calm copy: empty and "all quiet" states. */
 export function QuietRings({ title, body, action, className, compact }: { title: string; body?: ReactNode; action?: ReactNode; className?: string; compact?: boolean }) {
   const s = compact ? 88 : 132;
   return (

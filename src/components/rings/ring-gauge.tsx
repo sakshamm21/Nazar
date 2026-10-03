@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * Portfolio health as concentric rings (docs/DESIGN.md §1): outer = overall health (0–100),
+ * Portfolio health as concentric rings: outer = overall health (0–100),
  * inner = diversification and risk (0–100). Arcs fill on mount; static under reduced motion.
  */
 export function RingGauge({ outer, inner, size = 168, label, sublabel }: { outer: number | null; inner: number | null; size?: number; label?: string; sublabel?: string }) {
