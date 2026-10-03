@@ -3,73 +3,80 @@
 /* ------------------------------------------------------------------ */
 /* Nazar design tokens. Themes differ only in token values.            */
 /* Dark is the default; light is opted into with data-theme="light".   */
+/* The look: flat black, hard edges, one loud colour at a time, and    */
+/* things that press down when you touch them.                         */
 /* ------------------------------------------------------------------ */
 
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0a0a0f;
-  --surface-1: #13131a;
-  --surface-2: #1a1a23;
-  --surface-3: #23232e;
-  --line: #24242f;
-  --line-strong: #353544;
-  --text: #f5f5f7;
-  --muted: #a5a5b8;
-  --subtle: #8c8ca1;
-  --accent: #a48bff;
-  --accent-ink: #12082e;
-  --accent-soft: rgb(164 139 255 / 0.15);
-  --ice: #d9cfff;
-  --gain: #34d399;
-  --gain-soft: rgb(52 211 153 / 0.12);
-  --loss: #fb7185;
-  --loss-soft: rgb(251 113 133 / 0.12);
-  --warn: #fbbf24;
-  --warn-soft: rgb(251 191 36 / 0.12);
-  --overlay: rgb(4 4 8 / 0.7);
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 10px 30px -14px rgb(0 0 0 / 0.6);
-  --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.75);
-  --chart-grid: #1e1e28;
+  --bg: #000000;
+  --surface-1: #0d0d0d;
+  --surface-2: #161616;
+  --surface-3: #212121;
+  --line: #2a2a2a;
+  --line-strong: #404040;
+  --text: #f7f4ea;
+  --muted: #aba89e;
+  --subtle: #918e85;
+  --accent: #ff7a45;
+  --accent-ink: #000000;
+  --accent-soft: rgb(255 122 69 / 0.14);
+  --ice: #ffd9c9;
+  --gain: #3ddc97;
+  --gain-soft: rgb(61 220 151 / 0.12);
+  --loss: #ff6178;
+  --loss-soft: rgb(255 97 120 / 0.12);
+  --warn: #ffc53d;
+  --warn-soft: rgb(255 197 61 / 0.12);
+  --overlay: rgb(0 0 0 / 0.78);
+  --shadow-card: 0 0 0 0 transparent;
+  --shadow-pop: 8px 8px 0 0 rgb(0 0 0 / 0.9);
+  --chart-grid: #1c1c1c;
   /* The loud one: the main button and the brand mark. Never body text. */
-  --cta: #c8ff4d;
-  --cta-ink: #0a0a0f;
-  /* Second voices, for gradients and highlights only. */
-  --pop: #ff7ad9;
-  --pop-2: #c8ff4d;
-  --glow: rgb(164 139 255 / 0.2);
+  --cta: #ffe500;
+  --cta-ink: #000000;
+  --cta-edge: #8a7c00;
+  /* The highlighted word in a headline. */
+  --hi: #ffe500;
+  /* Colour blocks. */
+  --pop: #b49cff;
+  --pop-2: #ffe500;
+  --glow: rgb(255 255 255 / 0.05);
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f5f0;
-  --surface-1: #ffffff;
-  --surface-2: #f1f0ea;
-  --surface-3: #e7e5dc;
-  --line: #e5e3da;
-  --line-strong: #cfccc0;
-  --text: #111116;
-  --muted: #55556a;
-  --subtle: #63637a;
-  --accent: #6a3df0;
+  --bg: #f2eee3;
+  --surface-1: #fffdf6;
+  --surface-2: #ebe6d7;
+  --surface-3: #ded8c6;
+  --line: #d6d0be;
+  --line-strong: #a9a28d;
+  --text: #0b0b0b;
+  --muted: #4d4a42;
+  --subtle: #5f5b52;
+  --accent: #b02d08;
   --accent-ink: #ffffff;
-  --accent-soft: rgb(106 61 240 / 0.09);
-  --ice: #e6deff;
-  --gain: #08754d;
-  --gain-soft: rgb(8 117 77 / 0.09);
-  --loss: #c0263f;
-  --loss-soft: rgb(192 38 63 / 0.08);
-  --warn: #8a5100;
-  --warn-soft: rgb(138 81 0 / 0.08);
-  --overlay: rgb(17 17 22 / 0.4);
-  --shadow-card: 0 1px 2px rgb(17 17 22 / 0.04), 0 10px 28px -14px rgb(17 17 22 / 0.14);
-  --shadow-pop: 0 20px 50px -16px rgb(17 17 22 / 0.28);
-  --chart-grid: #ebe9e1;
-  --cta: #111116;
-  --cta-ink: #d4ff5c;
-  --pop: #d6249f;
-  --pop-2: #6a3df0;
-  --glow: rgb(106 61 240 / 0.12);
+  --accent-soft: rgb(176 45 8 / 0.09);
+  --ice: #ffd9c9;
+  --gain: #086a44;
+  --gain-soft: rgb(8 106 68 / 0.09);
+  --loss: #b01f39;
+  --loss-soft: rgb(176 31 57 / 0.08);
+  --warn: #7a4800;
+  --warn-soft: rgb(122 72 0 / 0.08);
+  --overlay: rgb(11 11 11 / 0.5);
+  --shadow-card: 0 0 0 0 transparent;
+  --shadow-pop: 8px 8px 0 0 rgb(11 11 11 / 0.9);
+  --chart-grid: #e2dccb;
+  --cta: #0b0b0b;
+  --cta-ink: #ffe500;
+  --cta-edge: #7d7868;
+  --hi: #b02d08;
+  --pop: #5a2fe0;
+  --pop-2: #b02d08;
+  --glow: rgb(11 11 11 / 0.05);
 }
 
 @theme inline {
@@ -96,15 +103,16 @@
   --color-pop: var(--pop);
   --color-cta: var(--cta);
   --color-cta-ink: var(--cta-ink);
+  --color-hi: var(--hi);
 
-  --font-sans: var(--font-figtree), var(--font-devanagari), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --font-display: var(--font-bricolage), var(--font-devanagari), var(--font-figtree), ui-sans-serif, sans-serif;
-  --font-accent: var(--font-instrument), Georgia, serif;
-  --font-num: var(--font-grotesk), var(--font-figtree), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Consolas, monospace;
+  --font-sans: var(--font-outfit), var(--font-devanagari), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-display: var(--font-shoulders), var(--font-devanagari), var(--font-outfit), ui-sans-serif, sans-serif;
+  --font-accent: var(--font-serif), Georgia, serif;
+  --font-num: var(--font-grotesk), var(--font-outfit), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, "SF Mono", Consolas, monospace;
 
-  --radius-card: 24px;
-  --radius-inner: 14px;
+  --radius-card: 0px;
+  --radius-inner: 0px;
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
   --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
@@ -131,44 +139,43 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Type scale */
-.t-display { font-family: var(--font-num); font-weight: 700; font-size: 34px; line-height: 38px; letter-spacing: -0.035em; }
-@media (min-width: 768px) { .t-display { font-size: 46px; line-height: 50px; } }
-.t-title-1 { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 30px; letter-spacing: -0.035em; }
-@media (min-width: 768px) { .t-title-1 { font-size: 32px; line-height: 36px; } }
-.t-title-2 { font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 24px; letter-spacing: -0.02em; }
-.t-overline { font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); }
-/* The italic serif word inside a headline. */
-.t-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; }
-/* Gradient ink for a headline word or a big number. Falls back to the accent colour. */
-.nz-grad { color: var(--accent); background: linear-gradient(100deg, var(--accent) 0%, var(--pop) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-/* A soft two-colour glow behind a hero area. Decorative only. */
+/* Type scale. Headlines are condensed capitals; the one word that matters is a serif italic. */
+.t-display { font-family: var(--font-display); font-weight: 800; font-size: 46px; line-height: 44px; letter-spacing: 0; }
+@media (min-width: 768px) { .t-display { font-size: 64px; line-height: 60px; } }
+.t-title-1 { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: 34px; letter-spacing: 0.005em; text-transform: uppercase; }
+@media (min-width: 768px) { .t-title-1 { font-size: 44px; line-height: 42px; } }
+.t-title-2 { font-family: var(--font-sans); font-weight: 600; font-size: 18px; line-height: 24px; letter-spacing: -0.015em; }
+.t-overline { font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); }
+.t-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; letter-spacing: -0.01em; text-transform: none; }
+/* The highlighted word: one flat loud colour. */
+.nz-grad { color: var(--hi); }
+/* A faint dot grid behind a hero area. Decorative only. */
 .nz-aura { position: relative; isolation: isolate; }
 .nz-aura::before {
-  content: ""; position: absolute; z-index: -1; inset: -10% -5% auto -5%; height: 420px; pointer-events: none;
-  background: radial-gradient(40% 60% at 22% 30%, var(--glow), transparent 70%), radial-gradient(34% 50% at 78% 20%, color-mix(in srgb, var(--pop) 16%, transparent), transparent 70%);
-  filter: blur(8px);
+  content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none;
+  background-image: radial-gradient(var(--glow) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(#000, transparent 70%);
 }
-/* A hairline gradient border for the card that matters most on a page. */
-.nz-ring { position: relative; }
-.nz-ring::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), color-mix(in srgb, var(--pop) 55%, transparent) 50%, transparent 80%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-}
+/* The card that matters most on a page stands on a hard block of colour. */
+.nz-ring { box-shadow: 6px 6px 0 0 var(--cta); border-color: var(--line-strong); }
 .t-caption { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: var(--subtle); }
+
+/* Things you can press sink into their shadow. */
+.nz-press { transition: transform 90ms ease-out, box-shadow 90ms ease-out; }
+.nz-press:hover { transform: translate(-1px, -1px); }
+.nz-press:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 transparent !important; }
 
 /* Hindi paragraphs get a touch more line height */
 :lang(hi), .hi { line-height: 1.75; }
 
-/* Focus: visible, accent, never removed */
+/* Focus: visible, never removed */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--cta);
   outline-offset: 2px;
-  border-radius: 10px;
 }
 
-::selection { background: var(--accent-soft); }
+::selection { background: var(--cta); color: var(--cta-ink); }
 
 /* Scrollbars stay quiet */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
@@ -183,12 +190,28 @@ body {
   100% { transform: scale(1); opacity: 0; }
 }
 @keyframes nz-fade-up {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes nz-shimmer {
   0% { background-position: -400px 0; }
   100% { background-position: 400px 0; }
+}
+@keyframes nz-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes nz-rise {
+  from { transform: translateY(105%); }
+  to { transform: none; }
+}
+@keyframes nz-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes nz-blink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0.15; }
 }
 .nz-breathe { animation: nz-breathe 3.6s ease-in-out infinite; transform-origin: center; }
 .nz-iris > span { animation: nz-iris 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
@@ -200,30 +223,46 @@ body {
   background-size: 800px 100%;
   animation: nz-shimmer 1.6s linear infinite;
 }
+/* A strip of words that never stops. The track holds its content twice. */
+.nz-marquee { display: flex; width: max-content; animation: nz-marquee 28s linear infinite; }
+.nz-marquee:hover { animation-play-state: paused; }
+/* A headline line that rises out of its own mask. */
+.nz-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.nz-line > span { display: block; animation: nz-rise 760ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+.nz-blink { animation: nz-blink 1.4s steps(1) infinite; }
+.nz-draw { animation: nz-draw 1.6s cubic-bezier(0.16, 1, 0.3, 1) 500ms both; }
+/* Every page in the app arrives in sequence: each block a beat after the one above it. */
+.nz-stagger > * { animation: nz-fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.nz-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.nz-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.nz-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.nz-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.nz-stagger > *:nth-child(n + 6) { animation-delay: 300ms; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .nz-breathe, .nz-iris > span, .nz-skeleton { animation: none !important; }
+  .nz-breathe, .nz-iris > span, .nz-skeleton, .nz-marquee, .nz-blink { animation: none !important; }
 }
 
 /* ---------------- Markdown in Ask answers ---------------- */
 .prose-ask { font-size: 15px; line-height: 1.7; color: var(--text); }
 .prose-ask p { margin: 0.55rem 0; }
 .prose-ask strong { font-weight: 600; }
-.prose-ask ul { list-style: disc; padding-left: 1.25rem; margin: 0.55rem 0; }
+.prose-ask ul { list-style: square; padding-left: 1.25rem; margin: 0.55rem 0; }
 .prose-ask ol { list-style: decimal; padding-left: 1.25rem; margin: 0.55rem 0; }
 .prose-ask li { margin: 0.25rem 0; }
-.prose-ask h1, .prose-ask h2, .prose-ask h3 { font-family: var(--font-display); font-weight: 600; margin: 1.1rem 0 0.4rem; }
+.prose-ask h1, .prose-ask h2, .prose-ask h3 { font-family: var(--font-sans); font-weight: 700; margin: 1.1rem 0 0.4rem; }
 .prose-ask h1 { font-size: 1.15rem; }
 .prose-ask h2 { font-size: 1.05rem; }
 .prose-ask h3 { font-size: 0.98rem; }
 .prose-ask a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.prose-ask code { background: var(--surface-2); padding: 0.1rem 0.35rem; border-radius: 6px; font-size: 0.85em; font-family: var(--font-mono); }
+.prose-ask code { background: var(--surface-2); padding: 0.1rem 0.35rem; font-size: 0.85em; font-family: var(--font-mono); }
 .prose-ask table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
 .prose-ask th, .prose-ask td { border-bottom: 1px solid var(--line); padding: 0.4rem 0.5rem; text-align: left; }
 .prose-ask th { color: var(--muted); font-weight: 500; }

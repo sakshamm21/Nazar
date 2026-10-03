@@ -83,7 +83,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
                 Hey, <span className="t-accent nz-grad pr-1">{first}</span>
               </h1>
               {!profile.isTestAccount && (
-                <button onClick={() => setEditing(true)} aria-label="Edit your name" className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text">
+                <button onClick={() => setEditing(true)} aria-label="Edit your name" className="rounded-none p-2 text-subtle hover:bg-surface-2 hover:text-text">
                   <Pencil className="h-4 w-4" />
                 </button>
               )}
@@ -107,7 +107,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
 
       <dl className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-[16px] border border-line bg-surface-2/70 px-3.5 py-3">
+          <div key={s.label} className="rounded-none border border-line bg-surface-2/70 px-3.5 py-3">
             <dd className="num text-[22px] font-bold leading-7 text-text">{s.value}</dd>
             <dt className="text-[12px] text-subtle">{s.label}</dt>
           </div>

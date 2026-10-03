@@ -62,7 +62,7 @@ export function SettingsView(props: {
         <CardHeader overline="Alerts" title="How much should Nazar tell you?" right={<InfoTip k="sensitivity" />} />
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {SENS.map((o) => (
-            <button key={o.value} onClick={() => save({ sensitivity: o.value })} aria-pressed={s.sensitivity === o.value} className={cn("rounded-[16px] border p-4 text-left transition-colors", s.sensitivity === o.value ? "border-accent bg-accent-soft" : "border-line hover:bg-surface-2")}>
+            <button key={o.value} onClick={() => save({ sensitivity: o.value })} aria-pressed={s.sensitivity === o.value} className={cn("rounded-none border p-4 text-left transition-colors", s.sensitivity === o.value ? "border-accent bg-accent-soft" : "border-line hover:bg-surface-2")}>
               <span className="block font-medium text-text">{o.label}</span>
               <span className="mt-1 block text-sm text-muted">{o.body}</span>
             </button>
@@ -84,7 +84,7 @@ export function SettingsView(props: {
         ) : (
           <ul className="mt-4 space-y-3">
             {props.changes.map((c) => (
-              <li key={c.id} className="rounded-[16px] border border-line bg-surface-2 p-4">
+              <li key={c.id} className="rounded-none border border-line bg-surface-2 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-text">{TYPE[c.alertType] ?? c.alertType}</span>
                   {c.muted ? <Chip tone="accent">Muted</Chip> : <Chip tone="accent">{c.oldValue}% → {c.newValue}%</Chip>}
@@ -153,19 +153,6 @@ export function SettingsView(props: {
               ))}
             </Select>
           </Field>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm text-text">Guided tour of Nazar</span>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={async () => {
-                await apiCall("/api/tour", "POST", { action: "restart" });
-                router.push("/home?tour=1");
-              }}
-            >
-              Restart the tour
-            </Button>
-          </div>
         </div>
       </Card>
 
@@ -176,7 +163,7 @@ export function SettingsView(props: {
 
 function SwitchRow({ label, body, checked, onChange, disabled }: { label: string; body: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-[14px] border border-line bg-surface-2 px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-none border border-line bg-surface-2 px-4 py-3">
       <div>
         <div className="text-sm font-medium text-text">{label}</div>
         <div className="t-caption mt-0.5">{body}</div>
@@ -229,7 +216,7 @@ function PriceTargets({ targets }: { targets: Target[] }) {
               </span>
               <button
                 aria-label="Delete price alert"
-                className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text"
+                className="rounded-none p-2 text-subtle hover:bg-surface-2 hover:text-text"
                 onClick={async () => {
                   await apiCall("/api/targets", "DELETE", { ids: [t.id] });
                   router.refresh();

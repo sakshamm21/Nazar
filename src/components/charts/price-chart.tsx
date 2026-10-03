@@ -28,7 +28,7 @@ export function PriceChart({ points, height = 220, tone, format = (v: number) =>
             cursor={{ stroke: "var(--line-strong)", strokeWidth: 1, strokeDasharray: "3 3" }}
             content={({ active, payload, label }) =>
               active && payload?.length ? (
-                <div className="rounded-[12px] border border-line bg-surface-1 px-3 py-2 text-xs shadow-[var(--shadow-pop)]">
+                <div className="rounded-none border border-line bg-surface-1 px-3 py-2 text-xs shadow-[var(--shadow-pop)]">
                   <div className="text-subtle">{new Date(`${label}T12:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}</div>
                   <div className="num mt-0.5 text-sm font-medium text-text">{format(Number(payload[0].value))}</div>
                   {compare && payload[1]?.value != null && (

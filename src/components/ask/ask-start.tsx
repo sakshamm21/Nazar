@@ -75,8 +75,8 @@ export function AskStart({ context, mode, onPick }: { context: AskContext; mode:
 
       <ol className="mt-6 grid gap-2 sm:grid-cols-3">
         {STEPS.map((s, i) => (
-          <li key={s.title} className="flex gap-3 rounded-[18px] border border-line bg-surface-2/60 p-3.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+          <li key={s.title} className="flex gap-3 rounded-none border border-line bg-surface-2/60 p-3.5">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-none bg-accent-soft text-accent">
               <s.icon className="h-[18px] w-[18px]" />
             </span>
             <span>
@@ -93,7 +93,7 @@ export function AskStart({ context, mode, onPick }: { context: AskContext; mode:
         <h2 className="t-title-2 text-text">Start with a question</h2>
         <div className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist" aria-label="Kinds of question">
           {list.map((t) => (
-            <button key={t.id} role="tab" aria-selected={t.id === active} onClick={() => setActive(t.id)} className={cn("flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors", t.id === active ? "border-transparent bg-text text-bg" : "border-line text-muted hover:text-text")}>
+            <button key={t.id} role="tab" aria-selected={t.id === active} onClick={() => setActive(t.id)} className={cn("flex shrink-0 items-center gap-1.5 rounded-none border px-3.5 py-1.5 text-[13px] font-semibold transition-colors", t.id === active ? "border-transparent bg-text text-bg" : "border-line text-muted hover:text-text")}>
               <t.icon className="h-3.5 w-3.5" /> {t.label}
             </button>
           ))}
@@ -102,7 +102,7 @@ export function AskStart({ context, mode, onPick }: { context: AskContext; mode:
         <ul className="mt-3 grid gap-2">
           {topic.questions.map((q) => (
             <li key={q}>
-              <button onClick={() => onPick(q)} className="group flex w-full items-center justify-between gap-3 rounded-[16px] border border-line bg-surface-1 px-4 py-3 text-left text-[15px] text-text transition-colors hover:border-accent hover:bg-surface-2">
+              <button onClick={() => onPick(q)} className="group flex w-full items-center justify-between gap-3 rounded-none border border-line bg-surface-1 px-4 py-3 text-left text-[15px] text-text transition-colors hover:border-accent hover:bg-surface-2">
                 {q}
                 <ArrowUpRight className="h-4 w-4 shrink-0 text-subtle transition-colors group-hover:text-accent" />
               </button>

@@ -6,14 +6,14 @@ import { IrisLoader } from "@/components/rings/iris";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
-const base = "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[background-color,filter,color] duration-150 ease-[var(--ease-calm)] disabled:pointer-events-none disabled:opacity-50 select-none";
+const base = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 select-none";
 const variants: Record<Variant, string> = {
-  primary: "bg-cta text-cta-ink shadow-[0_8px_24px_-12px_var(--cta)] hover:brightness-105 active:brightness-95 active:scale-[0.98]",
-  secondary: "border border-line bg-surface-2 text-text hover:bg-surface-3",
-  ghost: "text-muted hover:bg-surface-2 hover:text-text",
-  danger: "border border-line bg-surface-2 text-loss hover:bg-loss-soft",
+  primary: "nz-press bg-cta text-cta-ink shadow-[4px_4px_0_0_var(--cta-edge)]",
+  secondary: "nz-press border border-line-strong bg-surface-1 text-text shadow-[4px_4px_0_0_var(--line-strong)]",
+  ghost: "text-muted transition-colors hover:bg-surface-2 hover:text-text",
+  danger: "nz-press border border-loss bg-surface-1 text-loss shadow-[4px_4px_0_0_var(--loss)]",
 };
-const sizes: Record<Size, string> = { sm: "h-9 px-3.5 text-sm", md: "h-11 px-5 text-[15px]", lg: "h-12 px-6 text-base" };
+const sizes: Record<Size, string> = { sm: "h-9 px-3.5 text-[12px]", md: "h-11 px-5 text-[13px]", lg: "h-[52px] px-7 text-[14px]" };
 
 export const buttonClass = (variant: Variant = "primary", size: Size = "md", className?: string) => cn(base, variants[variant], sizes[size], className);
 

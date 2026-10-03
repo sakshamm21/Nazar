@@ -39,7 +39,7 @@ export function PortfolioSettings({ p, recipient, isDemo, emailConfigured }: { p
               <option value="hi">Simple Hindi (हिंदी)</option>
             </Select>
           </Field>
-          <div className="flex items-end justify-between gap-3 rounded-[14px] border border-line bg-surface-2 px-4 py-3">
+          <div className="flex items-end justify-between gap-3 rounded-none border border-line bg-surface-2 px-4 py-3">
             <div>
               <div className="text-sm font-medium text-text">Alerts for this portfolio</div>
               <div className="t-caption">Off = nothing is emailed; the inbox still shows them.</div>

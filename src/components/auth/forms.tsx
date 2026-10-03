@@ -14,7 +14,7 @@ function PasswordInput({ id, value, onChange, autoComplete, placeholder, label }
   return (
     <div className="relative">
       <Input id={id} aria-label={label} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-11" required />
-      <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-[10px] text-subtle hover:bg-surface-3 hover:text-text">
+      <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-none text-subtle hover:bg-surface-3 hover:text-text">
         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>
     </div>

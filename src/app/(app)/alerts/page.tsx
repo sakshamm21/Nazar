@@ -17,7 +17,7 @@ export default async function AlertsPage() {
   const [{ alerts, portfolios }, settings, view] = await Promise.all([alertsFor(user.id), getSettings(user.id), buildPortfolioView(user, await selectedPortfolioId())]);
   const active = view.active;
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="nz-stagger mx-auto max-w-3xl space-y-5">
       <div>
         <h1 className="t-title-1 text-text">
           What moved, and <span className="t-accent nz-grad">why</span>

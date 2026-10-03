@@ -61,7 +61,7 @@ function ExcelButton({ tool, data }: { tool: string; data: any }) {
           setBusy(false);
         }
       }}
-      className="no-print -mt-1.5 mb-3 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-subtle hover:bg-surface-2 hover:text-accent"
+      className="no-print -mt-1.5 mb-3 flex items-center gap-1.5 rounded-none px-1.5 py-1 text-[11px] text-subtle hover:bg-surface-2 hover:text-accent"
       title={model ? "Live Excel model: blue cells are inputs, formulas recalculate" : "Download this data as an Excel sheet"}
     >
       {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}

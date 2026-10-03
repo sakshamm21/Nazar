@@ -81,7 +81,7 @@ export function AlertCard({ a, variant = "feed" }: { a: AlertDTO; variant?: "fee
         </p>
       )}
       {Array.isArray(d.headlines) && d.headlines.length > 0 && (
-        <div className="mt-4 rounded-[14px] border border-line bg-surface-2 p-3">
+        <div className="mt-4 rounded-none border border-line bg-surface-2 p-3">
           <div className="t-overline">In the news (third-party headlines)</div>
           <ul className="mt-1.5 space-y-1.5">
             {d.headlines.map((h: { title: string; source: string; link: string }) => (
@@ -109,17 +109,17 @@ export function AlertCard({ a, variant = "feed" }: { a: AlertDTO; variant?: "fee
           {a.type === "learned" ? "See or undo in Settings" : "See the analysis"} →
         </Link>
         {a.portfolio?.language === "hi" && (
-          <button onClick={() => setLang(hindi ? "en" : "hi")} className="rounded-full border border-line px-2.5 py-0.5 text-xs font-medium text-muted hover:text-text" aria-pressed={hindi}>
+          <button onClick={() => setLang(hindi ? "en" : "hi")} className="rounded-none border border-line px-2.5 py-0.5 text-xs font-medium text-muted hover:text-text" aria-pressed={hindi}>
             {hindi ? "English" : "हिंदी"}
           </button>
         )}
         {a.type !== "learned" && a.type !== "digest" && (
           <span className="ml-auto flex items-center gap-1" role="group" aria-label="Was this useful?">
             <span className="mr-1 text-[12px] text-subtle">Useful?</span>
-            <button onClick={() => rate("up")} aria-pressed={rating === "up"} aria-label="Useful" className={cn("rounded-full p-2 transition-colors", rating === "up" ? "bg-gain-soft text-gain" : "text-subtle hover:bg-surface-2 hover:text-text")}>
+            <button onClick={() => rate("up")} aria-pressed={rating === "up"} aria-label="Useful" className={cn("rounded-none p-2 transition-colors", rating === "up" ? "bg-gain-soft text-gain" : "text-subtle hover:bg-surface-2 hover:text-text")}>
               <ThumbsUp className="h-4 w-4" fill={rating === "up" ? "currentColor" : "none"} />
             </button>
-            <button onClick={() => rate("down")} aria-pressed={rating === "down"} aria-label="Not useful" className={cn("rounded-full p-2 transition-colors", rating === "down" ? "bg-loss-soft text-loss" : "text-subtle hover:bg-surface-2 hover:text-text")}>
+            <button onClick={() => rate("down")} aria-pressed={rating === "down"} aria-label="Not useful" className={cn("rounded-none p-2 transition-colors", rating === "down" ? "bg-loss-soft text-loss" : "text-subtle hover:bg-surface-2 hover:text-text")}>
               <ThumbsDown className="h-4 w-4" fill={rating === "down" ? "currentColor" : "none"} />
             </button>
           </span>
@@ -132,13 +132,13 @@ export function AlertCard({ a, variant = "feed" }: { a: AlertDTO; variant?: "fee
 export function ResultsLists({ improved, worse, health, hindi }: { improved: { en: string; hi: string; key: string }[]; worse: { en: string; hi: string; key: string }[]; health?: { en: string; hi: string }; hindi?: boolean }) {
   return (
     <div lang={hindi ? "hi" : undefined} className={cn("mt-3 grid gap-3 sm:grid-cols-2", hindi && "hi")}>
-      <div className="rounded-[14px] bg-gain-soft p-3.5">
+      <div className="rounded-none bg-gain-soft p-3.5">
         <div className="text-[13px] font-semibold text-gain">{hindi ? "क्या बेहतर हुआ" : "What improved"}</div>
         <ul className="mt-1.5 space-y-1 text-sm text-text">
           {improved.length ? improved.map((p) => <li key={p.key}>▲ {hindi ? p.hi : p.en}</li>) : <li className="text-muted">{hindi ? "कुछ खास नहीं" : "Nothing notable"}</li>}
         </ul>
       </div>
-      <div className="rounded-[14px] bg-loss-soft p-3.5">
+      <div className="rounded-none bg-loss-soft p-3.5">
         <div className="text-[13px] font-semibold text-loss">{hindi ? "क्या कमज़ोर हुआ" : "What got worse"}</div>
         <ul className="mt-1.5 space-y-1 text-sm text-text">
           {worse.length ? worse.map((p) => <li key={p.key}>▼ {hindi ? p.hi : p.en}</li>) : <li className="text-muted">{hindi ? "कुछ खास नहीं" : "Nothing notable"}</li>}

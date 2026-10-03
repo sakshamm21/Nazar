@@ -51,8 +51,8 @@ export function AllocationDonut({ slices, total }: { slices: DonutSlice[]; total
         <ul className="w-full min-w-0 flex-1 space-y-0.5">
           {slices.map((s) => (
             <li key={s.group}>
-              <button onMouseEnter={() => setSel(s.group)} onMouseLeave={() => setSel(null)} onFocus={() => setSel(s.group)} onBlur={() => setSel(null)} onClick={() => setSel(s.group)} aria-pressed={sel === s.group} className={cn("flex w-full items-center gap-2.5 rounded-[10px] px-2 py-1.5 text-left text-[13px] transition-colors", sel === s.group ? "bg-surface-2" : "hover:bg-surface-2")}>
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: GROUP_COLOR[s.group] }} aria-hidden />
+              <button onMouseEnter={() => setSel(s.group)} onMouseLeave={() => setSel(null)} onFocus={() => setSel(s.group)} onBlur={() => setSel(null)} onClick={() => setSel(s.group)} aria-pressed={sel === s.group} className={cn("flex w-full items-center gap-2.5 rounded-none px-2 py-1.5 text-left text-[13px] transition-colors", sel === s.group ? "bg-surface-2" : "hover:bg-surface-2")}>
+                <span className="h-2.5 w-2.5 shrink-0 rounded-none" style={{ background: GROUP_COLOR[s.group] }} aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-text">{s.group}</span>
                 <span className="num text-muted">{inrCompact(s.value)}</span>
                 <span className="num w-9 text-right font-semibold text-text">{Math.round(s.weight * 100)}%</span>
@@ -61,7 +61,7 @@ export function AllocationDonut({ slices, total }: { slices: DonutSlice[]; total
           ))}
         </ul>
       </div>
-      <div className="mt-3 min-h-[44px] rounded-[12px] bg-surface-2 px-3 py-2.5 text-[13px] leading-5 text-muted">
+      <div className="mt-3 min-h-[44px] rounded-none bg-surface-2 px-3 py-2.5 text-[13px] leading-5 text-muted">
         {active ? (
           <>
             <span className="font-medium text-text">{active.count} {active.count === 1 ? "holding" : "holdings"}</span>

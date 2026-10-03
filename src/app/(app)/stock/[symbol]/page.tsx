@@ -105,7 +105,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
     : [];
 
   return (
-    <div className="space-y-5 lg:space-y-6">
+    <div className="nz-stagger space-y-5 lg:space-y-6">
       <Link href="/home" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
         <ArrowLeft className="h-4 w-4" /> Home
       </Link>

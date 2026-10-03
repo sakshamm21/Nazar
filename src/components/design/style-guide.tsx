@@ -60,7 +60,7 @@ export function StyleGuide() {
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {TOKENS.map((k) => (
                 <div key={k} className="text-[11px]">
-                  <div className="h-12 rounded-[12px] border border-line" style={{ background: `var(--${k})` }} />
+                  <div className="h-12 rounded-none border border-line" style={{ background: `var(--${k})` }} />
                   <div className="mt-1 font-mono text-muted">--{k}</div>
                 </div>
               ))}

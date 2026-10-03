@@ -23,10 +23,10 @@ export function PortfolioSwitcher({ portfolios, activeId }: { portfolios: { id: 
               trackClient("portfolio_switch", { family: Boolean(p.ownerLabel) });
               start(() => router.refresh());
             }}
-            className={cn("flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors", on ? "border-transparent bg-text text-bg" : "border-line bg-surface-1 text-muted hover:text-text")}
+            className={cn("flex shrink-0 items-center gap-1.5 rounded-none border px-3.5 py-1.5 text-sm font-medium transition-colors", on ? "border-transparent bg-text text-bg" : "border-line bg-surface-1 text-muted hover:text-text")}
           >
             {p.ownerLabel ? `${p.ownerLabel}'s` : p.name}
-            {p.language === "hi" && <span className={cn("rounded-full px-1.5 text-[11px] leading-5", on ? "bg-bg/15" : "bg-surface-2")} lang="hi">हिं</span>}
+            {p.language === "hi" && <span className={cn("rounded-none px-1.5 text-[11px] leading-5", on ? "bg-bg/15" : "bg-surface-2")} lang="hi">हिं</span>}
           </button>
         );
       })}

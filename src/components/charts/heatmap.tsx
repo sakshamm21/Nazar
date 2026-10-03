@@ -69,19 +69,19 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div role="radiogroup" aria-label="Colour by" className="flex gap-1">
           {MODES.map((m) => (
-            <button key={m.id} role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors", mode === m.id ? "bg-text text-bg" : "text-muted hover:bg-surface-2 hover:text-text")}>
+            <button key={m.id} role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-none px-3 py-1.5 text-[13px] font-semibold transition-colors", mode === m.id ? "bg-text text-bg" : "text-muted hover:bg-surface-2 hover:text-text")}>
               {m.label}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-subtle" aria-hidden>
           fell
-          <span className="h-2 w-16 rounded-full" style={{ background: "linear-gradient(90deg, var(--loss), var(--surface-3), var(--gain))" }} />
+          <span className="h-2 w-16 rounded-none" style={{ background: "linear-gradient(90deg, var(--loss), var(--surface-3), var(--gain))" }} />
           rose
         </div>
       </div>
 
-      <div className="relative mt-3 w-full overflow-hidden rounded-[14px]" style={{ aspectRatio: `${W} / ${H}` }} onMouseLeave={() => setSel(null)}>
+      <div className="relative mt-3 w-full overflow-hidden rounded-none" style={{ aspectRatio: `${W} / ${H}` }} onMouseLeave={() => setSel(null)}>
         {sorted.map((t, i) => {
           const r = rects[i];
           const p = pctOf(t);
@@ -110,7 +110,7 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
         })}
       </div>
 
-      <div className="mt-3 flex min-h-[44px] flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-[12px] bg-surface-2 px-3 py-2.5 text-[13px]">
+      <div className="mt-3 flex min-h-[44px] flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-none bg-surface-2 px-3 py-2.5 text-[13px]">
         {active ? (
           <>
             <span className="min-w-0 truncate font-medium text-text">{active.name}</span>

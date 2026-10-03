@@ -118,8 +118,8 @@ export function InsightsView({ data }: { data: Insights }) {
                   <span className="text-text">{f.step}</span>
                   <span className="num text-muted">{f.users}</span>
                 </div>
-                <div className="mt-1 h-2 rounded-full bg-surface-3">
-                  <div className="h-full rounded-full bg-accent" style={{ width: `${(f.users / top) * 100}%` }} />
+                <div className="mt-1 h-2 rounded-none bg-surface-3">
+                  <div className="h-full rounded-none bg-accent" style={{ width: `${(f.users / top) * 100}%` }} />
                 </div>
               </li>
             ))}

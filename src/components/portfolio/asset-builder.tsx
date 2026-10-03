@@ -175,7 +175,7 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
     >
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist" aria-label="Asset type">
         {TABS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => { setTab(t.id); setManual(null); }} className={cn("shrink-0 rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors", tab === t.id ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-text")}>
+          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => { setTab(t.id); setManual(null); }} className={cn("shrink-0 rounded-none border px-3 py-1.5 text-[13px] font-medium transition-colors", tab === t.id ? "border-accent bg-accent-soft text-accent" : "border-line text-muted hover:text-text")}>
             {t.label}
           </button>
         ))}
@@ -193,7 +193,7 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
             )}
           </div>
           {shown.length > 0 && (
-            <ul className="mt-2 max-h-72 overflow-y-auto rounded-[14px] border border-line" role="listbox" aria-label="Results">
+            <ul className="mt-2 max-h-72 overflow-y-auto rounded-none border border-line" role="listbox" aria-label="Results">
               {shown.map((h) => {
                 const on = lines.some((l) => l.hit.symbol === h.symbol);
                 return (
@@ -205,7 +205,7 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
                         <span className="block truncate text-[12px] text-subtle">{[h.assetClass === "stock" || h.assetClass === "etf" || h.assetClass === "reit" ? shortCode(h.symbol) : null, h.sub].filter(Boolean).join(" · ") || ASSET_META[h.assetClass].label}</span>
                       </span>
                       <ClassBadge assetClass={h.assetClass} />
-                      <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full border", on ? "border-accent bg-accent text-accent-ink" : "border-line text-muted")}>{on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</span>
+                      <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-none border", on ? "border-accent bg-accent text-accent-ink" : "border-line text-muted")}>{on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</span>
                     </button>
                   </li>
                 );
@@ -244,7 +244,7 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {MANUAL_KINDS.map((k) => (
             <li key={k.assetClass}>
-              <button onClick={() => { setManual(emptyDraft(k.assetClass as ManualClass)); setError(null); }} className="flex h-full w-full items-start gap-3 rounded-[14px] border border-line p-3.5 text-left transition-colors hover:bg-surface-2">
+              <button onClick={() => { setManual(emptyDraft(k.assetClass as ManualClass)); setError(null); }} className="flex h-full w-full items-start gap-3 rounded-none border border-line p-3.5 text-left transition-colors hover:bg-surface-2">
                 <AssetIcon assetClass={k.assetClass} />
                 <span>
                   <span className="block text-sm font-medium text-text">{k.title}</span>
@@ -264,13 +264,13 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
               <LineEditor key={l.hit.symbol} line={l} held={held.find((h) => h.symbol === l.hit.symbol) ?? null} onChange={(p) => patch(l.hit.symbol, p)} onRemove={() => setLines((ls) => ls.filter((x) => x.hit.symbol !== l.hit.symbol))} />
             ))}
             {manuals.map((m, i) => (
-              <li key={i} className="flex items-center gap-3 rounded-[14px] border border-line bg-surface-2 p-3">
+              <li key={i} className="flex items-center gap-3 rounded-none border border-line bg-surface-2 p-3">
                 <AssetIcon assetClass={m.assetClass} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-text">{m.name}</span>
                   <span className="num block text-[12px] text-subtle">{ASSET_META[m.assetClass].label} · {inr(num(m.value) || num(m.invested))}</span>
                 </span>
-                <button aria-label={`Remove ${m.name}`} onClick={() => setManuals((ms) => ms.filter((_, k) => k !== i))} className="rounded-full p-2 text-subtle hover:bg-surface-3 hover:text-text">
+                <button aria-label={`Remove ${m.name}`} onClick={() => setManuals((ms) => ms.filter((_, k) => k !== i))} className="rounded-none p-2 text-subtle hover:bg-surface-3 hover:text-text">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </li>
@@ -293,7 +293,7 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
   const id = (s: string) => `${l.hit.symbol}-${s}`;
   const small = "h-10 text-sm";
   return (
-    <li className="rounded-[14px] border border-line bg-surface-2 p-3.5">
+    <li className="rounded-none border border-line bg-surface-2 p-3.5">
       <div className="flex items-start gap-3">
         <AssetIcon assetClass={l.hit.assetClass} size="sm" />
         <div className="min-w-0 flex-1">
@@ -302,15 +302,15 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
             {l.live === undefined ? "Getting the latest price…" : l.live == null ? "Latest price unavailable right now" : `${l.hit.assetClass === "mf" ? "NAV" : "Price"} ${inr(l.live, { decimals: 2 })}${l.hit.assetClass === "gold" ? " per gram (indicative)" : l.hit.assetClass === "us" || l.hit.assetClass === "crypto" ? " (dollar price in rupees)" : ""}`}
           </div>
         </div>
-        <button aria-label={`Remove ${l.hit.name}`} onClick={onRemove} className="-mr-1 -mt-1 rounded-full p-2 text-subtle hover:bg-surface-3 hover:text-text">
+        <button aria-label={`Remove ${l.hit.name}`} onClick={onRemove} className="-mr-1 -mt-1 rounded-none p-2 text-subtle hover:bg-surface-3 hover:text-text">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
 
       {BY_AMOUNT.has(l.hit.assetClass) && (
-        <div className="mt-3 inline-flex rounded-[10px] border border-line p-0.5 text-xs font-medium" role="radiogroup" aria-label="How to enter this holding">
+        <div className="mt-3 inline-flex rounded-none border border-line p-0.5 text-xs font-medium" role="radiogroup" aria-label="How to enter this holding">
           {(["amount", "units"] as const).map((m) => (
-            <button key={m} role="radio" aria-checked={l.mode === m} onClick={() => onChange({ mode: m })} className={cn("rounded-[8px] px-2.5 py-1", l.mode === m ? "bg-surface-1 text-text shadow-[var(--shadow-card)]" : "text-muted")}>
+            <button key={m} role="radio" aria-checked={l.mode === m} onClick={() => onChange({ mode: m })} className={cn("rounded-none px-2.5 py-1", l.mode === m ? "bg-surface-1 text-text shadow-[var(--shadow-card)]" : "text-muted")}>
               {m === "amount" ? "I know the amount" : "I know the units"}
             </button>
           ))}
@@ -354,7 +354,7 @@ function LineEditor({ line: l, held, onChange, onRemove }: { line: Line; held: H
         {l.mode === "amount" && l.current.trim() === "" && l.invested.trim() !== "" && <span>Add what it is worth today for an exact count.</span>}
       </div>
       {held && r && (
-        <p className="num mt-2 rounded-[10px] bg-accent-soft px-2.5 py-1.5 text-[12px] text-text">
+        <p className="num mt-2 rounded-none bg-accent-soft px-2.5 py-1.5 text-[12px] text-text">
           You already hold {fmtUnits(held.quantity)} {meta.unit}. This adds to it: {fmtUnits(held.quantity + r.quantity)} {meta.unit} at an average of {inr((held.quantity * held.avgPrice + r.quantity * r.avgPrice) / (held.quantity + r.quantity), { decimals: 2 })}.
         </p>
       )}

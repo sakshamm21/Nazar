@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Figtree, IBM_Plex_Mono, Instrument_Serif, Noto_Sans_Devanagari, Space_Grotesk } from "next/font/google";
+import { Big_Shoulders, DM_Serif_Display, Noto_Sans_Devanagari, Outfit, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-// Four voices: Bricolage Grotesque for headlines, Instrument Serif italic for the one word that matters, Figtree for
-// reading, Space Grotesk for every number. Plex Mono stays for tickers and codes.
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-bricolage", display: "swap" });
-const instrument = Instrument_Serif({ subsets: ["latin"], style: ["italic"], weight: "400", variable: "--font-instrument", display: "swap" });
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
+// Five voices: Big Shoulders (condensed capitals) for headlines, DM Serif italic for the one word that matters, Outfit for
+// reading, Space Grotesk for every number, Space Mono for labels and tickers.
+const shoulders = Big_Shoulders({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-shoulders", display: "swap" });
+const serif = DM_Serif_Display({ subsets: ["latin"], style: ["italic"], weight: "400", variable: "--font-serif", display: "swap" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-grotesk", display: "swap" });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
+const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-space-mono", display: "swap" });
 const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600"], variable: "--font-devanagari", display: "swap" });
 
 export const metadata: Metadata = {
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0f" },
-    { media: "(prefers-color-scheme: light)", color: "#f6f5f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#f2eee3" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${bricolage.variable} ${instrument.variable} ${figtree.variable} ${grotesk.variable} ${plexMono.variable} ${devanagari.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${shoulders.variable} ${serif.variable} ${outfit.variable} ${grotesk.variable} ${spaceMono.variable} ${devanagari.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

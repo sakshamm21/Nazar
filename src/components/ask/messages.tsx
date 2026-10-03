@@ -39,7 +39,7 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
         return (
           <div key={m.id} className={m.role === "user" ? "my-5 flex justify-end print-avoid-break" : "my-5"}>
             {m.role === "user" ? (
-              <div className="user-bubble max-w-[85%] rounded-[22px] rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink">
+              <div className="user-bubble max-w-[85%] rounded-none rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink">
                 {m.parts.map((p, i) => (p.type === "text" ? <span key={i} className="whitespace-pre-wrap">{p.text}</span> : null))}
               </div>
             ) : (
@@ -136,7 +136,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
                 onRate?.(message.id, "down", k);
                 setAskReason(false);
               }}
-              className="rounded-full border border-line px-2 py-0.5 text-muted hover:border-line-strong hover:text-text"
+              className="rounded-none border border-line px-2 py-0.5 text-muted hover:border-line-strong hover:text-text"
             >
               {FEEDBACK_REASONS[k]}
             </button>
@@ -144,7 +144,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
         </div>
       )}
       {open && (
-        <div className="mt-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-[11px] text-muted">
+        <div className="mt-2 rounded-none border border-line bg-surface-2 px-3 py-2 text-[11px] text-muted">
           <div className="mb-1 font-medium text-text">How this answer was built</div>
           <ol className="list-decimal space-y-0.5 pl-4">
             {calls.map((p, i) => {
@@ -182,7 +182,7 @@ function FollowUps({ message, asked, onPick, chatId }: { message: UIMessage; ask
             trackClient("suggestion_click", { position: i }, chatId);
             onPick(q);
           }}
-          className="rounded-full border border-line bg-surface-2 px-3 py-1 text-xs text-text transition hover:border-accent hover:text-accent"
+          className="rounded-none border border-line bg-surface-2 px-3 py-1 text-xs text-text transition hover:border-accent hover:text-accent"
         >
           {q}
         </button>

@@ -4,8 +4,7 @@ import path from "node:path";
 /**
  * Signs in with the demo button, exactly like a visitor would (or, given an email, as one of the
  * other test accounts through the form). The account is shared, so
- * each test first clears any simulated day a previous test left behind. (Whether the tour has been
- * seen is remembered per browser, and every test starts with a fresh one.)
+ * each test first clears any simulated day a previous test left behind. 
  */
 async function startDemo(page: Page, email?: string) {
   await page.goto("/signin");
@@ -21,20 +20,10 @@ async function startDemo(page: Page, email?: string) {
   }
 }
 
-/** A new demo always opens the tour once the page has settled (later on a slow network); close it. */
-async function skipTour(page: Page) {
-  const skip = page.getByRole("button", { name: "Skip tour" });
-  const shown = await skip.waitFor({ timeout: 15_000 }).then(() => true, () => false);
-  if (shown) {
-    await skip.click();
-    await expect(skip).toHaveCount(0);
-  }
-}
-
 test.describe("Landing", () => {
   test("pitch, three things it does, and one tap into the demo", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Your money,\s*watched/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Your money\s*is being\s*watched/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Sign in", exact: true }).first()).toBeVisible();
     for (const t of ["See it move", "Know why", "Hear only what matters"]) await expect(page.getByRole("heading", { name: t })).toBeVisible();
     await expect(page.getByText(/No tips, no predictions/)).toBeVisible();
@@ -43,27 +32,9 @@ test.describe("Landing", () => {
   });
 });
 
-test.describe("Demo: guided tour and Simulate a bad day", () => {
-  test("first visit runs the 7-step tour and ends on Simulate", async ({ page }) => {
-    await startDemo(page);
-    const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Step 1 of 7")).toBeVisible();
-    await expect(dialog.getByRole("heading", { name: "Why did my portfolio move today?" })).toBeVisible();
-    for (let i = 2; i <= 7; i++) {
-      await dialog.getByRole("button", { name: "Next" }).click();
-      await expect(dialog.getByText(`Step ${i} of 7`)).toBeVisible();
-    }
-    await expect(dialog.getByRole("heading", { name: "Now, try a bad day" })).toBeVisible();
-    await dialog.getByRole("button", { name: "Got it" }).click();
-    await expect(page.getByText("Step 1 of 7")).toHaveCount(0);
-    // It doesn't come back on reload once completed.
-    await page.reload();
-    await expect(page.getByText(/Step \d of 7/)).toHaveCount(0);
-  });
-
+test.describe("Demo: Home and Simulate a bad day", () => {
   test("Home shows every hero feature within one tap", async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
     await expect(page.locator('[data-tour="h2"]')).toContainText(/You're (down|up)|A quiet day/);
     await expect(page.getByRole("heading", { name: "What needs your attention" })).toBeVisible();
     await expect(page.getByText("Nazar adjusted your alerts")).toBeVisible();
@@ -72,11 +43,12 @@ test.describe("Demo: guided tour and Simulate a bad day", () => {
     await expect(page.getByRole("tab", { name: /Papa's/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Simulate a bad day in the market" })).toBeVisible();
     await expect(page.getByText(/Nazar is watching/)).toBeVisible();
+    // No tour: nothing covers Home on arrival.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("Simulate a bad day fires real alerts, then Back to normal clears them", async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
     await page.getByRole("button", { name: "Simulate a bad day" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Run the simulation" }).click();
     await expect(page.getByText(/alerts? just arrived/)).toBeVisible();
@@ -92,7 +64,6 @@ test.describe("Demo: guided tour and Simulate a bad day", () => {
 test.describe("Hero features", () => {
   test.beforeEach(async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
   });
 
   test("H2: why did my portfolio move today", async ({ page }) => {
@@ -154,7 +125,6 @@ test.describe("Hero features", () => {
   });
 
   test("Home's chart follows the range you pick", async ({ page }) => {
-    await skipTour(page);
     const chart = page.getByRole("img", { name: /^Portfolio value/ });
     await expect(chart).toBeVisible();
     await page.getByRole("radio", { name: "1M", exact: true }).click();
@@ -204,7 +174,6 @@ test.describe("Accounts", () => {
 
   test("Ask opens with a guided start built from the account's own holdings", async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
     await page.goto("/ask");
     await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
     await expect(page.getByText("Nazar fetches live data")).toBeVisible();
@@ -287,20 +256,11 @@ test.describe("Accounts", () => {
 test.describe("Mobile @mobile", () => {
   test("bottom tabs navigate between the main areas @mobile", async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
     const nav = page.getByRole("navigation", { name: "Main" }).last();
     for (const [label, url] of [["Alerts", /\/alerts/], ["Portfolio", /\/portfolio/], ["You", /\/settings/], ["Home", /\/home/]] as const) {
       await nav.getByRole("link", { name: label }).click();
       await page.waitForURL(url);
     }
-  });
-
-  test("the tour fits a phone screen @mobile", async ({ page }) => {
-    await startDemo(page);
-    const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Step 1 of 7")).toBeVisible();
-    const box = await dialog.locator("div.absolute").last().boundingBox();
-    expect(box && box.x >= 0 && box.x + box.width <= 375).toBeTruthy();
   });
 });
 
@@ -308,7 +268,6 @@ test.describe("Ask @openai", () => {
   test.skip(!process.env.OPENAI_API_KEY && !process.env.E2E_OPENAI, "needs an OpenAI key on the server");
   test("answers a portfolio question with getMyPortfolio", async ({ page }) => {
     await startDemo(page);
-    await skipTour(page);
     await page.goto("/ask");
     await page.getByRole("button", { name: "Why is my portfolio down this month?" }).click();
     await expect(page.getByText(/Reading your portfolio|read-only from Nazar's checkup/).first()).toBeVisible({ timeout: 60_000 });

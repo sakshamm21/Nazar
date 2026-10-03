@@ -21,7 +21,7 @@ export default async function TodayPage() {
   const a = v.attribution;
   const max = Math.max(1, ...a.breakdown.map((r) => Math.abs(r.amount)));
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="nz-stagger mx-auto max-w-3xl space-y-5">
       <Link href="/home" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text">
         <ArrowLeft className="h-4 w-4" /> Home
       </Link>
@@ -71,7 +71,7 @@ export default async function TodayPage() {
                   )}
                   <Delta amount={r.amount} pct={r.pct} size="sm" />
                 </div>
-                <div className="mt-1.5 flex h-2 w-full overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${r.name}: ${inr(r.amount, { sign: true })}, of which about ${absPct(mkt, 0)} explained by the market`}>
+                <div className="mt-1.5 flex h-2 w-full overflow-hidden rounded-none bg-surface-3" role="img" aria-label={`${r.name}: ${inr(r.amount, { sign: true })}, of which about ${absPct(mkt, 0)} explained by the market`}>
                   <div className="h-full" style={{ width: `${w * mkt}%`, background: tone, opacity: 0.4 }} />
                   <div className="h-full" style={{ width: `${w * (1 - mkt)}%`, background: tone }} />
                 </div>

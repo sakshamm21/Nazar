@@ -80,7 +80,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
 
   const pnl = totals.value - totals.invested;
   return (
-    <div className="space-y-5 lg:space-y-6">
+    <div className="nz-stagger space-y-5 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="t-title-1 text-text">Portfolio</h1>
@@ -167,7 +167,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, allocatio
             <Card key={g.group} className="overflow-hidden">
               <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5 sm:px-6">
                 <h2 className="flex items-center gap-2.5 text-[15px] font-semibold text-text">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: GROUP_COLOR[g.group] }} aria-hidden />
+                  <span className="h-2.5 w-2.5 rounded-none" style={{ background: GROUP_COLOR[g.group] }} aria-hidden />
                   {g.group}
                   <span className="text-[13px] font-normal text-subtle">{g.rows.length}</span>
                 </h2>
@@ -235,10 +235,10 @@ function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRe
         )}
       </div>
       <div className="-mr-2 flex shrink-0 flex-col sm:flex-row">
-        <button onClick={onEdit} aria-label={`Change ${r.name}`} className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text">
+        <button onClick={onEdit} aria-label={`Change ${r.name}`} className="rounded-none p-2 text-subtle hover:bg-surface-2 hover:text-text">
           <Pencil className="h-4 w-4" />
         </button>
-        <button onClick={onRemove} aria-label={`Remove ${r.name}`} className="rounded-full p-2 text-subtle hover:bg-loss-soft hover:text-loss">
+        <button onClick={onRemove} aria-label={`Remove ${r.name}`} className="rounded-none p-2 text-subtle hover:bg-loss-soft hover:text-loss">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -247,7 +247,7 @@ function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRe
 }
 
 function EmptyPortfolio({ onSearch, onManual, settingsHref }: { onSearch: () => void; onManual: () => void; settingsHref: string | null }) {
-  const tile = "flex h-full w-full flex-col items-start gap-3 rounded-[16px] border border-line bg-surface-2/60 p-5 text-left transition-colors hover:bg-surface-2";
+  const tile = "flex h-full w-full flex-col items-start gap-3 rounded-none border border-line bg-surface-2/60 p-5 text-left transition-colors hover:bg-surface-2";
   return (
     <Card className="p-5 sm:p-6">
       <CardHeader
@@ -305,7 +305,7 @@ function TickerSearch({ onPick }: { onPick: (r: { symbol: string; name: string }
     <div>
       <Input autoFocus aria-label="Search" placeholder="Search by name or symbol, e.g. Infosys" value={q} onChange={(e) => setQ(e.target.value)} />
       {shown.length > 0 && (
-        <ul className="mt-2 max-h-64 overflow-y-auto rounded-[14px] border border-line" role="listbox">
+        <ul className="mt-2 max-h-64 overflow-y-auto rounded-none border border-line" role="listbox">
           {shown.map((r) => (
             <li key={r.symbol}>
               <button type="button" role="option" aria-selected={false} onClick={() => onPick(r)} className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm hover:bg-surface-2">
@@ -416,7 +416,7 @@ function WatchingCard({ watching }: { watching: Watch[] }) {
                 </span>
                 <button
                   aria-label={`Stop watching ${w.name}`}
-                  className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text"
+                  className="rounded-none p-2 text-subtle hover:bg-surface-2 hover:text-text"
                   onClick={async () => {
                     await apiCall("/api/watching", "DELETE", { symbols: [w.symbol] });
                     router.refresh();

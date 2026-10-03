@@ -38,7 +38,7 @@ Signing in is required: there is no anonymous demo. See [the test accounts](#tes
 | **H6** | Family portfolios in Hindi | Track a parent's portfolio separately. A confirmed family member gets a Sunday report and the important alerts by email, in Hindi. |
 | | Analyzer | On the Alerts page: pick a period (today to a year) and read what the portfolio did, why (which holdings, and how much was simply the market) and how the ride went against the Nifty. |
 | | Interactive charts | Home opens on a value chart you can drag through, an allocation ring and a heatmap of every holding. |
-| | Demo | One "Try the demo" button signs into a full account on live data, with "Simulate a bad day" and a guided tour. Four more test accounts exist for testers. |
+| | Demo | One "Try the demo" button signs into a full account on live data, with "Simulate a bad day". Four more test accounts exist for testers. |
 | | Profile | Your name, email, what you track at a glance, password change and account deletion, under **You**. |
 | | Portfolios | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver, US stocks and crypto; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Import a holdings file from Zerodha, Groww or Upstox (CSV/Excel) or a mutual fund statement from CAMS / KFintech (PDF), keep a "Watching" list, set price levels. Prices refresh when you open the app. |
 | | Ask | An AI research assistant with 28 tools over live market data and read-only access to your portfolio. It opens with a guided start: how it works, and example questions by topic that name your own holdings. It is the only part of Nazar that uses an AI model. |
@@ -84,7 +84,7 @@ flowchart LR
 | Area | Choice |
 |---|---|
 | App | Next.js 16 (App Router), React 19, TypeScript |
-| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Bricolage Grotesque, Instrument Serif, Figtree, Space Grotesk, IBM Plex Mono, Noto Sans Devanagari |
+| UI | Tailwind CSS 4 with design tokens, motion, Recharts, lucide icons. Fonts: Big Shoulders, DM Serif Display, Outfit, Space Grotesk, Space Mono, Noto Sans Devanagari |
 | Data | PostgreSQL with Drizzle ORM: Neon in production, PGlite (Postgres in WebAssembly) for local development and tests |
 | Market data | Yahoo Finance via `yahoo-finance2`, AMFI NAVs, mfapi.in, the NSE equity and ETF lists, Google News RSS |
 | Auth | Email and password (bcrypt), a 6-digit email code, a signed session cookie (JWT) |
@@ -138,7 +138,7 @@ Dark ink-navy by default with a porcelain light theme, a cobalt accent, and a pi
 - calm empty states;
 - alert severity, shown by shape as well as colour.
 
-Type has four voices: Bricolage Grotesque for headings, Instrument Serif italic for the emphasised word in a headline, Figtree for text and Space Grotesk for every number, with IBM Plex Mono for tickers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
+Type has five voices: Big Shoulders (condensed capitals) for headings, DM Serif Display italic for the emphasised word in a headline, Outfit for text and Space Grotesk for every number, with Space Mono for labels and tickers and Noto Sans Devanagari for Hindi. Every colour is a token in `src/app/globals.css`, tested for WCAG AA contrast in both themes. The layout is mobile-first with bottom tabs, and gains and losses always carry a sign and an arrow, never colour alone. The live style guide is at `/design`.
 
 ## Test accounts
 

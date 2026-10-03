@@ -140,7 +140,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
             </div>
           ) : (
             <>
-              <span className="grid h-12 w-12 place-items-center rounded-[14px] bg-accent-soft text-accent">
+              <span className="grid h-12 w-12 place-items-center rounded-none bg-accent-soft text-accent">
                 <FileSpreadsheet className="h-6 w-6" />
               </span>
               <h2 className="t-title-2 mt-4 text-text">Drop your holdings file here</h2>
@@ -203,7 +203,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
             })}
           </ul>
           {preview.notes?.map((n) => (
-            <p key={n} className="mt-3 rounded-[12px] bg-warn-soft px-3.5 py-2.5 text-sm text-text">
+            <p key={n} className="mt-3 rounded-none bg-warn-soft px-3.5 py-2.5 text-sm text-text">
               {n}
             </p>
           ))}
