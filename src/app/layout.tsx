@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: { default: "Nazar · Your portfolio, watched", template: "%s · Nazar" },
   description: "Nazar watches your stocks every day and messages you only when something important happens, explaining what happened and why, in plain language.",
   applicationName: "Nazar",
-  icons: { icon: "/icon.svg" },
+  icons: { icon: [{ url: "/icon.svg?v=rings", type: "image/svg+xml" }] },
 };
 
 export const viewport: Viewport = {
