@@ -14,7 +14,8 @@ import { AlertCard, type AlertDTO } from "./alert-card";
 export function AlertsFeed({ alerts, portfolios }: { alerts: AlertDTO[]; portfolios: { id: string; label: string }[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
-  const [days, setDays] = useState(25);
+  // Trading days shown: the last week and a bit first; older days on request.
+  const [days, setDays] = useState(7);
   useEffect(() => {
     if (!alerts.some((a) => !a.readAt)) return;
     const t = setTimeout(() => {
@@ -72,12 +73,11 @@ export function AlertsFeed({ alerts, portfolios }: { alerts: AlertDTO[]; portfol
       ))}
       {groups.length > visible.length && (
         <div className="flex justify-center">
-          <button onClick={() => setDays((d) => d + 25)} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-text">
+          <button onClick={() => setDays((d) => d + 14)} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-text">
             Show older alerts
           </button>
         </div>
       )}
-
     </div>
   );
 }

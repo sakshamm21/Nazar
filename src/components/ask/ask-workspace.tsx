@@ -10,7 +10,7 @@ import type { Rating } from "@/components/Messages";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
-import { useStoredPref } from "@/lib/client-store";
+import { useHydrated, useStoredPref } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
 import { PRIVATE_TOOLS } from "@/lib/tool-names";
 import { trackClient } from "@/lib/track-client";
@@ -37,6 +37,7 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
   const [mode, setMode] = useStoredPref<Mode>("nazar:mode", "simple", MODES);
   const [model] = useStoredPref<string>("nazar:model", "auto");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const hydrated = useHydrated(); // "now" in the reader's timezone exists only in the browser
   const [shareOpen, setShareOpen] = useState(false);
   const [prompt] = useState<{ text: string; nonce: number } | null>("newId" in start && start.question ? { text: start.question, nonce: 1 } : null);
   const msgs = useRef<UIMessage[]>([]);
@@ -184,7 +185,7 @@ export function AskWorkspace({ remaining, start }: { remaining: { remaining: num
         </div>
         <div className="print-only px-4 pb-2">
           <div className="t-title-2">{title}</div>
-          <div className="t-caption">Nazar research note · {new Date().toLocaleString()} · We explain; you decide. Not investment advice.</div>
+          <div className="t-caption">Nazar research note{hydrated ? ` · ${new Date().toLocaleString()}` : ""} · We explain; you decide. Not investment advice.</div>
         </div>
         <div className="min-h-0 flex-1 print-expand">
           {chatId && initial && (

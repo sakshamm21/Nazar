@@ -5,7 +5,7 @@ import { SESSION_COOKIE, signSession } from "@/lib/auth/session";
 
 /** A fresh, migrated, in-memory database installed as the app's database. */
 export async function memoryDb(): Promise<DB> {
-  delete process.env.BREVO_API_KEY; // never send real email from tests
+  process.env.EMAIL_DISABLED = "1"; // never send real email from tests
   process.env.NEWS_ENABLED = "0"; // never call Google News from tests
   const db = await createPglite("memory://");
   setDbForTests(db);

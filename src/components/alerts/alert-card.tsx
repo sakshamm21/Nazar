@@ -2,6 +2,7 @@
 import { ExternalLink, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Chip } from "@/components/ui/chip";
 import { Delta } from "@/components/ui/delta";
 import { SeverityIcon, severityLabel } from "@/components/ui/severity";
@@ -44,7 +45,13 @@ export function AlertCard({ a, variant = "feed" }: { a: AlertDTO; variant?: "fee
   const rate = async (r: "up" | "down") => {
     const next = rating === r ? null : r;
     setRating(next);
-    await fetch(`/api/alerts/${a.id}/feedback`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rating: next }) }).catch(() => setRating(rating));
+    const ok = await fetch(`/api/alerts/${a.id}/feedback`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rating: next }) })
+      .then((r) => r.ok)
+      .catch(() => false);
+    if (!ok) {
+      setRating(rating);
+      toast.error("Couldn't save your rating. Please try again.");
+    }
   };
   const d = a.data ?? {};
   return (

@@ -9,7 +9,8 @@ import { logger } from "@/lib/logger";
 export type MailInput = { to: string; subject: string; text: string; html: string };
 export type MailResult = { delivered: boolean; status: "sent" | "failed" | "skipped_no_config"; error?: string };
 
-export const mailConfigured = () => Boolean(process.env.BREVO_API_KEY && process.env.MAIL_FROM);
+/** EMAIL_DISABLED=1 switches sending off even with Brevo keys present (e2e runs, local experiments). */
+export const mailConfigured = () => process.env.EMAIL_DISABLED !== "1" && Boolean(process.env.BREVO_API_KEY && process.env.MAIL_FROM);
 
 /** 'Nazar <a@b.com>' → { name, email }; a bare address has no name. */
 export function parseAddress(address: string): { name?: string; email: string } {

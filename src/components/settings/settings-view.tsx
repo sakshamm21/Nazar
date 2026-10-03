@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useStoredPref } from "@/lib/client-store";
+import { useHydrated, useStoredPref } from "@/lib/client-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -41,6 +41,7 @@ export function SettingsView(props: {
 }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const hydrated = useHydrated(); // the theme is only known in the browser
   const [s, setS] = useState(props.settings);
   const [model, setModel] = useStoredPref<string>("nazar:model", "auto");
   const [models, setModels] = useState<{ id: string; label: string; blurb: string }[]>([]);
@@ -129,7 +130,7 @@ export function SettingsView(props: {
             <span className="text-sm text-text">Theme</span>
             <Segmented
               label="Theme"
-              value={resolvedTheme === "light" ? "light" : "dark"}
+              value={hydrated && resolvedTheme === "light" ? "light" : "dark"}
               onChange={(t) => {
                 setTheme(t);
                 void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "theme_change", props: { theme: t } }) }).catch(() => {});

@@ -19,7 +19,7 @@ export default defineConfig({
   reporter: [["list"]],
   use: { baseURL: external ?? "http://localhost:3100", trace: "retain-on-failure", ...browser },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], ...browser, viewport: { width: 1440, height: 900 } } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], ...browser, viewport: { width: 1440, height: 900 } }, grepInvert: /@mobile/ },
     { name: "mobile", use: { ...devices["Pixel 7"], ...browser, viewport: { width: 375, height: 812 } }, grep: /@mobile/ },
   ],
   webServer: external
@@ -29,6 +29,6 @@ export default defineConfig({
         url: "http://localhost:3100/signin",
         timeout: 300_000,
         reuseExistingServer: true,
-        env: { PORT: "3100", NAZAR_PGLITE_DIR: ".data/e2e" },
+        env: { PORT: "3100", NAZAR_PGLITE_DIR: ".data/e2e", EMAIL_DISABLED: "1", NEWS_ENABLED: "0" },
       },
 });

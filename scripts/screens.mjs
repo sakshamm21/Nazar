@@ -1,7 +1,8 @@
 /**
  * Screenshots for design review: every listed page at 375px, 768px and 1440px in both themes.
  *   node scripts/screens.mjs [baseUrl] [page,page,...] [widths]
- * Uses the installed Microsoft Edge on Windows (no browser download), Chromium elsewhere.
+ * Signs in as the tester1@nazar.dev test account (full demo data) so it doesn't use up the
+ * per-IP "Try the demo" allowance. Uses the installed Microsoft Edge on Windows, Chromium elsewhere.
  */
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
@@ -19,10 +20,10 @@ for (const theme of ["dark", "light"]) {
     const ctx = await browser.newContext({ viewport: { width, height: width < 500 ? 812 : 900 }, deviceScaleFactor: width < 500 ? 2 : 1, colorScheme: theme });
     const page = await ctx.newPage();
     await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
-    // Demo session (isolated visitor); mark the tour as done so it doesn't cover the screenshot.
-    await page.goto(BASE + "/");
-    const ok = await page.evaluate(async () => (await fetch("/api/demo/start", { method: "POST" })).ok);
-    if (!ok) throw new Error("demo start failed");
+    // Test account with the full demo; mark the tour as done so it doesn't cover the screenshot.
+    await page.goto(BASE + "/signin");
+    const ok = await page.evaluate(async () => (await fetch("/api/auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "tester1@nazar.dev", password: "nazar123" }) })).ok);
+    if (!ok) throw new Error("test account sign-in failed");
     await page.evaluate(() => fetch("/api/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "complete" }) }));
     for (const p of PAGES) {
       await page.goto(BASE + p, { waitUntil: "networkidle" });

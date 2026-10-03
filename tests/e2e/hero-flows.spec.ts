@@ -34,7 +34,9 @@ test.describe("Demo: guided tour and Simulate a bad day", () => {
       await expect(dialog.getByText(`Step ${i} of 7`)).toBeVisible();
     }
     await expect(dialog.getByRole("heading", { name: "Now, try a bad day" })).toBeVisible();
+    const saved = page.waitForResponse((r) => r.url().endsWith("/api/tour") && r.ok());
     await dialog.getByRole("button", { name: "Got it" }).click();
+    await saved;
     await expect(page.getByText("Step 1 of 7")).toHaveCount(0);
     // It doesn't come back on reload once completed.
     await page.reload();
@@ -88,7 +90,7 @@ test.describe("Hero features", () => {
     const slider = page.getByRole("slider", { name: /Nifty fall/ });
     await slider.fill("20");
     await expect(page.getByText("20%", { exact: true })).toBeVisible();
-    await expect(page.getByText(/independent bets/)).toBeVisible();
+    await expect(page.getByText(/You own \d+ stocks, but/)).toBeVisible();
     await expect(page.getByText("Moves together").first()).toBeVisible();
   });
 
@@ -117,9 +119,16 @@ test.describe("Hero features", () => {
 
   test("H1: rate an alert", async ({ page }) => {
     await page.goto("/alerts");
-    const up = page.getByRole("button", { name: "Useful", exact: true }).first();
-    await up.click();
-    await expect(up).toHaveAttribute("aria-pressed", "true");
+    // Pick an alert nobody has rated yet (the demo's older alerts carry replayed ratings).
+    const unrated = page.getByRole("article").filter({ has: page.locator('button[aria-label="Useful"][aria-pressed="false"]') }).first();
+    const title = (await unrated.getAttribute("aria-label"))!;
+    const card = page.getByRole("article", { name: title, exact: true }).first();
+    const saved = page.waitForResponse((r) => r.url().includes("/feedback") && r.ok());
+    await card.getByRole("button", { name: "Useful", exact: true }).click();
+    await saved;
+    await expect(card.getByRole("button", { name: "Useful", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.reload();
+    await expect(page.getByRole("article", { name: title, exact: true }).first().getByRole("button", { name: "Useful", exact: true })).toHaveAttribute("aria-pressed", "true");
   });
 });
 
@@ -136,7 +145,7 @@ test.describe("Accounts", () => {
     await page.goto("/signup");
     await page.getByLabel("Your name").fill("Riya");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill("correct horse battery");
+    await page.getByRole("textbox", { name: "Password" }).fill("correct horse battery");
     await page.getByRole("button", { name: "Create account" }).click();
     await page.waitForURL(/\/verify/);
     const code = new URL(page.url()).searchParams.get("code");

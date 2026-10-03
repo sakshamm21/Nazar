@@ -21,7 +21,7 @@ export function DemoButton({ size = "lg", className, label = "Try the demo, no s
           const res = await fetch("/api/demo/start", { method: "POST" });
           const j = await res.json();
           if (!res.ok) throw new Error(j.error ?? "Couldn't start the demo.");
-          router.push(j.redirect ?? "/home?tour=1");
+          router.push(j.redirect ?? "/home"); // a new demo's first visit starts the tour by itself
         } catch (e) {
           toast.error((e as Error).message);
           setBusy(false);

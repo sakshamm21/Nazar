@@ -86,8 +86,43 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
           {rows.length === 0 ? (
             <QuietRings compact title="No holdings yet" body="Import your holdings file from Zerodha, Groww or Upstox, or add stocks one by one." />
           ) : (
-            <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
+            <>
+              {/* Phones: one stacked row per holding, no sideways scrolling. */}
+              <ul className="mt-5 divide-y divide-line md:hidden">
+                {rows.map((r) => (
+                  <li key={r.id} className="flex items-start gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/stock/${encodeURIComponent(r.symbol)}`} className="block truncate font-medium text-text hover:underline">
+                        {r.name}
+                      </Link>
+                      <div className="num mt-0.5 text-[12px] text-subtle">
+                        {r.quantity.toLocaleString("en-IN")} × {inr(r.avgPrice, { decimals: 2 })}
+                        {r.price != null ? ` · ${inr(r.value)}` : ""}
+                      </div>
+                      <div className="mt-1 text-sm">{r.pnl != null ? <Delta amount={r.pnl} pct={r.pnlPct} size="sm" compact showArrow={false} /> : <span className="t-caption">Prices tonight</span>}</div>
+                    </div>
+                    <div className="-mr-2 flex shrink-0">
+                      <button onClick={() => setEditing(r)} aria-label={`Edit ${r.name}`} className="rounded-full p-2 text-subtle hover:bg-surface-2 hover:text-text">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        aria-label={`Remove ${r.name}`}
+                        className="rounded-full p-2 text-subtle hover:bg-loss-soft hover:text-loss"
+                        onClick={async () => {
+                          if (!confirm(`Remove ${r.name} from this portfolio?`)) return;
+                          await call(`/api/holdings/${r.id}`, "DELETE");
+                          toast(`${r.name} removed`);
+                          router.refresh();
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            <div className="mt-5 hidden md:block">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-line text-left text-[12px] text-subtle">
                     <th className="py-2 pr-3 font-medium">Stock</th>
@@ -138,6 +173,7 @@ export function PortfolioManager({ portfolios, activeId, rows, watching, isDemo 
                 </tbody>
               </table>
             </div>
+            </>
           )}
           {isDemo && <p className="t-caption mt-4">Demo account: changes here only affect your private demo copy.</p>}
         </Card>

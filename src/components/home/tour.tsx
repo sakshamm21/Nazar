@@ -40,8 +40,10 @@ export function Tour({ autoStart }: { autoStart: boolean }) {
     async (action: "complete" | "skip") => {
       const at = step ?? 0;
       setStep(null);
-      await fetch("/api/tour", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, step: at }) }).catch(() => {});
+      // Drop ?tour=1 first, so a reload can't restart a tour that was just finished.
       if (forced) router.replace(path, { scroll: false });
+      // keepalive: the save completes even if the user navigates away right after closing the tour.
+      await fetch("/api/tour", { method: "POST", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ action, step: at }) }).catch(() => {});
     },
     [step, forced, router, path],
   );
