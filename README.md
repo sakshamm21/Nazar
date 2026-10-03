@@ -3,7 +3,7 @@
 > **Nazar watches your Indian stocks every day and messages you only when something important happens, explaining what happened, why, and what it means for you in rupees.**
 > *We watch and explain; you decide.*
 
-**Live:** __LIVE_URL__ · press **Try the demo**, no sign-up · [StockAI v1 (legacy)](__LEGACY_URL__)
+**Live:** https://nazar-watch.vercel.app · press **Try the demo**, no sign-up · [StockAI v1 (legacy)](https://stockai-legacy.vercel.app)
 
 Retail investors in India hold 10–20 stocks across brokers, check the app daily, and still miss what matters: a results surprise, a stock quietly becoming a third of the portfolio, five "different" holdings that all fall together. Nazar runs a checkup on every portfolio each evening after the market closes and turns it into a handful of plain-language alerts in English or Hindi. It never tells anyone to buy, sell or hold, and a test enforces that.
 
@@ -16,7 +16,7 @@ Retail investors in India hold 10–20 stocks across brokers, check the app dail
 
 ## Try it in 60 seconds
 
-1. Open __LIVE_URL__ and press **Try the demo**. You get a private 24-hour copy of a two-portfolio demo account (yours, and "Papa's" in Hindi).
+1. Open https://nazar-watch.vercel.app and press **Try the demo**. You get a private 24-hour copy of a two-portfolio demo account (yours, and "Papa's" in Hindi).
 2. The tour walks through Home. Then press **Simulate a bad day**: the Nifty falls 3.2%, autos and IT fall harder, and one of your stocks has bad news of its own. Alerts arrive with the likely reason for each move and what it cost you.
 3. Open **Risk** and drag the stress slider; open **Settings** to see the threshold Nazar learned from past ratings, with the evidence and an Undo button.
 
