@@ -21,17 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-            - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
       - run: npm ci
 
-            # npm can skip platform-specific optional dependencies (npm/cli#4828), leaving Tailwind's
-            # native binary missing on Linux runners and failing the build. Fetch it explicitly.
-            - name: Ensure Tailwind's native binary is present
-              run: npm install --no-save @tailwindcss/oxide-linux-x64-gnu
+      # npm can skip platform-specific optional dependencies (npm/cli#4828), leaving Tailwind's
+      # native binary missing on Linux runners and failing the build. Fetch it explicitly.
+      - name: Ensure Tailwind's native binary is present
+        run: npm install --no-save @tailwindcss/oxide-linux-x64-gnu
 
       - name: Type check
         run: npm run typecheck
