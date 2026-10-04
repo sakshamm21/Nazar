@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beta, betaAndVol, buildHealth, comps, correlationMatrix, dupont, healthScore, lenderCheck, piotroskiAltman, riskReturn, sipBacktest, technicals, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
+import { beta, betaAndVol, buildHealth, comps, correlationMatrix, dupont, healthScore, lenderCheck, piotroskiAltman, riskReturn, sipBacktest, technicals, topByWeight, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { corr, median, xirr } from "@/lib/analytics/stats";
 
 const days = (n: number, start = "2025-01-01") => Array.from({ length: n }, (_, i) => new Date(new Date(start).getTime() + i * 86400000).toISOString().slice(0, 10));
@@ -58,6 +58,25 @@ describe("risk & return (getRiskReturn maths)", () => {
     expect(c.matrix[0][1]).toBeCloseTo(1, 2);
     expect(c.matrix[1][2]).toBeCloseTo(-1, 1);
     expect(c.matrix[2][1]).toBe(c.matrix[1][2]);
+  });
+  it("correlation matrix is square with a unit diagonal and a mirrored off-diagonal", () => {
+    // Each pair is computed once and mirrored, so every entry must still agree both ways.
+    const list = [stock, bench, bench.map((x) => 200 - x), stock.map((x, i) => x + i)];
+    const c = correlationMatrix(list.map((vals) => series(vals)));
+    const n = list.length;
+    expect(c.matrix).toHaveLength(n);
+    for (let i = 0; i < n; i++) {
+      expect(c.matrix[i]).toHaveLength(n);
+      expect(c.matrix[i][i]).toBe(1);
+      for (let j = i + 1; j < n; j++) expect(c.matrix[i][j]).toBe(c.matrix[j][i]);
+    }
+  });
+  it("topByWeight keeps the biggest positions and respects the cap", () => {
+    const w: Record<string, number> = { a: 0.5, b: 0.2, c: 0.15, d: 0.1, e: 0.05 };
+    expect(topByWeight(Object.keys(w), (s) => w[s])).toEqual(["a", "b", "c", "d", "e"]);
+    expect(topByWeight(Object.keys(w), (s) => w[s], 2)).toEqual(["a", "b"]);
+    // A symbol the weight map does not know ranks last rather than throwing.
+    expect(topByWeight(["a", "zz"], (s) => w[s] ?? 0)).toEqual(["a", "zz"]);
   });
 });
 

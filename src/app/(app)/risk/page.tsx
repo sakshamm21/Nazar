@@ -13,6 +13,7 @@ import { correlationMatrix } from "@/lib/analytics/models";
 import { absPct } from "@/lib/format";
 import { priceHistory, shiftDate } from "@/lib/market/store";
 import { buildPortfolioView, type FullPortfolioView } from "@/lib/views/portfolio";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = { title: "Hidden risks" };
 
@@ -28,7 +29,8 @@ export default async function RiskPage() {
   let matrix: (number | null)[][] = [];
   try {
     matrix = withHist.length >= 2 ? correlationMatrix(withHist.map((s) => new Map([...hist.get(s)!].slice(-253)))).matrix : [];
-  } catch {
+  } catch (e) {
+    logger.warn({ err: String((e as Error)?.message ?? e).slice(0, 200) }, "risk page correlation matrix unavailable");
     matrix = [];
   }
   const name = (s: string) => v.cards.find((c) => c.symbol === s)?.name ?? s;

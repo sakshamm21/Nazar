@@ -76,13 +76,35 @@ export function correlationMatrix(series: Map<string, number>[], interval = "1d"
   if (dates.length < 20) throw new Error("No data: too few overlapping trading dates (different exchanges/holidays?)");
   const rets = prices.map(pctReturns);
   const ppy = periodsPerYear(interval);
+  // Correlation is symmetric, so each pair is computed once and mirrored: half the work of the
+  // naive nested map, and the matrix stays square for clustering and the Excel export.
+  const n = rets.length;
+  const matrix: (number | null)[][] = Array.from({ length: n }, () => new Array<number | null>(n).fill(null));
+  for (let i = 0; i < n; i++) {
+    matrix[i][i] = 1;
+    for (let j = i + 1; j < n; j++) {
+      const c = round(corr(rets[i], rets[j]), 3);
+      matrix[i][j] = c;
+      matrix[j][i] = c;
+    }
+  }
   return {
     dates,
     prices,
     observations: rets[0].length,
-    matrix: rets.map((a) => rets.map((b) => round(corr(a, b), 3))),
+    matrix,
     volatility: rets.map((r) => round(stdev(r) * Math.sqrt(ppy))),
   };
+}
+
+/**
+ * The symbols worth correlating: those with real history, largest position first. Correlation is
+ * quadratic, so a long tail of tiny holdings is dropped rather than slowing every page render —
+ * what is left is what actually decides the portfolio's behaviour.
+ */
+export const CORRELATION_MAX = 30;
+export function topByWeight(symbols: string[], weight: (s: string) => number, limit = CORRELATION_MAX): string[] {
+  return [...symbols].sort((a, b) => weight(b) - weight(a)).slice(0, limit);
 }
 
 /* ------------------------------------------------------------------ */

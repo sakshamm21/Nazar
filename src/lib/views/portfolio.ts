@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { correlationMatrix, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
+import { correlationMatrix, topByWeight, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { attributionLine, marketSplitLine } from "@/lib/portfolio/words";
 import { groupOf, isManualSymbol, manualValue } from "@/lib/instruments/asset-classes";
 import { NIFTY } from "@/lib/instruments/sectors";
@@ -10,6 +10,7 @@ import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } fro
 import { buildPerformance } from "@/lib/portfolio/performance";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
+import { logger } from "@/lib/logger";
 
 type User = typeof schema.users.$inferSelect;
 
@@ -53,14 +54,18 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   const health = healthRollup(states);
   const stress10 = stressTest(states, -0.1);
 
-  // Correlation clusters over the last year of daily returns (H3b).
-  const withHist = symbols.filter((s) => (hist.get(s)?.size ?? 0) > 60);
+  // Correlation clusters over the last year of daily returns (H3b). Capped to the largest
+  // positions: correlation is quadratic, and what decides the portfolio's behaviour is the money.
+  const withHist = topByWeight(symbols.filter((s) => (hist.get(s)?.size ?? 0) > 60), (s) => w.get(s) ?? 0);
   let div: ReturnType<typeof diversification> | null = null;
   if (withHist.length >= 2) {
     try {
       const cm = correlationMatrix(withHist.map((s) => new Map([...hist.get(s)!].slice(-253))));
       div = diversification(states.filter((h) => withHist.includes(h.symbol)), withHist, cm.matrix, 0.5);
-    } catch {
+    } catch (e) {
+      // Not a reason to fail the page: the view simply reports no clustering. Logged so a genuine
+      // data problem is visible instead of silently disappearing into a null.
+      logger.warn({ err: String((e as Error)?.message ?? e).slice(0, 200), symbols: withHist.length }, "correlation clustering skipped");
       div = null;
     }
   }
