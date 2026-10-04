@@ -4,7 +4,7 @@ import { z, ZodError } from "zod";
 import { getDb, schema } from "@/lib/db";
 import { AppError, unauthenticated } from "@/lib/errors";
 import { logger } from "@/lib/logger";
-import { sessionFromRequest } from "@/lib/auth/session";
+import { sessionFromRequest, sessionIsCurrent } from "@/lib/auth/session";
 
 export type User = typeof schema.users.$inferSelect;
 
@@ -34,6 +34,7 @@ export async function requireUser(req: Request): Promise<User> {
   const db = await getDb();
   const [u] = await db.select().from(schema.users).where(eq(schema.users.id, s.userId)).limit(1);
   if (!u || (u.isDemo && u.demoExpiresAt && u.demoExpiresAt < new Date())) throw unauthenticated("Your session has ended. Please sign in again.");
+  if (!sessionIsCurrent(s, u)) throw unauthenticated("Your password was changed, so other devices were signed out. Please sign in again.");
   return u;
 }
 

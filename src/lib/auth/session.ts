@@ -9,12 +9,12 @@ import { authSecret } from "./secret";
 export const SESSION_COOKIE = "nazar_session";
 const MAX_AGE_DAYS = 30;
 
-export type Session = { userId: string; isDemo: boolean };
+export type Session = { userId: string; isDemo: boolean; version: number };
 
 const secret = () => new TextEncoder().encode(authSecret());
 
-export async function signSession(s: Session, maxAgeDays = MAX_AGE_DAYS): Promise<string> {
-  return new SignJWT({ demo: s.isDemo })
+export async function signSession(s: Omit<Session, "version"> & { version?: number }, maxAgeDays = MAX_AGE_DAYS): Promise<string> {
+  return new SignJWT({ demo: s.isDemo, ver: s.version ?? 0 })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(s.userId)
     .setIssuedAt()
@@ -27,10 +27,19 @@ export async function verifySession(token: string | undefined | null): Promise<S
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
     if (!payload.sub) return null;
-    return { userId: payload.sub, isDemo: Boolean(payload.demo) };
+    return { userId: payload.sub, isDemo: Boolean(payload.demo), version: typeof payload.ver === "number" ? payload.ver : 0 };
   } catch {
     return null;
   }
+}
+
+/**
+ * A session is only good while it matches the user's current sessionVersion. Changing or resetting
+ * the password bumps that number, which signs out every device at once — so a stolen session dies
+ * the moment the real owner resets their password.
+ */
+export function sessionIsCurrent(s: Session, user: { sessionVersion: number }): boolean {
+  return s.version === user.sessionVersion;
 }
 
 export function sessionCookie(token: string, maxAgeDays = MAX_AGE_DAYS) {

@@ -131,9 +131,17 @@ export async function resetPassword(token: string, password: string) {
   if (!u || !u.resetExpiresAt || u.resetExpiresAt < new Date()) throw badRequest("This reset link has expired or was already used. Request a new one.", "RESET_EXPIRED");
   await db
     .update(schema.users)
-    .set({ passwordHash: await bcrypt.hash(password, 10), resetTokenHash: null, resetExpiresAt: null, emailVerifiedAt: u.emailVerifiedAt ?? new Date() })
+    .set({
+      passwordHash: await bcrypt.hash(password, 10),
+      resetTokenHash: null,
+      resetExpiresAt: null,
+      emailVerifiedAt: u.emailVerifiedAt ?? new Date(),
+      // Every session already issued is now stale, including any a thief is holding.
+      sessionVersion: u.sessionVersion + 1,
+    })
     .where(eq(schema.users.id, u.id));
-  return u;
+  track(u.id, "password_reset", {});
+  return { ...u, sessionVersion: u.sessionVersion + 1 };
 }
 
 /** Change a signed-in user's password; they must know the current one. */
@@ -141,6 +149,10 @@ export async function changePassword(userId: string, current: string, next: stri
   const db = await getDb();
   const [u] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
   if (!u?.passwordHash || !(await bcrypt.compare(current, u.passwordHash))) throw badRequest("That isn't your current password.", "INVALID_CREDENTIALS");
-  await db.update(schema.users).set({ passwordHash: await bcrypt.hash(next, 10), resetTokenHash: null, resetExpiresAt: null }).where(eq(schema.users.id, u.id));
+  await db
+    .update(schema.users)
+    .set({ passwordHash: await bcrypt.hash(next, 10), resetTokenHash: null, resetExpiresAt: null, sessionVersion: u.sessionVersion + 1 })
+    .where(eq(schema.users.id, u.id));
   track(u.id, "password_changed", {});
+  return u.sessionVersion + 1;
 }

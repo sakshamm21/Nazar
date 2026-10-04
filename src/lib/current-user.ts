@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { getSession } from "@/lib/auth/session";
+import { getSession, sessionIsCurrent } from "@/lib/auth/session";
 import { getDb, schema } from "@/lib/db";
 
 /** The signed-in user for server components (cached per request), or null. */
@@ -13,6 +13,7 @@ export const currentUser = cache(async () => {
   const db = await getDb();
   const [u] = await db.select().from(schema.users).where(eq(schema.users.id, s.userId)).limit(1);
   if (!u || (u.isDemo && u.demoExpiresAt && u.demoExpiresAt < new Date())) return null;
+  if (!sessionIsCurrent(s, u)) return null;
   return u;
 });
 

@@ -12,6 +12,6 @@ export const POST = api(async (req) => {
   await rateLimit(`auth:verify:${ipHash(req)}`, 30, 3600_000);
   const u = await verifyEmail(email, code);
   const res = json({ user: publicUser(u) });
-  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: false })));
+  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: false, version: u.sessionVersion })));
   return res;
 });

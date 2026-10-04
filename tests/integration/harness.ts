@@ -33,7 +33,7 @@ export async function makePortfolio(db: DB, userId: string, holdings: { symbol: 
 /** A Request carrying the user's session cookie (or none). */
 export async function request(url: string, opts: { user?: TestUser | null; method?: string; body?: unknown } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json" };
-  if (opts.user) headers.cookie = `${SESSION_COOKIE}=${await signSession({ userId: opts.user.id, isDemo: opts.user.isDemo })}`;
+  if (opts.user) headers.cookie = `${SESSION_COOKIE}=${await signSession({ userId: opts.user.id, isDemo: opts.user.isDemo, version: opts.user.sessionVersion })}`;
   return new Request(`http://localhost${url}`, { method: opts.method ?? "GET", headers, body: opts.body === undefined ? undefined : JSON.stringify(opts.body) });
 }
 

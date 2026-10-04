@@ -11,6 +11,6 @@ export const POST = api(async (req) => {
   await rateLimit(`auth:reset:${ipHash(req)}`, 10, 3600_000);
   const u = await resetPassword(token, password);
   const res = json({ user: publicUser(u) });
-  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: u.isDemo })));
+  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: u.isDemo, version: u.sessionVersion })));
   return res;
 });

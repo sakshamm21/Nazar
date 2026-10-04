@@ -26,6 +26,8 @@ export const users = pgTable("users", {
   /** A shared test account from the sign-in page (or a persona template): never emails, capped Ask use. */
   isTestAccount: boolean("is_test_account").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
+  /** Bumped whenever the password changes or is reset, so every session already issued stops working. */
+  sessionVersion: integer("session_version").notNull().default(0),
   createdAt: created(),
   lastSeenAt: ts("last_seen_at").defaultNow().notNull(),
 });

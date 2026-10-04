@@ -16,6 +16,6 @@ export const POST = api(async (req) => {
   const u = await login(email, password);
   track(u.id, "signed_in", { testAccount: u.isTestAccount });
   const res = json({ user: publicUser(u) });
-  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: u.isDemo })));
+  res.headers.append("Set-Cookie", sessionCookie(await signSession({ userId: u.id, isDemo: u.isDemo, version: u.sessionVersion })));
   return res;
 });

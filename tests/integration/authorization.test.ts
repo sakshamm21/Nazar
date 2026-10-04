@@ -42,6 +42,19 @@ describe("signed-out and expired sessions", () => {
   it("a demo whose 24 hours are up is signed out", async () => {
     expect(await status(Portfolios.GET(await request("/api/portfolios", { user: expired })))).toBe(401);
   });
+  it("a session issued before a password change stops working", async () => {
+    // The cookie an attacker is holding, minted while sessionVersion was still 0.
+    const stolen = { ...alice, sessionVersion: 0 };
+    expect(await status(Portfolios.GET(await request("/api/portfolios", { user: stolen })))).toBe(200);
+    // The real owner resets their password, which bumps their session version.
+    const [bumped] = await db.update(schema.users).set({ sessionVersion: 1 }).where(eq(schema.users.id, alice.id)).returning();
+    expect(bumped.sessionVersion).toBe(1);
+    // Now the same stolen cookie is refused, while a fresh one still works.
+    expect(await status(Portfolios.GET(await request("/api/portfolios", { user: stolen })))).toBe(401);
+    expect(await status(Portfolios.GET(await request("/api/portfolios", { user: bumped })))).toBe(200);
+    // Put it back so the rest of the suite keeps using alice.
+    await db.update(schema.users).set({ sessionVersion: 0 }).where(eq(schema.users.id, alice.id));
+  });
 });
 
 describe("another user's data is invisible (404) and unchanged", () => {

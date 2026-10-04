@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { signLink, verifyLink } from "@/lib/auth/links";
 import { authSecret } from "@/lib/auth/secret";
-import { readCookie, SESSION_COOKIE, sessionCookie, signSession, verifySession } from "@/lib/auth/session";
+import { readCookie, SESSION_COOKIE, sessionCookie, sessionIsCurrent, signSession, verifySession } from "@/lib/auth/session";
 
 afterEach(() => vi.unstubAllEnvs());
 
 describe("sessions (JWT in an httpOnly cookie)", () => {
   it("round-trips and rejects tampering", async () => {
     const t = await signSession({ userId: "u1", isDemo: true });
-    expect(await verifySession(t)).toEqual({ userId: "u1", isDemo: true });
+    expect(await verifySession(t)).toEqual({ userId: "u1", isDemo: true, version: 0 });
     const [h, p, s] = t.split(".");
     const forged = Buffer.from(JSON.stringify({ sub: "admin", demo: false })).toString("base64url");
     expect(await verifySession(`${h}.${forged}.${s}`)).toBeNull();
@@ -25,6 +25,20 @@ describe("sessions (JWT in an httpOnly cookie)", () => {
     expect(c).toMatch(/HttpOnly/);
     expect(c).toMatch(/SameSite=Lax/);
     expect(readCookie(`x=1; ${SESSION_COOKIE}=abc; y=2`, SESSION_COOKIE)).toBe("abc");
+  });
+  it("a session dies when the password is changed, and a fresh one works", async () => {
+    const before = await verifySession(await signSession({ userId: "u1", isDemo: false, version: 3 }));
+    expect(before).not.toBeNull();
+    expect(sessionIsCurrent(before!, { sessionVersion: 3 })).toBe(true);
+    // Password change bumps the user's version, so the old cookie is refused.
+    expect(sessionIsCurrent(before!, { sessionVersion: 4 })).toBe(false);
+    const after = await verifySession(await signSession({ userId: "u1", isDemo: false, version: 4 }));
+    expect(sessionIsCurrent(after!, { sessionVersion: 4 })).toBe(true);
+  });
+  it("a token without a version claim counts as version 0", async () => {
+    const t = await signSession({ userId: "u1", isDemo: false });
+    const s = await verifySession(t);
+    expect(sessionIsCurrent(s!, { sessionVersion: 0 })).toBe(true);
   });
 });
 
