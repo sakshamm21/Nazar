@@ -1,6 +1,7 @@
 import "server-only";
 import { BULLION_IMPORT_DUTY, COMMODITIES, CRYPTO_PREFIX, GRAMS_PER_TROY_OUNCE, US_PREFIX, isCommoditySymbol, isCryptoSymbol, isForeignSymbol, isMfSymbol, isSyntheticSymbol, mfCode } from "@/lib/instruments/asset-classes";
 import { parseAmfi, type AmfiScheme } from "./amfi-parse";
+import { fallbackProvider } from "./fallback";
 import { istDate, yahooProvider, type MarketDataProvider, type SymbolSummary } from "./provider";
 import { withRetry } from "./resilience";
 import type { Quote } from "./yahoo";
@@ -166,4 +167,53 @@ export const marketProvider: MarketDataProvider = {
   },
   annualFundamentals: (symbol) => (isSyntheticSymbol(symbol) ? Promise.resolve([]) : yahooProvider.annualFundamentals(symbol)),
   fx: (from, to) => yahooProvider.fx(from, to),
+};
+
+/**
+ * The provider the app actually uses: `marketProvider` first, then the chart fallback for any listed
+ * symbol the primary source could not answer.
+ *
+ * The fallback is consulted per symbol, not per batch, so one rate-limited ticker cannot cost the
+ * whole portfolio a refresh, and a symbol the fallback does not cover (fund NAVs, gold, foreign
+ * holdings) is simply left to the primary source. Prices gathered this way are stored under their
+ * own `source`, so a fallback figure is never mistaken for a full one and the pipeline can tell how
+ * much of the universe came from the degraded path.
+ */
+/** The second source is on unless it is explicitly switched off. */
+const fallbackEnabled = () => process.env.FALLBACK_PROVIDER !== "0";
+
+export const resilientProvider: MarketDataProvider = {
+  name: "market+fallback",
+  async quotes(symbols) {
+    let primary: Quote[] = [];
+    try {
+      primary = await marketProvider.quotes(symbols);
+    } catch {
+      primary = [];
+    }
+    if (!fallbackEnabled()) return primary;
+    const got = new Set(primary.map((q) => q.symbol.toUpperCase()));
+    const missing = symbols.filter((s) => !got.has(s.trim().toUpperCase()) && !isSyntheticSymbol(s));
+    if (!missing.length) return primary;
+    let extra: Quote[] = [];
+    try {
+      extra = await fallbackProvider.quotes(missing);
+    } catch {
+      extra = [];
+    }
+    return [...primary, ...extra];
+  },
+  async dailyHistory(symbol, from) {
+    try {
+      const bars = await marketProvider.dailyHistory(symbol, from);
+      if (bars.length) return bars;
+    } catch {
+      // fall through to the fallback below
+    }
+    if (isSyntheticSymbol(symbol) || !fallbackEnabled()) return [];
+    return fallbackProvider.dailyHistory(symbol, from);
+  },
+  summary: (symbol) => marketProvider.summary(symbol),
+  annualFundamentals: (symbol) => marketProvider.annualFundamentals(symbol),
+  fx: (from, to) => marketProvider.fx(from, to),
 };

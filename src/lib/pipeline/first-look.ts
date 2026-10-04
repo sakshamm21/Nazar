@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { marketProvider } from "@/lib/data/market";
+import { resilientProvider } from "@/lib/data/market";
 import type { MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY } from "@/lib/instruments/sectors";
 import { rateLimit } from "@/lib/limits";
@@ -29,7 +29,7 @@ export async function firstLookFor(user: { id: string; isDemo: boolean }, symbol
   }
 }
 
-export async function firstLook(symbols: string[], provider: MarketDataProvider = marketProvider) {
+export async function firstLook(symbols: string[], provider: MarketDataProvider = resilientProvider) {
   const db = await getDb();
   const missing = (await missingLive(db, [...new Set(symbols)])).slice(0, 59);
   if (!missing.length) return { fetched: 0 };

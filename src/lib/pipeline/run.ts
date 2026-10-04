@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { marketProvider } from "@/lib/data/market";
+import { resilientProvider } from "@/lib/data/market";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { logger } from "@/lib/logger";
@@ -46,7 +46,7 @@ async function save(run: Run, patch: Partial<Run>) {
 export type RunResult = { kind: Kind; runDate: string; stage: string; status: string; more: boolean; stats: Record<string, unknown>; busy?: boolean };
 
 export async function runNightly(opts: { budgetMs?: number; provider?: MarketDataProvider; now?: Date } = {}): Promise<RunResult> {
-  const provider = opts.provider ?? marketProvider;
+  const provider = opts.provider ?? resilientProvider;
   const budget = opts.budgetMs ?? 240_000;
   const started = Date.now();
   const deadline = started + budget;

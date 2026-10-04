@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import { and, eq, gte } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { marketProvider } from "@/lib/data/market";
+import { resilientProvider } from "@/lib/data/market";
 import type { MarketDataProvider } from "@/lib/data/provider";
 import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
@@ -29,7 +29,7 @@ export async function userSymbols(userId: string): Promise<string[]> {
  * throttled per user, and demo accounts (which live on the frozen demo market) never trigger it.
  * Alerts are still decided once a day by the nightly checkup; this only keeps values current.
  */
-export async function refreshFor(user: User, provider: MarketDataProvider = marketProvider): Promise<{ updated: boolean; reason?: string }> {
+export async function refreshFor(user: User, provider: MarketDataProvider = resilientProvider): Promise<{ updated: boolean; reason?: string }> {
   if (user.isDemo) return { updated: false, reason: "demo" };
   const db = await getDb();
   const key = `refresh:u:${user.id}`;
