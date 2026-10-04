@@ -1,10 +1,28 @@
 import "server-only";
+import { timingSafeEqual } from "crypto";
+import { cookies } from "next/headers";
 import { desc, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { ASSET_META, type AssetClass } from "./instruments/asset-classes";
 import { NIFTY } from "./instruments/sectors";
 
 const DAY = 86_400_000;
+
+/** Where a share link parks the admin key. A cookie, so the secret never appears in a URL. */
+export const INSIGHTS_KEY_COOKIE = "nazar_insights";
+
+/** Constant-time comparison, so a wrong key cannot be found by timing the page. */
+export function insightsKeyMatches(provided: string | undefined | null): boolean {
+  const expected = process.env.INSIGHTS_KEY;
+  if (!expected || !provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+export async function insightsKeyCookie(): Promise<string | null> {
+  return (await cookies()).get(INSIGHTS_KEY_COOKIE)?.value ?? null;
+}
 
 const ratio = (a: number, b: number) => (b > 0 ? a / b : null);
 /** Postgres `date` and `timestamp` columns come back as strings from PGlite and as Dates from Neon, so take either. */

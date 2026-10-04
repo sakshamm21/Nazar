@@ -4,10 +4,11 @@
  */
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { schema, type DB } from "@/lib/db";
-import { getInsights, type Insights } from "@/lib/insights";
-import { makePortfolio, makeUser, memoryDb } from "./harness";
+import { getInsights, insightsKeyMatches, type Insights } from "@/lib/insights";
+import * as InsightsKey from "@/app/api/insights/key/route";
+import { makePortfolio, makeUser, memoryDb, request } from "./harness";
 
 let db: DB;
 let r: Insights;
@@ -71,5 +72,40 @@ describe("admin insights", () => {
   });
   it("says so when there is no market data yet", () => {
     expect(r.data).toMatchObject({ latestSession: null, symbols: null, stale: [] });
+  });
+});
+
+describe("the read-only insights key", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("only accepts the configured key, in constant time", () => {
+    vi.stubEnv("INSIGHTS_KEY", "the-secret-key");
+    expect(insightsKeyMatches("the-secret-key")).toBe(true);
+    expect(insightsKeyMatches("the-secret-kex")).toBe(false);
+    expect(insightsKeyMatches("the-secret-ke")).toBe(false); // different length
+    expect(insightsKeyMatches("")).toBe(false);
+    expect(insightsKeyMatches(null)).toBe(false);
+    vi.stubEnv("INSIGHTS_KEY", "");
+    expect(insightsKeyMatches("anything")).toBe(false);
+  });
+
+  it("sets an httpOnly cookie for the right key and refuses a wrong one", async () => {
+    vi.stubEnv("INSIGHTS_KEY", "the-secret-key");
+    const good = await InsightsKey.POST(await request("/api/insights/key", { method: "POST", body: { key: "the-secret-key" } }));
+    expect(good.status).toBe(200);
+    const cookie = good.headers.get("set-cookie") ?? "";
+    expect(cookie).toMatch(/HttpOnly/);
+    expect(cookie).toMatch(/SameSite=Lax/);
+    // The key is in the cookie, not in the response body.
+    expect(await good.text()).not.toContain("the-secret-key");
+
+    const bad = await InsightsKey.POST(await request("/api/insights/key", { method: "POST", body: { key: "nope" } }));
+    expect(bad.status).toBe(400);
+    expect(bad.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("signs the cookie back out", async () => {
+    const res = await InsightsKey.DELETE(await request("/api/insights/key", { method: "DELETE" }));
+    expect(res.headers.get("set-cookie")).toMatch(/Max-Age=0/);
   });
 });
