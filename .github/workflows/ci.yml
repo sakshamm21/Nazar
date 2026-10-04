@@ -1,0 +1,48 @@
+name: CI
+
+# Type check, lint and the unit + integration suites on every push and pull request. The no-advice
+# guard fails the build from tests/unit/no-advice.test.ts, so nothing that starts advising can land.
+# Needs no secrets: the tests run against an in-memory Postgres and never call a provider.
+
+on:
+  push:
+    branches: [main, nazar]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+        env:
+          TZ: UTC
+          EMAIL_DISABLED: "1"
+          NEWS_ENABLED: "0"
+
+      - name: Build
+        run: npm run build
+        env:
+          # A 32-character stand-in: the app refuses to build in production without a real one.
+          AUTH_SECRET: ci-secret-ci-secret-ci-secret-0123
