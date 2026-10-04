@@ -10,7 +10,7 @@ import { schema, type DB } from "@/lib/db";
 import { istDate } from "@/lib/data/provider";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { prevWeekday, shiftDate } from "@/lib/market/store";
-import { runNightly } from "@/lib/pipeline/run";
+import { runMaintenance, runNightly } from "@/lib/pipeline/run";
 import { fakeMarket, q } from "./fake-market";
 import { makePortfolio, makeUser, memoryDb, type TestUser } from "./harness";
 
@@ -148,5 +148,57 @@ describe("a thin response cannot leave a symbol without its results card", () =>
     m2.advance(d4);
     await runNightly({ provider: m2.provider, now: at(d4), budgetMs: 60_000 });
     expect(await db2.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "TMPV.NS"))).toHaveLength(1);
+  });
+
+  it("the nightly repair fills a symbol still waiting on its first backfill", async () => {
+    // Maintenance runs on quiet days, so it is what repairs a symbol the weekend cron never reached.
+    const db3 = await memoryDb();
+    const u = await makeUser(db3, { email: "repair@test.nazar.dev", name: "Repair" });
+    await makePortfolio(db3, u.id, [{ symbol: "HDFCBANK.NS", quantity: 10, avgPrice: 950 }]);
+    const m3 = fakeMarket();
+
+    // One session that collects the symbol but records no quarters.
+    m3.state.day = D1;
+    m3.advance(D1);
+    m3.state.moves = { "*": 0.001 };
+    await runNightly({ provider: m3.provider, now: at(D1), budgetMs: 60_000 });
+    expect(await db3.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "HDFCBANK.NS"))).toHaveLength(0);
+
+    // The provider recovers, and maintenance does the repair even though it is not a trading day.
+    m3.state.quarters["HDFCBANK.NS"] = [q("2026-03-31", 22000, 4000, 5.2), q("2026-06-30", 24100, 4500, 5.8)];
+    m3.advance(weekday(D1, 1));
+    const r = await runMaintenance(m3.provider);
+    expect(r.resultsBackfilled).toBeGreaterThanOrEqual(1);
+
+    const events = await db3.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "HDFCBANK.NS"));
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ quarterEnd: "2026-06-30", data: { backfilled: true } });
+
+    // Second run: nothing left to repair, and no duplicate.
+    expect((await runMaintenance(m3.provider)).resultsBackfilled).toBe(0);
+    expect(await db3.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "HDFCBANK.NS"))).toHaveLength(1);
+  });
+
+  it("the repair leaves symbols that can never have a results card alone", async () => {
+    // Indices and funds have no company accounts. Re-collecting all of them every night would be
+    // wasted provider calls for a card that can never appear.
+    const db4 = await memoryDb();
+    const u = await makeUser(db4, { email: "nocompany@test.nazar.dev", name: "No" });
+    await makePortfolio(db4, u.id, [{ symbol: "INFY.NS", quantity: 5, avgPrice: 1500 }]);
+    const m4 = fakeMarket();
+    m4.state.day = D1;
+    m4.state.quarters["INFY.NS"] = []; // a thin first fetch, as in the regression above
+    m4.advance(D1);
+    m4.state.moves = { "*": 0.001 };
+    await runNightly({ provider: m4.provider, now: at(D1), budgetMs: 60_000 });
+    expect(await db4.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "INFY.NS"))).toHaveLength(0);
+    m4.advance(weekday(D1, 1));
+
+    // A symbol with quarters again, so the only things left unrepaired are the indices.
+    m4.state.quarters["INFY.NS"] = [q("2026-03-31", 42000, 7000, 16.9), q("2026-06-30", 45500, 7600, 18.3)];
+    const first = await runMaintenance(m4.provider);
+    expect(first.resultsBackfilled).toBe(1); // only INFY, not the 14 indices
+    // And it settles: the second run finds nothing to do.
+    expect((await runMaintenance(m4.provider)).resultsBackfilled).toBe(0);
   });
 });

@@ -1,10 +1,12 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { and, eq, isNull, lt, or } from "drizzle-orm";
-import { getDb, schema } from "@/lib/db";
+import { and, eq, inArray, isNull, lt, or } from "drizzle-orm";
+import { getDb, schema, type DB } from "@/lib/db";
 import { resilientProvider } from "@/lib/data/market";
 import { istDate, type MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
+import { isManualSymbol } from "@/lib/instruments/asset-classes";
+import { latestTradeDate } from "@/lib/market/store";
 import { logger } from "@/lib/logger";
 import { collectBatch, collectQuotes, liveUniverse } from "./collect";
 
@@ -98,11 +100,49 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
 }
 
 /** Housekeeping: prune rate-limit rows and put the shared test accounts back. */
-export async function runMaintenance() {
+export async function runMaintenance(provider: MarketDataProvider = resilientProvider) {
   const db = await getDb();
   const expired = await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.demoExpiresAt, new Date()))).returning({ id: schema.users.id });
   await db.delete(schema.rateEvents).where(lt(schema.rateEvents.createdAt, new Date(Date.now() - 48 * 3600_000)));
+  const backfilled = await repairMissingResults(db, provider);
   const { ensureTestAccounts } = await import("@/lib/demo/seed");
   const accounts = await ensureTestAccounts(db);
-  return { expiredDemoUsers: expired.length, testAccounts: accounts };
+  return { expiredDemoUsers: expired.length, resultsBackfilled: backfilled, testAccounts: accounts };
+}
+
+/**
+ * Collect any company symbol that has a snapshot but no quarterly-results backfill. A fetch that
+ * came back without enough quarters used to leave a symbol permanently without its results card, so
+ * this keeps trying on quiet days (weekends included) until the card is there. Indices and funds
+ * have no company accounts and can never produce one, so they are excluded rather than re-collected
+ * every night forever. The backfill itself is idempotent.
+ */
+async function repairMissingResults(db: DB, provider: MarketDataProvider) {
+  const candidates = await db
+    .selectDistinct({ symbol: schema.symbolSnapshots.symbol })
+    .from(schema.symbolSnapshots)
+    .leftJoin(schema.resultsEvents, and(eq(schema.resultsEvents.symbol, schema.symbolSnapshots.symbol), eq(schema.resultsEvents.source, schema.symbolSnapshots.source)))
+    .where(and(eq(schema.symbolSnapshots.source, "live"), isNull(schema.resultsEvents.id)))
+    .limit(60);
+  const missing = candidates.map((c) => c.symbol).filter((s) => !isManualSymbol(s));
+  if (!missing.length) return 0;
+  try {
+    const date = await latestTradeDate(db, ["live"]);
+    if (!date) return 0;
+    // Indices and funds have no company accounts, so they can never produce a results card.
+    // Leaving them in the query would make this re-collect all of them every night forever.
+    const companies = missing.filter((s) => s.endsWith(".NS"));
+    if (!companies.length) return 0;
+    await collectBatch(db, provider, companies, 0, date, Date.now() + 240_000, "live");
+    // Count the ones that now have a card, rather than everything that was touched.
+    const rows = await db
+      .selectDistinct({ symbol: schema.resultsEvents.symbol })
+      .from(schema.resultsEvents)
+      .where(and(inArray(schema.resultsEvents.symbol, companies), eq(schema.resultsEvents.source, "live")));
+    const have = new Set(rows.map((r) => r.symbol));
+    return companies.filter((s) => have.has(s)).length;
+  } catch (e) {
+    logger.warn({ err: String((e as Error)?.message ?? e).slice(0, 200) }, "results backfill repair skipped");
+    return 0;
+  }
 }
