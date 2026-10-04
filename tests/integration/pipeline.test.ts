@@ -99,3 +99,54 @@ describe("nightly checkup (fake provider)", () => {
     expect(r.stats.failed).toBeGreaterThanOrEqual(4);
   });
 });
+
+describe("a thin response cannot leave a symbol without its results card", () => {
+  // Regression: the backfill used to be gated on the snapshot having no lastQuarterEnd, which is
+  // true only on the very first fetch. A first fetch that came back with fewer than two quarters
+  // therefore left the symbol permanently without a results card, while its prices, health and
+  // next-results date all looked perfectly healthy.
+  const weekday = (from: string, n: number) => {
+    let d = from;
+    for (let i = 0; i < n; i++) {
+      do d = shiftDate(d, 1);
+      while ([0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay()));
+    }
+    return d;
+  };
+
+  it("records the latest quarter on a later day, once more quarters are available", async () => {
+    const db2 = await memoryDb();
+    const u = await makeUser(db2, { email: "thin@test.nazar.dev", name: "Thin" });
+    await makePortfolio(db2, u.id, [{ symbol: "TMPV.NS", quantity: 10, avgPrice: 700 }]);
+    const m2 = fakeMarket();
+    m2.state.day = D1; // the fake prices itself off this before the first advance()
+
+    // Two sessions in which the provider answers with no quarters at all.
+    for (const d of [D1, weekday(D1, 1)]) {
+      m2.advance(d);
+      m2.state.moves = { "*": 0.001 };
+      await runNightly({ provider: m2.provider, now: at(d), budgetMs: 60_000 });
+    }
+    const [snap] = await db2.select().from(schema.symbolSnapshots).where(eq(schema.symbolSnapshots.symbol, "TMPV.NS")).limit(1);
+    expect(snap.lastQuarterEnd).toBeNull();
+    expect(await db2.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "TMPV.NS"))).toHaveLength(0);
+
+    // The provider starts answering with a full history, on a later day.
+    m2.state.quarters["TMPV.NS"] = [q("2026-03-31", 42000, 7000, 16.9), q("2026-06-30", 45500, 7600, 18.3)];
+    const d3 = weekday(D1, 2);
+    m2.advance(d3);
+    await runNightly({ provider: m2.provider, now: at(d3), budgetMs: 60_000 });
+
+    const events = await db2.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "TMPV.NS"));
+    expect(events).toHaveLength(1);
+    // Backfilled: dated at its own quarter end, so it never raises a "results are out" alert.
+    expect(events[0]).toMatchObject({ quarterEnd: "2026-06-30", detectedOn: "2026-06-30", data: { backfilled: true } });
+    expect(events[0].data.previous?.quarterEnd).toBe("2026-03-31");
+
+    // And it stays at one event: re-running does not duplicate it.
+    const d4 = weekday(D1, 3);
+    m2.advance(d4);
+    await runNightly({ provider: m2.provider, now: at(d4), budgetMs: 60_000 });
+    expect(await db2.select().from(schema.resultsEvents).where(eq(schema.resultsEvents.symbol, "TMPV.NS"))).toHaveLength(1);
+  });
+});

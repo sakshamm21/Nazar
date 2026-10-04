@@ -123,7 +123,11 @@ async function collectSymbol(db: DB, provider: MarketDataProvider, symbol: strin
   if (newResults && latestQuarter) await recordResults(db, symbol, source, sum.quarters, marketDate, prev?.health?.score ?? null, health?.score ?? null, health?.periods?.at(-1) !== prev?.health?.periods?.at(-1));
   // First fetch: keep the latest quarter so the stock page can explain it. It is dated at its quarter
   // end, long past, so it never raises a "results are out" alert.
-  else if (!prev?.lastQuarterEnd && sum.quarters.length >= 2) await recordResults(db, symbol, source, sum.quarters, latestQuarter!.quarterEnd, null, health?.score ?? null, false, true);
+  // This has to be able to fire again on a later day: a fetch that came back with fewer than two
+  // quarters — a thin response, a source hiccup — would otherwise leave the symbol permanently
+  // without a results card, because `lastQuarterEnd` is set from the very first snapshot onwards.
+  // recordResults is keyed on (symbol, quarter, source), so re-recording is a no-op.
+  else if (sum.quarters.length >= 2 && !(await hasResults(db, symbol, source))) await recordResults(db, symbol, source, sum.quarters, latestQuarter!.quarterEnd, null, health?.score ?? null, false, true);
 
   const set = {
     metrics: { ...metrics, __healthOn: healthOn ?? null } as Record<string, number | null>,
@@ -166,6 +170,12 @@ async function recordResults(db: DB, symbol: string, source: string, quarters: Q
   const yearAgo = quarters.find((q) => q.quarterEnd === shiftDate(cur.quarterEnd, -365) || q.quarterEnd.slice(5) === cur.quarterEnd.slice(5) && Number(q.quarterEnd.slice(0, 4)) === Number(cur.quarterEnd.slice(0, 4)) - 1) ?? null;
   const data: ResultsData = { current: cur, previous: prevQ, yearAgo, annualHealthUpdated, ...(backfilled ? { backfilled } : {}) };
   await db.insert(schema.resultsEvents).values({ id: randomUUID(), symbol, source, quarterEnd: cur.quarterEnd, detectedOn, data, healthBefore, healthAfter }).onConflictDoNothing();
+}
+
+/** Has anything ever been recorded for this symbol from this source? */
+async function hasResults(db: DB, symbol: string, source: string) {
+  const [row] = await db.select({ id: schema.resultsEvents.id }).from(schema.resultsEvents).where(and(eq(schema.resultsEvents.symbol, symbol), eq(schema.resultsEvents.source, source))).limit(1);
+  return !!row;
 }
 
 const daysSince = (iso?: string) => (iso ? (Date.now() - new Date(`${iso}T00:00:00Z`).getTime()) / 86400000 : Infinity);
