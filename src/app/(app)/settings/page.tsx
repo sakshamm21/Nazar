@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { inArray } from "drizzle-orm";
+import { GoalsCard } from "@/components/goals/goals-card";
 import { Preferences } from "@/components/settings/preferences";
 import { ProfileCard } from "@/components/settings/profile-card";
 import { requirePageUser } from "@/lib/current-user";
@@ -9,6 +10,7 @@ import { loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { latestTradeDate, sourcesFor } from "@/lib/market/store";
 import { valuation } from "@/lib/portfolio/math";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
+import { goalsView } from "@/lib/views/goals";
 
 export const metadata: Metadata = { title: "You" };
 
@@ -24,6 +26,8 @@ export default async function SettingsPage() {
   let netWorth = 0;
   for (const p of portfolios) netWorth += valuation((await loadPortfolioDay(db, holdings.filter((h) => h.portfolioId === p.id), date, sources)).holdings).value;
   const watching = await listWatching(user.id);
+  // Goals are the user's own figures, not tied to a portfolio, so they live here on "You".
+  const goals = await goalsView(user.id);
 
   return (
     <div className="nz-stagger mx-auto max-w-3xl space-y-5">
@@ -37,6 +41,7 @@ export default async function SettingsPage() {
           stats: { portfolios: portfolios.length, holdings: holdings.length, watching: watching.length, netWorth: holdings.length ? netWorth : null },
         }}
       />
+      <GoalsCard view={goals} />
       <Preferences />
       <p className="t-caption px-1">Nazar only emails you to confirm your address or reset your password. It explains; you decide. It is not a SEBI-registered investment adviser.</p>
     </div>

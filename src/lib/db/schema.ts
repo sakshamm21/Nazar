@@ -96,6 +96,34 @@ export const holdingLots = pgTable(
   (t) => [index("lots_holding_idx").on(t.holdingId), index("lots_portfolio_date_idx").on(t.portfolioId, t.date)],
 );
 
+/**
+ * A savings goal: an amount and a date. What is already saved, and what is being added each month,
+ * are the user's own figures — Nazar does not link a goal to holdings, because deciding which money
+ * counts as "for the house" is the user's judgement, not the app's.
+ */
+export const goals = pgTable(
+  "goals",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    target: doublePrecision("target").notNull(),
+    /** The day the money is needed. */
+    byDate: date("by_date", { mode: "string" }).notNull(),
+    saved: doublePrecision("saved").notNull().default(0),
+    /** When `saved` was measured, so progress is never credited to the wrong day. */
+    savedAsOf: date("saved_as_of", { mode: "string" }),
+    monthly: doublePrecision("monthly"),
+    /** Optional yearly rate the user expects, used only to show what compounding would add. */
+    ratePct: doublePrecision("rate_pct"),
+    icon: text("icon"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: created(),
+    updatedAt: ts("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("goals_user_idx").on(t.userId, t.sortOrder)],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

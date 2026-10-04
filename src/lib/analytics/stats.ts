@@ -38,6 +38,7 @@ export function xirr(flows: { date: Date; amount: number }[]): number | null {
   const yrs = sorted.map((f) => (f.date.getTime() - t0) / (365.25 * 86400000));
   const npv = (r: number) => sorted.reduce((s, f, k) => s + f.amount / (1 + r) ** yrs[k], 0);
   let r = 0.1;
+  let candidate: number | null = null;
   for (let i = 0; i < 100; i++) {
     let f = 0, df = 0;
     sorted.forEach((fl, k) => {
@@ -47,19 +48,38 @@ export function xirr(flows: { date: Date; amount: number }[]): number | null {
     if (!df) break;
     const next = r - f / df;
     if (!Number.isFinite(next)) break;
-    if (Math.abs(next - r) < 1e-9) return next > -0.99 ? next : null;
+    if (Math.abs(next - r) < 1e-9) {
+      candidate = next;
+      break;
+    }
     r = Math.max(-0.99, next);
   }
-  let lo = -0.99, hi = 10;
-  let flo = npv(lo), fhi = npv(hi);
-  if (!Number.isFinite(flo) || !Number.isFinite(fhi) || flo * fhi > 0) return null;
-  for (let i = 0; i < 200; i++) {
-    const mid = (lo + hi) / 2;
-    const fm = npv(mid);
-    if (Math.abs(fm) < 1e-7 || hi - lo < 1e-10) return mid;
-    if (flo * fm < 0) { hi = mid; fhi = fm; } else { lo = mid; flo = fm; }
+  // Newton's method can converge to something numerically near zero while the real root is far away
+  // (it happily walks towards r=0, which is not a root when the money grew). Bisection is slower but
+  // always finds the true bracket, so it decides whenever Newton's answer is not the actual root.
+  const lo0 = -0.99;
+  const hi0 = 10;
+  const fLo = npv(lo0);
+  const fHi = npv(hi0);
+  const bracketed = Number.isFinite(fLo) && Number.isFinite(fHi) && fLo * fHi <= 0;
+  if (bracketed) {
+    let lo = lo0;
+    let hi = hi0;
+    let flo = fLo;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2;
+      const fm = npv(mid);
+      if (Math.abs(fm) < 1e-9 || hi - lo < 1e-10) return mid;
+      if (flo * fm < 0) hi = mid;
+      else {
+        lo = mid;
+        flo = fm;
+      }
+    }
+    return (lo + hi) / 2;
   }
-  return (lo + hi) / 2;
+  if (candidate != null && candidate > -0.99) return candidate;
+  return null;
 }
 
 export const sma = (xs: number[], n: number) => xs.map((_, i) => (i + 1 < n ? null : mean(xs.slice(i + 1 - n, i + 1))));
