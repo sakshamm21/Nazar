@@ -43,14 +43,19 @@ export function goalPayload(d: GoalDraft): { ok: true; body: GoalPayload } | { o
   return { ok: true, body: { name: d.name.trim().slice(0, 60), target, byDate: d.byDate, saved, savedAsOf: d.savedAsOf || today(), monthly, ratePct } };
 }
 
-/** How often the amount added each month is recorded, from when the user says it started. */
-export const RECORDING: { value: string; label: string; hint: string }[] = [
-  { value: "yearly", label: "Once a year", hint: "Record 12 instalments a year." },
-  { value: "monthly", label: "Every month", hint: "Record each month's instalment." },
-];
+export type ProgressPayload = { saved: number; savedAsOf: string };
 
-/** Only a monthly plan has dated instalments, so only it can be given a money-weighted return. */
-export const needsRecording = (monthly: number | null) => (monthly ?? 0) > 0;
+/**
+ * Recording progress sends two numbers and nothing else: the amount saved and the day it was
+ * measured. Deliberately not reusing goalPayload, which would demand a name, a target and a date
+ * that a progress sheet has no field for.
+ */
+export function progressPayload(d: GoalDraft): { ok: true; body: ProgressPayload } | { ok: false; error: string } {
+  const saved = d.saved.trim() === "" ? 0 : n(d.saved);
+  if (!(Number.isFinite(saved) && saved >= 0)) return { ok: false, error: "What is saved cannot be negative." };
+  if (!d.savedAsOf) return { ok: false, error: "Choose the day the amount was measured." };
+  return { ok: true, body: { saved, savedAsOf: d.savedAsOf } };
+}
 
 /** The two numbers progress touches, as a draft, so the progress sheet reuses the same rules. */
 export const progressDraft = (saved: number, savedAsOf: string | null): GoalDraft => ({ ...emptyDraft(), saved: saved ? String(saved) : "", savedAsOf: savedAsOf ?? today() });

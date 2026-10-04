@@ -252,6 +252,78 @@ test.describe("Ask and You", () => {
   });
 });
 
+test.describe("Goals", () => {
+  /**
+   * The shared demo account is put back by the nightly job, not between test runs, so a goal left
+   * behind by a failed run would still be here. Clear anything with this test's name first, so the
+   * test means the same thing however many times it has been run.
+   */
+  async function clearTestGoals(page: Page) {
+    await page.goto("/settings");
+    const remove = page.getByRole("button", { name: "Remove E2E goal" });
+    for (let i = 0; i < 9 && (await remove.count()) > 0; i++) {
+      const left = (await remove.count()) - 1;
+      await remove.first().click();
+      await page.getByRole("button", { name: "Remove", exact: true }).click();
+      await expect(remove).toHaveCount(left);
+    }
+    await expect(remove).toHaveCount(0);
+  }
+
+  test("a goal shows what it needs from here, and updates as progress is recorded", async ({ page }) => {
+    await startDemo(page, "new@nazar.dev");
+    await clearTestGoals(page);
+
+    // Add: an amount and the day it is needed, and the arithmetic appears.
+    await page.getByRole("button", { name: "Add" }).click();
+    await page.getByLabel("Name").fill("E2E goal");
+    await page.getByLabel("Amount needed (₹)").fill("2500000");
+    const [y, m, d] = new Date(Date.now() + 5.5 * 3600_000 + 24 * 365 * 1000 * 3).toISOString().slice(0, 10).split("-");
+    await page.getByLabel("Needed by").fill(`${y}-${m}-${d}`);
+    await page.getByLabel("Already saved (₹)").fill("150000");
+    await page.getByLabel("Added each month (₹)").fill("20000");
+    await page.getByRole("button", { name: "Add goal" }).click();
+
+    await expect(page.getByText("E2E goal")).toBeVisible();
+    // The arithmetic appears: what is saved, what a month has to be, and what is still to go.
+    await expect(page.getByText("₹1,50,000")).toBeVisible();
+    await expect(page.getByText("Needs each month")).toBeVisible();
+    await expect(page.getByText("Still to put away")).toBeVisible();
+    await expect(page.getByText("₹23,50,000")).toBeVisible();
+
+    // Record progress: the saved figure moves.
+    await page.getByRole("button", { name: /Record progress on E2E goal/ }).click();
+    await page.getByLabel("Amount saved now (₹)").fill("500000");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("₹5,00,000")).toBeVisible();
+
+    // Changing the monthly amount alone must not wipe what has been saved.
+    await page.getByRole("button", { name: "Edit E2E goal" }).click();
+    await page.getByLabel("Added each month (₹)").fill("25000");
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.getByText("₹5,00,000")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record progress on E2E goal/ })).toBeVisible();
+
+    // Remove it: the account is left as it was found.
+    await page.getByRole("button", { name: "Remove E2E goal" }).click();
+    await page.getByRole("button", { name: "Remove", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Remove E2E goal" })).toHaveCount(0);
+  });
+
+  test("the form refuses a goal it cannot work with", async ({ page }) => {
+    await startDemo(page, "new@nazar.dev");
+    await clearTestGoals(page);
+    await page.getByRole("button", { name: "Add" }).click();
+    await page.getByLabel("Amount needed (₹)").fill("2500000");
+    await page.getByRole("button", { name: "Add goal" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "name" })).toBeVisible();
+    // Nothing was created: the sheet stays open and the goal is not added to the list.
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+});
+
 test.describe("Mobile @mobile", () => {
   test("bottom tabs navigate between the main areas @mobile", async ({ page }) => {
     await startDemo(page);

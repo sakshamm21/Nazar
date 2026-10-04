@@ -11,7 +11,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { Sheet } from "@/components/ui/sheet";
 import { apiCall } from "@/lib/api-client";
 import { dayLabel, inr } from "@/lib/format";
-import { emptyDraft, goalPayload, progressDraft, today, type GoalDraft } from "@/lib/goals/draft";
+import { emptyDraft, goalPayload, progressDraft, progressPayload, today, type GoalDraft } from "@/lib/goals/draft";
 import { MAX_GOALS } from "@/lib/goals/schema";
 import type { GoalRow, GoalsView } from "@/lib/views/goals";
 
@@ -274,11 +274,11 @@ function ProgressSheet({ row, onClose }: { row: GoalRow | null; onClose: () => v
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const p = goalPayload(draft);
+      const p = progressPayload(draft);
     if (!p.ok) return setError(p.error);
     setBusy(true);
     try {
-      await apiCall(`/api/goals/${row!.goal.id}/progress`, "POST", { saved: p.body.saved, savedAsOf: p.body.savedAsOf });
+        await apiCall(`/api/goals/${row!.goal.id}/progress`, "POST", p.body);
       setLoadedFor(null);
       onClose();
       router.refresh();

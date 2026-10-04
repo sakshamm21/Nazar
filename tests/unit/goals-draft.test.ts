@@ -3,7 +3,7 @@
  * and the API both rely on these, so they are tested once, here, rather than through the component.
  */
 import { describe, expect, it } from "vitest";
-import { emptyDraft, goalPayload, needsRecording, progressDraft, today, type GoalDraft } from "@/lib/goals/draft";
+import { emptyDraft, goalPayload, progressDraft, progressPayload, today, type GoalDraft } from "@/lib/goals/draft";
 
 const draft = (patch: Partial<GoalDraft> = {}): GoalDraft => ({ ...emptyDraft(), name: "House deposit", target: "2500000", byDate: "2030-06-30", savedAsOf: "2025-01-01", ...patch });
 
@@ -48,21 +48,38 @@ describe("what the goals form will accept", () => {
     const p = goalPayload(draft({ name: "A".repeat(200) }));
     expect(p.ok && p.body.name).toHaveLength(60);
   });
-
-  it("only a monthly plan has dated instalments worth a return", () => {
-    expect(needsRecording(20000)).toBe(true);
-    expect(needsRecording(0)).toBe(false);
-    expect(needsRecording(null)).toBe(false);
-  });
-});
-
-describe("the progress form", () => {
-  it("starts from the goal's own last recorded figures", () => {
-    expect(progressDraft(150000, "2025-03-31")).toMatchObject({ saved: "150000", savedAsOf: "2025-03-31" });
   });
 
-  it("falls back to today when the goal has never been measured", () => {
-    expect(progressDraft(0, null).savedAsOf).toBe(today());
-    expect(progressDraft(0, null).saved).toBe("");
+  describe("the progress form", () => {
+    it("starts from the goal's own last recorded figures", () => {
+      expect(progressDraft(150000, "2025-03-31")).toMatchObject({ saved: "150000", savedAsOf: "2025-03-31" });
   });
-});
+
+    it("falls back to today when the goal has never been measured", () => {
+      expect(progressDraft(0, null).savedAsOf).toBe(today());
+      expect(progressDraft(0, null).saved).toBe("");
+    });
+
+    it("sends only the two numbers progress needs", () => {
+      // Regression: reusing goalPayload here demanded a name and a target the sheet has no field for,
+      // so recording progress always failed with "Give the goal a name".
+      const p = progressPayload(progressDraft(0, null));
+      expect(p).toEqual({ ok: true, body: { saved: 0, savedAsOf: today() } });
+      expect(p.ok && Object.keys(p.body).sort()).toEqual(["saved", "savedAsOf"]);
+    });
+
+    it("reads the amount the way India writes it", () => {
+      expect(progressPayload({ ...progressDraft(0, null), saved: "5,00,000" })).toEqual({ ok: true, body: { saved: 500000, savedAsOf: today() } });
+    });
+
+    it("refuses a negative amount, and says so", () => {
+      const p = progressPayload({ ...progressDraft(0, null), saved: "-1" });
+      expect(p.ok).toBe(false);
+      expect(p.ok === false && p.error).toMatch(/negative/i);
+    });
+
+    it("refuses a negative amount written with commas", () => {
+      const p = progressPayload({ ...progressDraft(0, null), saved: "-1,000" });
+      expect(p.ok).toBe(false);
+    });
+  });
