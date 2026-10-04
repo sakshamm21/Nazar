@@ -13,7 +13,7 @@ import { Delta } from "@/components/ui/delta";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { cn } from "@/lib/cn";
 import { dayLabel, inrCompact, istTime, signedPct } from "@/lib/format";
-import { buildPortfolioView } from "@/lib/views/portfolio";
+import { portfolioView } from "@/lib/views/portfolio";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -31,7 +31,7 @@ const NEXT = [
 /** Home is the glance: what you have, how today went, and the map of what is up and down. */
 export default async function HomePage() {
   const user = await requirePageUser();
-  const v = await buildPortfolioView(user, await selectedPortfolioId());
+  const v = await portfolioView(user, await selectedPortfolioId());
   const first = user.name.split(" ")[0];
   const switcher = <PortfolioTabs portfolios={v.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={v.active?.id ?? null} />;
 

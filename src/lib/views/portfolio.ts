@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
+import { cache } from "react";
 import { getDb, schema } from "@/lib/db";
 import { correlationMatrix, topByWeight, trendLabel, valuationVsPeers } from "@/lib/analytics/models";
 import { attributionLine, marketSplitLine } from "@/lib/portfolio/words";
@@ -185,11 +186,20 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     cards,
     notes: notesFor(tradeDate, day, conc, div),
     staleCount: cards.filter((c) => c.stale).length,
+    /** The closes already read for this portfolio, so a page can reuse them instead of re-querying. */
+    history: hist,
   };
 }
 
 export type PortfolioView = Awaited<ReturnType<typeof buildPortfolioView>>;
 export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
+
+/**
+ * The view, computed at most once per request per portfolio. A single page can ask for it more than
+ * once — /risk renders it and then re-reads price history for its correlation table — and each call
+ * otherwise reads 400 days of closes and recomputes clustering, XIRR and the stress tests.
+ */
+export const portfolioView = cache(async (user: User, portfolioId?: string | null) => buildPortfolioView(user, portfolioId));
 
 /** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
 function notesFor(tradeDate: string, day: Awaited<ReturnType<typeof loadPortfolioDay>>, conc: ReturnType<typeof concentration>, div: ReturnType<typeof diversification> | null): Note[] {

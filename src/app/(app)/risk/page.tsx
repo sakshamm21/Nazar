@@ -8,23 +8,21 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { InfoTip } from "@/components/ui/info-tip";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
-import { getDb } from "@/lib/db";
 import { correlationMatrix } from "@/lib/analytics/models";
 import { absPct } from "@/lib/format";
-import { priceHistory, shiftDate } from "@/lib/market/store";
-import { buildPortfolioView, type FullPortfolioView } from "@/lib/views/portfolio";
+import { portfolioView, type FullPortfolioView } from "@/lib/views/portfolio";
 import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = { title: "Hidden risks" };
 
 export default async function RiskPage() {
   const user = await requirePageUser();
-  const view = await buildPortfolioView(user, await selectedPortfolioId());
+  const view = await portfolioView(user, await selectedPortfolioId());
   if (view.empty) redirect("/home");
   const v = view as FullPortfolioView;
-  const db = await getDb();
+  // The view already read these closes for the same trade date; reuse them rather than querying again.
   const symbols = v.cards.map((c) => c.symbol);
-  const hist = await priceHistory(db, symbols, v.sources, shiftDate(v.tradeDate!, -400), v.tradeDate!);
+  const hist = v.history;
   const withHist = symbols.filter((s) => (hist.get(s)?.size ?? 0) > 60);
   let matrix: (number | null)[][] = [];
   try {

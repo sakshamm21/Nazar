@@ -12,7 +12,7 @@ import { Delta } from "@/components/ui/delta";
 import { InfoTip } from "@/components/ui/info-tip";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { absPct, inr, inrCompact, signedPct } from "@/lib/format";
-import { buildPortfolioView, type FullPortfolioView, type Note } from "@/lib/views/portfolio";
+import { portfolioView, type FullPortfolioView, type Note } from "@/lib/views/portfolio";
 
 export const metadata: Metadata = { title: "Analysis" };
 
@@ -21,7 +21,7 @@ const NOTE_ICON: Record<Note["kind"], typeof Layers> = { results: FileBarChart2,
 /** The full reading of a portfolio: what it did over any period and why, then returns, risk and health. */
 export default async function AnalysisPage() {
   const user = await requirePageUser();
-  const view = await buildPortfolioView(user, await selectedPortfolioId());
+  const view = await portfolioView(user, await selectedPortfolioId());
   const switcher = <PortfolioTabs portfolios={view.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={view.active?.id ?? null} />;
   const head = (
     <div>

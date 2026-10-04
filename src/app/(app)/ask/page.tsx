@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AskWorkspace } from "@/components/ask/ask-workspace";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
-import { buildPortfolioView } from "@/lib/views/portfolio";
+import { portfolioView } from "@/lib/views/portfolio";
 import { headers } from "next/headers";
 import { ipHashOf, remainingToday } from "@/lib/limits";
 
@@ -16,7 +16,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   // loads on the client; otherwise a new one starts, optionally with a question from ?q= (e.g. "Ask about this").
   const start = c ? { openId: c.slice(0, 64) } : { newId: randomUUID(), question: q?.slice(0, 500) || null };
   // The start screen's example questions name the user's two largest stocks.
-  const view = await buildPortfolioView(user, await selectedPortfolioId());
+  const view = await portfolioView(user, await selectedPortfolioId());
   const stocks = view.empty ? [] : view.cards.filter((c) => c.assetClass === "stock").map((c) => c.name);
   return (
     <Suspense>

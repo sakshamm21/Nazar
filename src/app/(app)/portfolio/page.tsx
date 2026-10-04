@@ -14,7 +14,7 @@ import { displayName, loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
 import { valuation } from "@/lib/portfolio/math";
 import { MAX_PORTFOLIOS, listPortfolios, listWatching } from "@/lib/repo/portfolios";
-import { buildPortfolioView } from "@/lib/views/portfolio";
+import { portfolioView } from "@/lib/views/portfolio";
 
 export const metadata: Metadata = { title: "Portfolio" };
 
@@ -23,7 +23,7 @@ export default async function PortfolioPage() {
   const db = await getDb();
   const sources = sourcesFor(user);
   const portfolios = await listPortfolios(user.id);
-  const view = await buildPortfolioView(user, await selectedPortfolioId());
+  const view = await portfolioView(user, await selectedPortfolioId());
   const active = view.active;
   // Before the first checkup there is no market date yet: manual assets still value as of today.
   const date = (await latestTradeDate(db, sources)) ?? istDate(new Date());
