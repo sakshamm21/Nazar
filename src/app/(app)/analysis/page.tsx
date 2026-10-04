@@ -2,6 +2,7 @@ import { ArrowRight, CalendarClock, FileBarChart2, Layers, PieChart, TimerOff } 
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
+import { CapitalGainsCard } from "@/components/analysis/capital-gains-card";
 import { PortfolioTabs } from "@/components/portfolio/portfolio-tabs";
 import { QuietRings } from "@/components/rings/quiet-rings";
 import { RingGauge, RingLegend } from "@/components/rings/ring-gauge";
@@ -94,6 +95,8 @@ export default async function AnalysisPage() {
           <ReturnList title="Lost the most" rows={losers} empty="Nothing is at a loss." />
         </div>
       </Card>
+
+      <CapitalGainsCard rows={v.gains} />
 
       <Card className="p-5 sm:p-6">
         <CardHeader overline="Risk" title="What could hurt, and how concentrated you are" right={<InfoTip k="stress" />} />

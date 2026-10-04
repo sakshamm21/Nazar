@@ -8,6 +8,11 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   value: { term: "Portfolio value", plain: "What your shares are worth at the last market close: quantity × closing price, added up." },
   dayChange: { term: "Today's change", plain: "How much your portfolio's value moved compared with the previous close." },
   unrealised: { term: "Unrealised P&L", plain: "Profit or loss on paper: today's value minus what you paid. It becomes real only when the shares are sold." },
+  "capital-gains": {
+    term: "Capital gains buckets",
+    plain:
+      "India taxes a profit on shares in two buckets: sold within a year at 20%, or held over a year at 12.5%. Gold, property and most other assets pay 12.5% either way. Long-term equity gains up to ₹1.25 lakh a year are exempt. Which bucket a holding lands in depends on the day its units are sold, so these figures only change when something actually sells.",
+  },
   xirr: { term: "XIRR", plain: "Your yearly return, taking into account when you put money in. It lets you compare investments made on different dates fairly.", example: "12% XIRR means your money grew as if it earned 12% a year." },
   xirrNifty: { term: "XIRR vs Nifty 50", plain: "What the same rupees, invested on the same days in the Nifty 50 index, would have returned. A simple yardstick for your stock picks." },
   health: { term: "Health score", plain: "A 0–100 score of the company's financial health from its annual statements: profits, cash flow, debt and efficiency (Piotroski F-score and Altman Z). Banks get a simpler lender check instead, because their balance sheets work differently." },

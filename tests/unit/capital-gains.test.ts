@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   capitalGains,
+  gainClassOf,
   holdingDays,
   isLongTerm,
   LTCG_EXEMPTION,
@@ -152,15 +153,36 @@ describe("no sales", () => {
   });
 });
 
+describe("which rules a holding falls under", () => {
+  it("shares, ETFs and equity funds use the equity rules", () => {
+    expect(gainClassOf({ assetClass: "stock" })).toBe("equity");
+    expect(gainClassOf({ assetClass: "etf" })).toBe("equity");
+    expect(gainClassOf({ assetClass: "mf", category: "Equity Scheme - Flexi Cap Fund" })).toBe("equity");
+    expect(gainClassOf({ assetClass: "mf", category: "Equity Scheme - ELSS" })).toBe("equity");
+    expect(gainClassOf({ assetClass: "mf", category: "Equity Scheme - Index Fund" })).toBe("equity");
+        // Most of an aggressive hybrid's money is in equity, so it is taxed at the equity rates.
+        expect(gainClassOf({ assetClass: "mf", category: "Hybrid Scheme - Aggressive Hybrid Fund" })).toBe("equity");
+      });
+      it("gold, debt, REITs and anything unknown pay the flat rate", () => {
+        expect(gainClassOf({ assetClass: "gold" })).toBe("other");
+        expect(gainClassOf({ assetClass: "reit" })).toBe("other");
+        expect(gainClassOf({ assetClass: "crypto" })).toBe("other");
+        expect(gainClassOf({ assetClass: "mf", category: "Debt Scheme - Corporate Bond Fund" })).toBe("other");
+        expect(gainClassOf({ assetClass: "mf", category: "Hybrid Scheme - Conservative Hybrid Fund" })).toBe("other");
+        expect(gainClassOf({})).toBe("other");
+        expect(gainClassOf({ assetClass: "mf", category: null })).toBe("other");
+      });
+    });
+
 describe("gains still sitting in the portfolio", () => {
   const positions = [
-    { symbol: "INFY.NS", name: "Infosys", units: 10, cost: 9000, price: 11000, bought: "2020-01-01" },
+      { symbol: "INFY.NS", name: "Infosys", units: 10, cost: 9000, price: 11000, bought: "2020-01-01", class: "equity" as GainClass },
       // Bought a fortnight ago, so a sale today would be short-term whatever today's date is.
-      { symbol: "TCS.NS", name: "TCS", units: 5, cost: 20_000, price: 18_000, bought: new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 10) },
+      { symbol: "TCS.NS", name: "TCS", units: 5, cost: 20_000, price: 18_000, bought: new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 10), class: "equity" as GainClass },
     ];
 
   it("values what is held and says which bucket a sale today would fall into", () => {
-    const rows = unrealisedGains(positions, equity);
+      const rows = unrealisedGains(positions);
     const infy = rows.find((r) => r.symbol === "INFY.NS")!;
     expect(infy.value).toBe(110_000);
     expect(infy.gain).toBe(101_000);
@@ -171,12 +193,12 @@ describe("gains still sitting in the portfolio", () => {
   });
 
   it("sorts by gain and ignores a position with nothing to show", () => {
-    const rows = unrealisedGains([...positions, { symbol: "X.NS", name: "X", units: 0, cost: 100, price: 200, bought: "2020-01-01" }], equity);
+      const rows = unrealisedGains([...positions, { symbol: "X.NS", name: "X", units: 0, cost: 100, price: 200, bought: "2020-01-01", class: "equity" as GainClass }]);
     expect(rows).toHaveLength(2);
     expect(rows[0].gain).toBeGreaterThan(rows[1].gain);
   });
   it("an unpriced position shows no gain rather than pretending it is zero", () => {
-    const rows = unrealisedGains([{ symbol: "NEW.NS", name: "New", units: 10, cost: 1000, price: null, bought: "2024-01-01" }], equity);
+      const rows = unrealisedGains([{ symbol: "NEW.NS", name: "New", units: 10, cost: 1000, price: null, bought: "2024-01-01", class: "equity" as GainClass }]);
     expect(rows[0].value).toBe(0);
     expect(rows[0].gain).toBe(-1000);
   });

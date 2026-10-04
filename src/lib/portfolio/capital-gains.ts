@@ -16,6 +16,21 @@
 /** Equity shares, ETFs and equity mutual funds are taxed differently from everything else. */
 export type GainClass = "equity" | "other";
 
+/**
+ * Which set of rules a holding falls under, from what the app already knows about it.
+ *
+ * Equity rules cover listed shares, ETFs and equity mutual funds. For funds, AMFI's own category
+ * decides: an "Equity Scheme" is equity by definition, and so is an equity-oriented or aggressive
+ * hybrid, which is taxed at the equity rates because most of its money is in equity. A debt or
+ * conservative hybrid is not, and neither is gold, REITs, crypto or anything uncategorised.
+ */
+export function gainClassOf(o: { assetClass?: string | null; category?: string | null }): GainClass {
+  if (o.assetClass === "stock" || o.assetClass === "etf") return "equity";
+  if (o.assetClass === "mf") return EQUITY_FUND_RE.test(o.category ?? "") ? "equity" : "other";
+  return "other";
+}
+const EQUITY_FUND_RE = /\bequity\b|elss|index fund|aggressive hybrid|equity oriented/i;
+
 /** Sales/straddle: the budget changed the threshold from ₹1 lakh to ₹1.25 lakh. */
 export const LTCG_EXEMPTION = 125_000;
 /** Both rates already include surcharge and cess, so nothing is added on top. */
@@ -119,11 +134,10 @@ export function capitalGains(disposals: Disposal[], classify: (symbol: string) =
  * What has not been sold yet: the gain sitting in the portfolio. This is not a tax figure — it is
  * only taxed when the units leave, and which bucket it lands in depends on the date of that sale.
  */
-export type Unrealised = { symbol: string; name: string; units: number; cost: number; value: number; gain: number; gainPct: number | null; daysHeld: number; wouldBeLongTerm: boolean };
+export type Unrealised = { symbol: string; name: string; units: number; cost: number; value: number; gain: number; gainPct: number | null; daysHeld: number; wouldBeLongTerm: boolean; class: GainClass };
 
 export function unrealisedGains(
-  positions: { symbol: string; name: string; units: number; cost: number; price: number | null; bought: string | null }[],
-  classify: (symbol: string) => GainClass,
+  positions: { symbol: string; name: string; units: number; cost: number; price: number | null; bought: string | null; class: GainClass }[],
 ): Unrealised[] {
   const today = new Date().toISOString().slice(0, 10);
   return positions
@@ -132,7 +146,7 @@ export function unrealisedGains(
       const value = p.units * (p.price ?? 0);
       const gain = value - p.cost;
       const daysHeld = p.bought ? holdingDays(p.bought, today) : 0;
-      return { symbol: p.symbol, name: p.name, units: p.units, cost: p.cost, value, gain, gainPct: p.cost ? gain / p.cost : null, daysHeld, wouldBeLongTerm: isLongTerm(daysHeld), class: classify(p.symbol) };
+      return { symbol: p.symbol, name: p.name, units: p.units, cost: p.cost, value, gain, gainPct: p.cost ? gain / p.cost : null, daysHeld, wouldBeLongTerm: isLongTerm(daysHeld), class: p.class };
     })
     .sort((a, b) => b.gain - a.gain);
 }
