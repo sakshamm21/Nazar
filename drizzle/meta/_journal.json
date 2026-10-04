@@ -29,6 +29,13 @@
       "when": 1791100232866,
       "tag": "0003_session_version",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791101983590,
+      "tag": "0004_holding_lots",
+      "breakpoints": true
     }
   ]
 }

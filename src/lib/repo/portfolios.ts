@@ -6,6 +6,7 @@ import { badRequest, notFound } from "@/lib/errors";
 import { track } from "@/lib/events";
 import { MANUAL_PREFIX, isManualSymbol, type ManualClass, type ManualDetails } from "@/lib/instruments/asset-classes";
 import { classOfSymbol } from "@/lib/instruments/catalog";
+import { addLot, resyncLots } from "@/lib/repo/lots";
 
 /**
  * Portfolios, holdings and the Watching list. Every function takes the signed-in user's id and
@@ -82,13 +83,18 @@ export async function upsertHoldings(userId: string, portfolioId: string, items:
   await requirePortfolio(userId, portfolioId);
   const db = await getDb();
   items = items.filter((it) => !isManualSymbol(it.symbol.toUpperCase()));
+  // Symbols already held, captured before anything is written: buying more of these adds a lot to an
+  // existing ledger, whereas a fresh symbol or a replace states the whole position.
+  const alreadyHeld = new Map((await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId))).map((h) => [h.symbol, h]));
+  /** For each symbol bought again: the units and price of just this purchase, not the merged total. */
+  const addedPurchase = new Map<string, { quantity: number; price: number; date: string | null }>();
   if (mode === "add") {
-    const held = new Map((await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId))).map((h) => [h.symbol, h]));
     // The same symbol twice in one request is two purchases too.
     const merged = new Map<string, HoldingInput>();
     for (const it of items) {
       const symbol = it.symbol.toUpperCase();
-      const prior = merged.get(symbol) ?? held.get(symbol);
+      const prior = merged.get(symbol) ?? alreadyHeld.get(symbol);
+      if (prior) addedPurchase.set(symbol, { quantity: it.quantity, price: it.avgPrice, date: it.buyDate ?? null });
       merged.set(symbol, prior ? { ...it, ...mergeLot({ quantity: prior.quantity, avgPrice: prior.avgPrice, buyDate: prior.buyDate ?? null }, it) } : it);
     }
     items = [...merged.values()];
@@ -96,13 +102,24 @@ export async function upsertHoldings(userId: string, portfolioId: string, items:
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId));
   if (Number(n) + items.length > MAX_HOLDINGS * 2) throw badRequest(`A portfolio can have up to ${MAX_HOLDINGS} holdings.`);
   for (const it of items) {
-    await db
+    const symbol = it.symbol.toUpperCase();
+    const [row] = await db
       .insert(schema.holdings)
-      .values({ id: randomUUID(), portfolioId, symbol: it.symbol.toUpperCase(), assetClass: classOfSymbol(it.symbol) ?? "stock", quantity: it.quantity, avgPrice: it.avgPrice, buyDate: it.buyDate ?? null, isin: it.isin ?? null, rawName: it.rawName ?? null, source: it.source ?? "manual" })
+      .values({ id: randomUUID(), portfolioId, symbol, assetClass: classOfSymbol(it.symbol) ?? "stock", quantity: it.quantity, avgPrice: it.avgPrice, buyDate: it.buyDate ?? null, isin: it.isin ?? null, rawName: it.rawName ?? null, source: it.source ?? "manual" })
       .onConflictDoUpdate({
         target: [schema.holdings.portfolioId, schema.holdings.symbol],
         set: { quantity: it.quantity, avgPrice: it.avgPrice, buyDate: it.buyDate ?? null, isin: it.isin ?? null, rawName: it.rawName ?? null, source: it.source ?? "manual", updatedAt: new Date() },
-      });
+      })
+      .returning();
+    if (addedPurchase.has(symbol)) {
+      // Buying more: keep every existing lot so each instalment keeps its own price and date, and
+      // record this purchase alone as one more lot.
+      const bought = addedPurchase.get(symbol)!;
+      await addLot(row.id, portfolioId, { quantity: bought.quantity, price: bought.price, date: bought.date ?? "" });
+    } else {
+      // A new symbol or a stated whole position: the ledger mirrors the summary exactly.
+      await resyncLots(row.id, portfolioId, { quantity: it.quantity, avgPrice: it.avgPrice, buyDate: it.buyDate ?? null });
+    }
   }
   const [{ total }] = await db.select({ total: sql<number>`count(*)::int` }).from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId));
   if (Number(total) > MAX_HOLDINGS) throw badRequest(`A portfolio can have up to ${MAX_HOLDINGS} holdings.`);
@@ -128,6 +145,8 @@ export async function addManualAsset(userId: string, portfolioId: string, input:
   if (Number(n) >= MAX_HOLDINGS) throw badRequest(`A portfolio can have up to ${MAX_HOLDINGS} holdings.`);
   const id = randomUUID();
   await db.insert(schema.holdings).values({ id, portfolioId, symbol: `${MANUAL_PREFIX}${id.toUpperCase()}`, source: "manual", ...manualColumns(input) });
+  // A deposit or a provident fund is one contribution, tracked as one lot like any other purchase.
+  await resyncLots(id, portfolioId, { quantity: 1, avgPrice: input.invested, buyDate: input.startDate ?? null });
   track(userId, "manual_asset_added", { assetClass: input.assetClass });
   return id;
 }
@@ -138,6 +157,9 @@ export async function updateHolding(userId: string, holdingId: string, patch: Pa
   const manual = isManualSymbol(h.symbol);
   if ("manual" in patch !== manual) throw badRequest("That change doesn't fit this kind of holding.");
   await db.update(schema.holdings).set({ ...("manual" in patch ? manualColumns(patch.manual) : patch), updatedAt: new Date() }).where(eq(schema.holdings.id, h.id));
+  // An edit restates the whole position, so the ledger is restated to match it.
+  const next = { quantity: "quantity" in patch ? patch.quantity! : h.quantity, avgPrice: "avgPrice" in patch ? patch.avgPrice! : h.avgPrice, buyDate: "buyDate" in patch ? patch.buyDate! : h.buyDate };
+  await resyncLots(h.id, h.portfolioId, next);
 }
 
 export async function deleteHolding(userId: string, holdingId: string) {

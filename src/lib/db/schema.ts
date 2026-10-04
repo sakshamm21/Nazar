@@ -72,6 +72,30 @@ export const holdings = pgTable(
   (t) => [uniqueIndex("holdings_pf_symbol_idx").on(t.portfolioId, t.symbol)],
 );
 
+/**
+ * One purchase of part of a holding. The holdings row is the position summary (quantity, weighted
+ * average price); these rows are what it was built from, so money-weighted return, realised gains
+ * and holding-period buckets are all derivable. Written when holdings change and never rewritten by
+ * a later broker import, which replaces the summary and then re-states the ledger from it.
+ */
+export const holdingLots = pgTable(
+  "holding_lots",
+  {
+    id: text("id").primaryKey(),
+    holdingId: text("holding_id").notNull().references(() => holdings.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    /** Units bought in this lot. Positive. A sale reduces the position but keeps the lot. */
+    quantity: doublePrecision("quantity").notNull(),
+    price: doublePrecision("price").notNull(),
+    /** The day the money went in. */
+    date: date("date", { mode: "string" }).notNull(),
+    /** How many units of this lot are still held, after any sale. */
+    remaining: doublePrecision("remaining").notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("lots_holding_idx").on(t.holdingId), index("lots_portfolio_date_idx").on(t.portfolioId, t.date)],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

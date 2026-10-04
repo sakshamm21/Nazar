@@ -26,7 +26,14 @@ export async function makeUser(db: DB, o: Partial<typeof schema.users.$inferInse
 export async function makePortfolio(db: DB, userId: string, holdings: { symbol: string; quantity: number; avgPrice: number; buyDate?: string }[], o: Partial<typeof schema.portfolios.$inferInsert> = {}) {
   const id = randomUUID();
   await db.insert(schema.portfolios).values({ id, userId, name: "Mine", isDefault: true, ...o });
-  if (holdings.length) await db.insert(schema.holdings).values(holdings.map((h) => ({ id: randomUUID(), portfolioId: id, buyDate: null, ...h })));
+  for (const h of holdings) {
+    const holdingId = randomUUID();
+    const buyDate = h.buyDate ?? null;
+    await db.insert(schema.holdings).values({ id: holdingId, portfolioId: id, buyDate, ...h });
+    // Mirror the migration's backfill: a holding that predates the lots ledger still gets one lot,
+    // so tests see the same ledger a real account would have.
+    await db.insert(schema.holdingLots).values({ id: randomUUID(), holdingId, portfolioId: id, quantity: h.quantity, price: h.avgPrice, date: buyDate ?? new Date().toISOString().slice(0, 10), remaining: h.quantity });
+  }
   return id;
 }
 
