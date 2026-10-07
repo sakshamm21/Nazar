@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { UIMessage } from "ai";
 import { SharedChat } from "@/components/ask/shared-chat";
 import { getDb, schema } from "@/lib/db";
+import { sharedView } from "@/lib/ask/share";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,5 +32,6 @@ export async function generateMetadata({ params }: { params: Promise<{ shareId: 
 export default async function SharedPage({ params }: { params: Promise<{ shareId: string }> }) {
   const chat = await load((await params).shareId);
   if (!chat) notFound();
-  return <SharedChat title={chat.title} updatedAt={chat.updatedAt.toISOString()} messages={chat.messages as UIMessage[]} />;
+  // Filtered here, on the server: whatever is passed to SharedChat is sent to the visitor's browser.
+  return <SharedChat title={chat.title} updatedAt={chat.updatedAt.toISOString()} messages={sharedView(chat.messages as UIMessage[])} />;
 }

@@ -232,7 +232,7 @@ function ShareSheet({ open, onClose, chatId, shareId, onChange }: { open: boolea
   const [copied, setCopied] = useState(false);
   const url = shareId && typeof window !== "undefined" ? `${location.origin}/s/${shareId}` : "";
   return (
-    <Sheet open={open} onClose={onClose} title="Share this conversation" description="Anyone with the link sees a read-only copy. Your portfolio and Watching list are never included.">
+    <Sheet open={open} onClose={onClose} title="Share this conversation" description="Anyone with the link sees a read-only copy. Answers that drew on your portfolio or Watching list are left out; your own questions are shown as you typed them.">
       {shareId ? (
         <div className="space-y-3">
           <div className="flex gap-2">
