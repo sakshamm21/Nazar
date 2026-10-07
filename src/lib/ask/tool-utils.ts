@@ -1,5 +1,9 @@
 import "server-only";
+import { z } from "zod";
 import { isTransient } from "@/lib/data/resilience";
+
+/** One ticker. 20 characters: NSE symbols with their suffix run past 12 (BAJAJ-AUTO.NS, HINDUNILVR.NS). */
+export const symbol = z.string().min(1).max(20).describe("Ticker symbol, e.g. RELIANCE.NS, TCS.NS, AAPL, ^NSEI");
 
 /**
  * Runs a tool's data fetch and turns provider failures into a short, user-safe error object

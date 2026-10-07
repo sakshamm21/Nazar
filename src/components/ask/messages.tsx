@@ -8,9 +8,9 @@ import remarkGfm from "remark-gfm";
 import { NazarMark } from "@/components/rings/nazar-mark";
 import { ToolView } from "../gen/tool-view";
 import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/ask/feedback-reasons";
-import { TOOL_LABELS, followUps } from "@/lib/ask/followups";
+import { followUps } from "@/lib/ask/followups";
 import { getModel } from "@/lib/ask/models";
-import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
+import { isPrivateTool, sourcesOf, toolLabel } from "@/lib/ask/registry";
 import { trackClient } from "@/lib/events-client";
 
 type Meta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string };
@@ -50,7 +50,7 @@ export function MessageList({ messages, onPick, readOnly = false, chatId, rating
                 {m.parts.map((p: any, i) => {
                   if (p.type === "text") return <div key={i} className="prose-ask"><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
                   if (typeof p.type === "string" && p.type.startsWith("tool-")) {
-                    if (readOnly && PRIVATE_TOOLS.has(p.type.slice(5))) return null;
+                    if (readOnly && isPrivateTool(p.type.slice(5))) return null;
                     return <ToolView key={p.toolCallId ?? i} part={p} onPick={readOnly ? undefined : onPick} />;
                   }
                   return null;
@@ -81,7 +81,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
   const calls = (message.parts as any[]).filter((p) => typeof p.type === "string" && p.type.startsWith("tool-"));
   const ok = calls.filter((p) => p.state === "output-available" && !(p.output && typeof p.output === "object" && "error" in p.output));
   const failed = calls.length - ok.length;
-  const sources = [...new Set(ok.map((p) => TOOL_LABELS[p.type.slice(5)] ?? p.type.slice(5)))];
+  const sources = sourcesOf(ok.map((p) => p.type.slice(5)));
   const label = getModel(meta.model!)?.label ?? meta.model;
   const secs = meta.latencyMs != null ? `${(meta.latencyMs / 1000).toFixed(1)}s` : null;
 
@@ -155,7 +155,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
               const bad = !(p.state === "output-available" && !(p.output && "error" in p.output));
               return (
                 <li key={p.toolCallId ?? i}>
-                  {TOOL_LABELS[name] ?? name}
+                  {toolLabel(name)}
                   {subject && <span className="text-subtle"> · {String(subject)}</span>}
                   {bad && <span className="text-warn"> · failed</span>}
                 </li>
@@ -163,7 +163,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
             })}
           </ol>
           <div className="mt-1.5 text-subtle">
-            Source: {sources.length ? "Yahoo Finance" : "n/a"} (quotes can be delayed up to ~15 min) · Written by {label}, which is told to use only these results for numbers.
+            Source: {sources.length ? sources.join("; ") : "n/a"} · Written by {label}, which is told to use only these results for numbers.
           </div>
         </div>
       )}

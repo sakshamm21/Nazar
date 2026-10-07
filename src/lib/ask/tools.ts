@@ -4,7 +4,8 @@ import { tool } from "ai";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, num, quoteSummary, toDate, yahooCall, yf } from "../data/yahoo";
-import { forModel, safe } from "./tool-utils";
+import type { ToolName } from "./registry";
+import { forModel, safe, symbol } from "./tool-utils";
 import { analysisTools } from "./analysis-tools";
 import { sample } from "../analytics/stats";
 import { getDb, schema } from "../db";
@@ -12,8 +13,6 @@ import { displayName } from "../market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "../market/store";
 import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo/portfolios";
 import { buildPortfolioView } from "../views/portfolio";
-
-const symbol = z.string().min(1).max(12).describe("Ticker symbol, e.g. AAPL, MSFT, RELIANCE.NS, 7203.T");
 
 /** Market-data tools: stateless, safe to share between users. */
 const marketTools = {
@@ -409,7 +408,7 @@ function userTools(userId: string) {
   return {
     getMyPortfolio: tool({
       description:
-        "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration) and recent alerts. Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
+        "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, and a hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration). Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
       inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.") }),
       execute: async ({ portfolio }) =>
         safe(async () => {
@@ -473,6 +472,8 @@ function userTools(userId: string) {
   };
 }
 
+/** Every Ask tool for one user. The registry is the list of names; a tool missing here does not compile. */
 export function makeTools(userId: string) {
-  return { ...marketTools, ...analysisTools, ...userTools(userId) };
+  return { ...marketTools, ...analysisTools, ...userTools(userId) } satisfies Record<ToolName, unknown>;
 }
+export type AskTools = ReturnType<typeof makeTools>;

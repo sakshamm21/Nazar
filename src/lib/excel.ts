@@ -5,7 +5,7 @@
  * exceljs is loaded on demand so it never weighs down the chat page.
  */
 import type ExcelJS from "exceljs";
-import { TOOL_LABELS } from "./ask/followups";
+import { toolLabel } from "./ask/registry";
 
 type WS = ExcelJS.Worksheet;
 type WB = ExcelJS.Workbook;
@@ -368,7 +368,7 @@ function subjectOf(d: any): string {
 function addTool(wb: WB, toolName: string, data: any) {
   const b = BUILDERS[toolName];
   if (b) b(wb, data);
-  else generic(wb, `${TOOL_LABELS[toolName] ?? toolName} ${subjectOf(data)}`.trim(), data);
+  else generic(wb, `${toolLabel(toolName)} ${subjectOf(data)}`.trim(), data);
 }
 
 async function newWorkbook() {
@@ -397,7 +397,7 @@ async function save(wb: WB, filename: string) {
 export async function downloadToolExcel(toolName: string, data: any) {
   const wb = await newWorkbook();
   addTool(wb, toolName, data);
-  await save(wb, `Nazar ${TOOL_LABELS[toolName] ?? toolName} ${subjectOf(data)}.xlsx`.replace(/\s+/g, " "));
+  await save(wb, `Nazar ${toolLabel(toolName)} ${subjectOf(data)}.xlsx`.replace(/\s+/g, " "));
 }
 
 /** Every successful tool result in a conversation, one sheet (or model) each. Returns the count. */
@@ -412,7 +412,7 @@ export async function downloadChatExcel(parts: { toolName: string; data: any }[]
   header(index, 4, ["#", "Analysis", "Subject"]);
   parts.forEach((p, i) => {
     index.getCell(`A${5 + i}`).value = i + 1;
-    index.getCell(`B${5 + i}`).value = TOOL_LABELS[p.toolName] ?? p.toolName;
+    index.getCell(`B${5 + i}`).value = toolLabel(p.toolName);
     index.getCell(`C${5 + i}`).value = subjectOf(p.data);
     addTool(wb, p.toolName, p.data);
   });

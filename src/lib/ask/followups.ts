@@ -54,32 +54,3 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
   const seen = new Set(askedBefore.map((q) => q.trim().toLowerCase()));
   return [...new Set(out)].filter((q) => !seen.has(q.toLowerCase())).slice(0, 3);
 }
-
-/** Human-readable names for the "How this answer was built" panel. */
-export const TOOL_LABELS: Record<string, string> = {
-  searchTicker: "Ticker search",
-  getQuote: "Live quote",
-  getPriceHistory: "Price history",
-  getKeyMetrics: "Key metrics",
-  getFinancialStatements: "Financial statements",
-  compareStocks: "Peer comparison",
-  getEarnings: "Earnings",
-  getCompanyProfile: "Company profile",
-  getNews: "News",
-  getMarketMovers: "US screener",
-  getIndianMarketMovers: "Nifty 50 movers",
-  getMarketOverview: "Index board",
-  getOwnership: "Ownership",
-  runDcfValuation: "DCF model",
-  getRiskReturn: "Risk & return",
-  getCorrelationMatrix: "Correlation matrix",
-  runComparableValuation: "Comps valuation",
-  getDupontAnalysis: "DuPont analysis",
-  getFinancialHealthScore: "Health score",
-  runSipBacktest: "SIP backtest",
-  getTechnicalIndicators: "Technicals",
-  getMyPortfolio: "Your portfolio",
-  getWatchlist: "Your Watching list",
-  addToWatchlist: "Watching list update",
-  removeFromWatchlist: "Watching list update",
-};

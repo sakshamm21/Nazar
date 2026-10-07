@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { NazarMark } from "@/components/rings/nazar-mark";
 import { cn } from "@/lib/cn";
-import { TOOL_COUNT } from "@/lib/ask/tool-catalog";
+import { TOOL_COUNT } from "@/lib/ask/registry";
 
 /** What the page knows about the person asking, used to make the examples about their own money. */
 export type AskContext = { stock: string | null; second: string | null; hasPortfolio: boolean };

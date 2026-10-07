@@ -11,7 +11,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
 import { useHydrated, useStoredPref } from "@/lib/client-store";
 import { cn } from "@/lib/cn";
-import { PRIVATE_TOOLS } from "@/lib/ask/tool-names";
+import { isPrivateTool } from "@/lib/ask/registry";
 import { trackClient } from "@/lib/events-client";
 
 type ChatRow = { id: string; title: string; updatedAt: string };
@@ -91,7 +91,7 @@ export function AskWorkspace({ remaining, start, context }: { remaining: { remai
       (m.parts as { type: string; state?: string; output?: unknown }[])
         .filter((p) => p.type.startsWith("tool-") && p.state === "output-available" && p.output && typeof p.output === "object" && !("error" in (p.output as object)))
         .map((p) => ({ toolName: p.type.slice(5), data: p.output }))
-        .filter((p) => p.toolName !== "searchTicker" && !PRIVATE_TOOLS.has(p.toolName)),
+        .filter((p) => p.toolName !== "searchTicker" && !isPrivateTool(p.toolName)),
     );
     if (!parts.length) return toast("Nothing to export yet: this conversation has no data results.");
     trackClient("excel_download", { scope: "chat", sheets: parts.length }, chatId);

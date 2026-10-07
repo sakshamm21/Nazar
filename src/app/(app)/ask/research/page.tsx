@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { TOOL_CATALOG, TOOL_COUNT } from "@/lib/ask/tool-catalog";
+import { TOOL_COUNT } from "@/lib/ask/registry";
+import { TOOL_CATALOG } from "@/lib/ask/tool-catalog";
 
 export const metadata: Metadata = { title: "Research tools" };
 

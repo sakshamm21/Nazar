@@ -2,7 +2,7 @@ import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
 import { NV, cached, clean, fetchMetrics, fetchQuotes, fxRate, num, quoteSummary, yf } from "../data/yahoo";
-import { forModel, safe as safeData } from "./tool-utils";
+import { forModel, safe as safeData, symbol } from "./tool-utils";
 import { buildHealth, comps, correlationMatrix, dupont, piotroskiAltman, riskReturn, sipBacktest, technicals, FINANCIAL_RE } from "../analytics/models";
 import { round } from "../analytics/stats";
 
@@ -12,7 +12,6 @@ import { round } from "../analytics/stats";
  * Yahoo layer and return the shapes the chart views and Excel models expect.
  */
 const safe = <T,>(fn: () => Promise<T>) => safeData(fn, "analysis");
-const symbol = z.string().min(1).max(20).describe("Ticker symbol, e.g. TCS.NS, AAPL, ^NSEI");
 
 const RANGE_YEARS: Record<string, number> = { "6mo": 0.5, "1y": 1, "2y": 2, "3y": 3, "5y": 5, "10y": 10, "20y": 20 };
 
