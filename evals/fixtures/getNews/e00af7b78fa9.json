@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty IT TCS Infosys today",
+  "count": 5
+ },
+ "output": {
+  "query": "Nifty IT TCS Infosys today",
+  "articles": []
+ }
+}

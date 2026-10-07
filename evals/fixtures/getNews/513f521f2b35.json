@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ITC Limited hotels demerger ITC Hotels 2025",
+  "count": 3
+ },
+ "output": {
+  "query": "ITC Limited hotels demerger ITC Hotels 2025",
+  "articles": []
+ }
+}

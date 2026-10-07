@@ -1,0 +1,56 @@
+{
+ "tool": "getDupontAnalysis",
+ "input": {
+  "symbol": "TITAN.NS"
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "currency": "INR",
+  "years": [
+   {
+    "period": "2023-03-31",
+    "netIncome": 32500000000,
+    "revenue": 404470000000,
+    "totalAssets": 270230000000,
+    "equity": 118510000000,
+    "netMargin": 0.0804,
+    "assetTurnover": 1.4968,
+    "equityMultiplier": 2.28,
+    "roe": 0.2742
+   },
+   {
+    "period": "2024-03-31",
+    "netIncome": 34960000000,
+    "revenue": 509360000000,
+    "totalAssets": 315500000000,
+    "equity": 93930000000,
+    "netMargin": 0.0686,
+    "assetTurnover": 1.6145,
+    "equityMultiplier": 3.359,
+    "roe": 0.3722
+   },
+   {
+    "period": "2025-03-31",
+    "netIncome": 33370000000,
+    "revenue": 602980000000,
+    "totalAssets": 406470000000,
+    "equity": 116240000000,
+    "netMargin": 0.0553,
+    "assetTurnover": 1.4835,
+    "equityMultiplier": 3.497,
+    "roe": 0.2871
+   },
+   {
+    "period": "2026-03-31",
+    "netIncome": 50730000000,
+    "revenue": 873050000000,
+    "totalAssets": 605610000000,
+    "equity": 157030000000,
+    "netMargin": 0.0581,
+    "assetTurnover": 1.4416,
+    "equityMultiplier": 3.857,
+    "roe": 0.3231
+   }
+  ]
+ }
+}

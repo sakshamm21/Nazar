@@ -1,0 +1,103 @@
+{
+ "tool": "getIndianMarketMovers",
+ "input": {
+  "screen": "losers",
+  "count": 10
+ },
+ "output": {
+  "screen": "losers",
+  "title": "Nifty 50 · top losers",
+  "rows": [
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "currency": "INR",
+    "price": 4377,
+    "changePercent": -3.8021977,
+    "volume": 2951029,
+    "marketCap": 3883766120448
+   },
+   {
+    "symbol": "ADANIENT.NS",
+    "name": "Adani Enterprises Limited",
+    "currency": "INR",
+    "price": 2743,
+    "changePercent": -3.7510056,
+    "volume": 1736809,
+    "marketCap": 3713261109248
+   },
+   {
+    "symbol": "HINDALCO.NS",
+    "name": "Hindalco Industries Limited",
+    "currency": "INR",
+    "price": 910.85,
+    "changePercent": -3.152581,
+    "volume": 3789477,
+    "marketCap": 2021938692096
+   },
+   {
+    "symbol": "JSWSTEEL.NS",
+    "name": "JSW Steel Limited",
+    "currency": "INR",
+    "price": 1230,
+    "changePercent": -2.3499506,
+    "volume": 1830343,
+    "marketCap": 3002403127296
+   },
+   {
+    "symbol": "BEL.NS",
+    "name": "Bharat Electronics Limited",
+    "currency": "INR",
+    "price": 378.3,
+    "changePercent": -2.3489947,
+    "volume": 13633083,
+    "marketCap": 2765289160704
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "currency": "INR",
+    "price": 992,
+    "changePercent": -2.1551487,
+    "volume": 7490956,
+    "marketCap": 4017940856832
+   },
+   {
+    "symbol": "ASIANPAINT.NS",
+    "name": "Asian Paints Limited",
+    "currency": "INR",
+    "price": 2372.1,
+    "changePercent": -2.1491566,
+    "volume": 522577,
+    "marketCap": 2274000109568
+   },
+   {
+    "symbol": "M&M.NS",
+    "name": "Mahindra & Mahindra Limited",
+    "currency": "INR",
+    "price": 2800,
+    "changePercent": -1.9264449,
+    "volume": 3360928,
+    "marketCap": 3362134163456
+   },
+   {
+    "symbol": "ADANIPORTS.NS",
+    "name": "Adani Ports and Special Economic Zone Limited",
+    "currency": "INR",
+    "price": 1750.1,
+    "changePercent": -1.8672225,
+    "volume": 1187759,
+    "marketCap": 4032158760960
+   },
+   {
+    "symbol": "LT.NS",
+    "name": "Larsen & Toubro Limited",
+    "currency": "INR",
+    "price": 3701.5,
+    "changePercent": -1.8169761,
+    "volume": 1609505,
+    "marketCap": 5092768481280
+   }
+  ]
+ }
+}

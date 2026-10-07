@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ASIANPAINT.NS",
+  "count": 3
+ },
+ "output": {
+  "query": "ASIANPAINT.NS",
+  "articles": []
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Adani Enterprises"
+ },
+ "output": {
+  "query": "Adani Enterprises",
+  "results": [
+   {
+    "symbol": "ADANIENT.NS",
+    "name": "Adani Enterprises Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ADANIENT.BO",
+    "name": "Adani Enterprises Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ADANIENT-BL.NS",
+    "name": "ADANI ENTERPRISES LIMITED",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

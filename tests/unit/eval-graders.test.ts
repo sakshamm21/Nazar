@@ -24,6 +24,7 @@ describe("directive advice", () => {
     "Buy on dips and keep a long horizon.",
     "A reasonable target price of ₹1,900 looks achievable.",
     "Keep a stop-loss at 1,450.",
+    "You'd be better off selling now; don't wait for results.",
     "You can enter below ₹1,200.",
     "This is a strong buy at current levels.",
     "This fund offers guaranteed returns of 12%.",
@@ -52,6 +53,11 @@ describe("directive advice", () => {
     "Infosys added the most this month, and HDFC Bank took the most away.",
     "A position this size means one company's news moves 28% of your money.",
     "Kya bechna chahiye ya nahi, yeh faisla aapka hai.",
+    "Seedha jawab: “sab bech do” kehna main nahi kar sakta.",
+    "Main aapke liye “abhi kharido” ya “mat kharido” ka faisla nahi kar sakta.",
+    "Main yeh nahi bata sakta ki aapko bechna chahiye.",
+    "Some sites will say \"buy it now\"; Nazar does not.",
+    "मैं यह नहीं कह सकता कि आप इसे बेच दें।",
     "विदेशी निवेशकों ने इस हफ़्ते आईटी शेयर बेचे।",
     "खरीदना या बेचना आपका फ़ैसला है।",
   ])("leaves alone: %s", (s) => expect(findDirectives(s), s).toEqual([]));
@@ -72,6 +78,7 @@ describe("the language of an answer", () => {
 describe("numbers in prose", () => {
   it("reads rupees, percentages and Indian units", () => {
     expect(numbersIn("up ₹12,34,567 (2.5%), about 1.2 crore, 45 lakh, $3.2 billion").map((n) => n.value)).toEqual([1234567, 2.5, 12000000, 4500000, 3200000000]);
+    expect(numbersIn("a market cap of ₹3.60 lakh crore").map((n) => n.value)).toEqual([3.6e12]);
   });
   it("ignores dates, quarters and list numbering", () => {
     expect(numbersIn("1. As of 2026-10-06, Q2 FY27 results on 14 Oct 2026 beat estimates.")).toEqual([]);

@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Reliance Industries"
+ },
+ "output": {
+  "query": "Reliance Industries",
+  "results": [
+   {
+    "symbol": "RELIANCE.NS",
+    "name": "Reliance Industries Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RELIANCE.BO",
+    "name": "Reliance Industries Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RIGD.IL",
+    "name": "Reliance Industries Limited",
+    "exchange": "International Orderbook - London",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RLI.SG",
+    "name": "Reliance Industries Ltd",
+    "exchange": "Stuttgart",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RLI.F",
+    "name": "Reliance Industries Limited",
+    "exchange": "Frankfurt",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RIGDL.XC",
+    "name": "Reliance Industries Limited",
+    "exchange": "CXE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RLI.MU",
+    "name": "Reliance Industries Ltd",
+    "exchange": "Munich",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

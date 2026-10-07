@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Indian stock market IT sector banking",
+  "count": 6
+ },
+ "output": {
+  "query": "Indian stock market IT sector banking",
+  "articles": []
+ }
+}

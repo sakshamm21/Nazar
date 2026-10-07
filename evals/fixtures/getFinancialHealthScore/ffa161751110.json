@@ -1,0 +1,85 @@
+{
+ "tool": "getFinancialHealthScore",
+ "input": {
+  "symbol": "TATASTEEL.NS"
+ },
+ "output": {
+  "symbol": "TATASTEEL.NS",
+  "periods": [
+   "2025-03-31",
+   "2026-03-31"
+  ],
+  "fScore": 7,
+  "scoredTests": 9,
+  "tests": [
+   {
+    "name": "Positive net income",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "ROA 3.6%"
+   },
+   {
+    "name": "Positive operating cash flow",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "cash from operations > 0"
+   },
+   {
+    "name": "ROA improved",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "1.2% → 3.6%"
+   },
+   {
+    "name": "Cash flow exceeds profit (earnings quality)",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "operating cash flow > net income"
+   },
+   {
+    "name": "Long-term debt ratio fell",
+    "group": "Leverage & liquidity",
+    "pass": true,
+    "detail": "24.5% → 21.2% of assets"
+   },
+   {
+    "name": "Current ratio improved",
+    "group": "Leverage & liquidity",
+    "pass": false,
+    "detail": "0.79 → 0.75"
+   },
+   {
+    "name": "No new shares issued",
+    "group": "Leverage & liquidity",
+    "pass": true,
+    "detail": "share count not up"
+   },
+   {
+    "name": "Gross margin improved",
+    "group": "Efficiency",
+    "pass": true,
+    "detail": "43.2% → 46.5%"
+   },
+   {
+    "name": "Asset turnover improved",
+    "group": "Efficiency",
+    "pass": false,
+    "detail": "0.78 → 0.76"
+   }
+  ],
+  "altman": {
+   "z": 1.77,
+   "zone": "Distress",
+   "parts": {
+    "x1": -0.081,
+    "x2": 0.1317,
+    "x3": 0.0768,
+    "x4": 1.1095,
+    "x5": 0.7644
+   }
+  },
+  "financialSector": false,
+  "score": 53,
+  "note": null
+ }
+}

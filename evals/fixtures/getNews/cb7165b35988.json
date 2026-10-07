@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "INFY.NS quarterly results earnings",
+  "count": 6
+ },
+ "output": {
+  "query": "INFY.NS quarterly results earnings",
+  "articles": []
+ }
+}

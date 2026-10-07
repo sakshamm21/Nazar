@@ -1,0 +1,108 @@
+{
+ "tool": "runComparableValuation",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "peers": [
+   "ICICIBANK.NS",
+   "KOTAKBANK.NS",
+   "AXISBANK.NS",
+   "SBIN.NS",
+   "BANKBARODA.NS"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "price": 702.75,
+  "shares": 15418477012,
+  "netDebt": 3281047519232,
+  "inputs": {
+   "trailingEps": 45.75,
+   "forwardEps": 62.63304,
+   "ebitda": null,
+   "bookValue": 393.813,
+   "revenue": 2949644288000
+  },
+  "target": {
+   "symbol": "HDFCBANK.NS",
+   "name": "HDFC Bank Limited",
+   "currency": "INR",
+   "trailingPE": 15.36,
+   "forwardPE": 11.22,
+   "evToEbitda": null,
+   "priceToBook": 1.78,
+   "priceToSales": 3.67
+  },
+  "peers": [
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "currency": "INR",
+    "trailingPE": 17.55,
+    "forwardPE": 14.56,
+    "evToEbitda": null,
+    "priceToBook": 2.56,
+    "priceToSales": 4.78
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited",
+    "currency": "INR",
+    "trailingPE": 21.57,
+    "forwardPE": 18.73,
+    "evToEbitda": null,
+    "priceToBook": 2.41,
+    "priceToSales": 6.14
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "currency": "INR",
+    "trailingPE": 13.91,
+    "forwardPE": 10.29,
+    "evToEbitda": null,
+    "priceToBook": 1.73,
+    "priceToSales": 5.02
+   },
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India",
+    "currency": "INR",
+    "trailingPE": 10.23,
+    "forwardPE": 9.07,
+    "evToEbitda": null,
+    "priceToBook": 1.42,
+    "priceToSales": 2.29
+   },
+   {
+    "symbol": "BANKBARODA.NS",
+    "name": "Bank of Baroda Limited",
+    "currency": "INR",
+    "trailingPE": 6.68,
+    "forwardPE": 5.44,
+    "evToEbitda": null,
+    "priceToBook": 0.72,
+    "priceToSales": 1.83
+   }
+  ],
+  "missingPeers": [],
+  "medians": {
+   "trailingPE": 13.91,
+   "forwardPE": 10.29,
+   "evToEbitda": null,
+   "priceToBook": 1.73,
+   "priceToSales": 4.78
+  },
+  "implied": {
+   "trailingPE": 636.56,
+   "forwardPE": 644.69,
+   "evToEbitda": null,
+   "priceToBook": 681.92,
+   "priceToSales": 915.06
+  },
+  "blended": 719.56,
+  "upside": 0.0239,
+  "fxNote": null
+ }
+}

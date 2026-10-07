@@ -1,0 +1,56 @@
+{
+ "tool": "getDupontAnalysis",
+ "input": {
+  "symbol": "HDFCBANK.NS"
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "currency": "INR",
+  "years": [
+   {
+    "period": "2023-03-31",
+    "netIncome": 495446900000,
+    "revenue": 1205375000000,
+    "totalAssets": 25755624000000,
+    "equity": 2912200700000,
+    "netMargin": 0.411,
+    "assetTurnover": 0.0468,
+    "equityMultiplier": 8.844,
+    "roe": 0.1701
+   },
+   {
+    "period": "2024-03-31",
+    "netIncome": 622656600000,
+    "revenue": 1604968500000,
+    "totalAssets": 44118573000000,
+    "equity": 6947327400000,
+    "netMargin": 0.388,
+    "assetTurnover": 0.0364,
+    "equityMultiplier": 6.35,
+    "roe": 0.0896
+   },
+   {
+    "period": "2025-03-31",
+    "netIncome": 673508300000,
+    "revenue": 1838641100000,
+    "totalAssets": 48187671100000,
+    "equity": 7676891400000,
+    "netMargin": 0.3663,
+    "assetTurnover": 0.0382,
+    "equityMultiplier": 6.277,
+    "roe": 0.0877
+   },
+   {
+    "period": "2026-03-31",
+    "netIncome": 704793400000,
+    "revenue": 1925667800000,
+    "totalAssets": 52621193200000,
+    "equity": 8167395600000,
+    "netMargin": 0.366,
+    "assetTurnover": 0.0366,
+    "equityMultiplier": 6.443,
+    "roe": 0.0863
+   }
+  ]
+ }
+}

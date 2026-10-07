@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Sun Pharmaceutical Industries"
+ },
+ "output": {
+  "query": "Sun Pharmaceutical Industries",
+  "results": [
+   {
+    "symbol": "SUNPHARMA.NS",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SUNPHARMA.BO",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

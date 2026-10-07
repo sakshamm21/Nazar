@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HDFC Bank"
+ },
+ "output": {
+  "query": "HDFC Bank",
+  "results": [
+   {
+    "symbol": "HDB",
+    "name": "HDFC Bank Limited",
+    "exchange": "NYSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDFCBANK.BO",
+    "name": "HDFC Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDB.BA",
+    "name": "HDFC Bank Limited",
+    "exchange": "Buenos Aires",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDFA.MU",
+    "name": "HDFC Bank Ltd",
+    "exchange": "Munich",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDFA.F",
+    "name": "HDFC Bank Limited",
+    "exchange": "Frankfurt",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "H1DB34.SA",
+    "name": "HDFC Bank Limited",
+    "exchange": "São Paulo",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

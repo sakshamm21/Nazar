@@ -1,0 +1,74 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "HDFC Bank",
+  "count": 5
+ },
+ "output": {
+  "query": "HDFC Bank",
+  "articles": [
+   {
+    "title": "Asian Equities Traded in the US as American Depositary Receipts Edge Lower in Tuesday Trading",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/world-indices/articles/asian-equities-traded-us-american-145438389.html",
+    "published": "2026-10-06",
+    "tickers": [
+     "ZLAB",
+     "HDB",
+     "TC"
+    ]
+   },
+   {
+    "title": "Indian bank stocks rise as RBI rate-hike bets build, Nifty Private Bank up 1%",
+    "publisher": "Investing.com",
+    "link": "https://finance.yahoo.com/economy/policy/articles/indian-bank-stocks-rise-rbi-062355615.html",
+    "published": "2026-10-06",
+    "tickers": [
+     "AXISBANK.BO",
+     "KOTAKBANK.NS",
+     "IBN",
+     "HDB",
+     "NIFPVTBNK",
+     "KTKM"
+    ]
+   },
+   {
+    "title": "HDFC Bank Names Anup Bagchi CEO",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/hdfc-bank-names-anup-bagchi-130712761.html",
+    "published": "2026-10-01",
+    "tickers": [
+     "HDB"
+    ]
+   },
+   {
+    "title": "Apple Pay launches in India with Axis Bank partnership",
+    "publisher": "Quartz",
+    "link": "https://finance.yahoo.com/technology/articles/apple-pay-launches-india-axis-125526294.html",
+    "published": "2026-09-30",
+    "tickers": [
+     "AAPL",
+     "AXISBANK.BO",
+     "HDB",
+     "V",
+     "MA",
+     "IBN"
+    ]
+   },
+   {
+    "title": "Market Chatter: Apple Pay to Launch in India Tuesday With Axis Bank",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/market-chatter-apple-pay-launch-195143721.html",
+    "published": "2026-09-29",
+    "tickers": [
+     "AAPL",
+     "AXISBANK.BO",
+     "HDB",
+     "V",
+     "MA",
+     "IBN"
+    ]
+   }
+  ]
+ }
+}

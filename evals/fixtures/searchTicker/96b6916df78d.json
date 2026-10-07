@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Avenue Supermarts DMart"
+ },
+ "output": {
+  "query": "Avenue Supermarts DMart",
+  "results": []
+ }
+}

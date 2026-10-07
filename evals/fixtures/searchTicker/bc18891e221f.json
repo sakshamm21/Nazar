@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Sun Pharmaceutical"
+ },
+ "output": {
+  "query": "Sun Pharmaceutical",
+  "results": [
+   {
+    "symbol": "SUNPHARMA.NS",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SUNPHARMA.BO",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "300026.SZ",
+    "name": "Tianjin Chase Sun Pharmaceutical Co.,Ltd",
+    "exchange": "Shenzhen",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "002737.SZ",
+    "name": "Sunflower Pharmaceutical Group Co., Ltd.",
+    "exchange": "Shenzhen",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "300452.SZ",
+    "name": "Anhui Sunhere Pharmaceutical Excipients Co.,Ltd.",
+    "exchange": "Shenzhen",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

@@ -6,8 +6,13 @@
  * which set is offered is decided on the server (see openai-models.ts).
  *
  * Prices are USD per 1M tokens. OpenRouter's were read from its public model list on 2026-10-07.
- * Which model sits in which tier is a starting point, not a finding: `npm run eval:agent` scores
- * any model on Nazar's own questions, and the tiers should follow those scores.
+ *
+ * A model earns its place here by its score on `npm run eval:agent`, not by its reputation. On
+ * 2026-10-07, across the 93 cases with the code graders: GPT-6 Luna passed 85, DeepSeek V4.1 Flash
+ * 81, Gemini 3.5 Flash Lite 79, Qwen 3.8 Flash 60 and the finance-tuned Ling 3.0 Flash Fin 55.
+ * Luna was also the cheapest, so on OpenRouter it answers everything except an explicit deep dive:
+ * there is no "balanced" model, and Auto falls through to economy. Gemini 3.8 Flash and DeepSeek V4
+ * Pro were not scored (the run ran out of credit), which is why they are not listed.
  */
 export type ModelTier = "economy" | "balanced" | "premium";
 export type ModelVia = "openrouter" | "openai";
@@ -29,7 +34,6 @@ export interface ModelInfo {
 export const MODELS: ModelInfo[] = [
   // ── OpenRouter ──────────────────────────────────────────────
   { id: "openai/gpt-6-luna", label: "GPT-6 Luna", via: "openrouter", tier: "economy", inputCost: 0.1, cachedInputCost: 0.01, outputCost: 0.5, speed: 5, quality: 3, blurb: "Fastest & cheapest. Quotes, lookups." },
-  { id: "google/gemini-3.8-flash", label: "Gemini 3.8 Flash", via: "openrouter", tier: "balanced", inputCost: 0.75, cachedInputCost: 0.075, outputCost: 3.75, speed: 4, quality: 4, blurb: "Analysis at under half the price of the larger models." },
   { id: "openai/gpt-6-sol", label: "GPT-6 Sol", via: "openrouter", tier: "premium", inputCost: 2, cachedInputCost: 0.2, outputCost: 10, speed: 3, quality: 5, blurb: "Deepest analysis." },
   { id: "anthropic/claude-sonnet-5.5", label: "Claude Sonnet 5.5", via: "openrouter", tier: "premium", inputCost: 2, cachedInputCost: 0.2, outputCost: 10, speed: 3, quality: 5, blurb: "Careful long-form analysis." },
   { id: "openai/gpt-4.1-mini", label: "GPT-4.1 mini", via: "openrouter", tier: "economy", inputCost: 0.4, cachedInputCost: 0.1, outputCost: 1.6, speed: 5, quality: 2, blurb: "No reasoning, very fast. Used by the topic filter." },

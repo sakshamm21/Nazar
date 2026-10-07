@@ -1,0 +1,78 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "RELIANCE.NS",
+  "statement": "cashflow",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "RELIANCE.NS",
+  "currency": "INR",
+  "statement": "cashflow",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow"
+   },
+   {
+    "key": "capitalExpenditure",
+    "label": "Capex"
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow"
+   },
+   {
+    "key": "repurchaseOfCapitalStock",
+    "label": "Buybacks"
+   },
+   {
+    "key": "cashDividendsPaid",
+    "label": "Dividends paid"
+   },
+   {
+    "key": "stockBasedCompensation",
+    "label": "Stock-based comp"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "operatingCashFlow": 1150320000000,
+    "capitalExpenditure": -1409880000000,
+    "freeCashFlow": -259560000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -50830000000,
+    "stockBasedCompensation": null
+   },
+   {
+    "period": "2024-03-31",
+    "operatingCashFlow": 1587880000000,
+    "capitalExpenditure": -1528830000000,
+    "freeCashFlow": 59050000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -60890000000,
+    "stockBasedCompensation": null
+   },
+   {
+    "period": "2025-03-31",
+    "operatingCashFlow": 1787030000000,
+    "capitalExpenditure": -1399670000000,
+    "freeCashFlow": 387360000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -67660000000,
+    "stockBasedCompensation": null
+   },
+   {
+    "period": "2026-03-31",
+    "operatingCashFlow": 1921130000000,
+    "capitalExpenditure": -1229160000000,
+    "freeCashFlow": 691970000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -74430000000,
+    "stockBasedCompensation": null
+   }
+  ]
+ }
+}

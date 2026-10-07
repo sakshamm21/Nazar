@@ -1,0 +1,11 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "ZOMATO.NS"
+  ]
+ },
+ "output": {
+  "quotes": []
+ }
+}

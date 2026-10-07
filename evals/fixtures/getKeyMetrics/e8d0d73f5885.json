@@ -1,0 +1,144 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "BHARTIARTL.NS",
+  "metrics": [
+   "price",
+   "changePercent",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "pegRatio",
+   "priceToBook",
+   "evToEbitda",
+   "dividendYield",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "fiftyTwoWeekChange",
+   "debtToEquity",
+   "returnOnEquity",
+   "revenueGrowth",
+   "earningsGrowth"
+  ]
+ },
+ "output": {
+  "symbol": "BHARTIARTL.NS",
+  "name": "Bharti Airtel Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 1833.9
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.01292462
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 11441075650560
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 2174.5
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 1726.3
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -0.068433225
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 37.68804
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 22.312855
+   },
+   {
+    "key": "pegRatio",
+    "label": "PEG ratio",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 7.067624
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 11.554
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.20151
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.184
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.351
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 100.415
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.013300001
+   }
+  ]
+ }
+}

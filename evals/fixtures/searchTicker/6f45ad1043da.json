@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Tata Consultancy Services"
+ },
+ "output": {
+  "query": "Tata Consultancy Services",
+  "results": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TCS.BO",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

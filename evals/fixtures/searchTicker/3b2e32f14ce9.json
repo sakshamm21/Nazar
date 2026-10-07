@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Zomato Eternal"
+ },
+ "output": {
+  "query": "Zomato Eternal",
+  "results": []
+ }
+}

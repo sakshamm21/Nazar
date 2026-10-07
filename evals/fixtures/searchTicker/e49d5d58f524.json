@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Nifty Auto index"
+ },
+ "output": {
+  "query": "Nifty Auto index",
+  "results": [
+   {
+    "symbol": "0P0001PQB9.BO",
+    "name": "ICICI Pru Nifty Auto Index Reg Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PQB5.BO",
+    "name": "ICICI Pru Nifty Auto Index Dir Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PQB7.BO",
+    "name": "ICICI Pru Nifty Auto Index Dir IDCW-R",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PQB6.BO",
+    "name": "ICICI Pru Nifty Auto Index Dir IDCW-P",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PQB8.BO",
+    "name": "ICICI Pru Nifty Auto Index Dir IDCW-T",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P00035VVX.BO",
+    "name": "HDFC Nifty Auto Index Dir Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001SN23.BO",
+    "name": "Tata Nifty Auto Index Reg Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   }
+  ]
+ }
+}

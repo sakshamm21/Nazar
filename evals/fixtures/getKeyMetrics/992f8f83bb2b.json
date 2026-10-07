@@ -1,0 +1,152 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "INFY.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "freeCashFlow",
+   "operatingCashFlow",
+   "revenue",
+   "revenueGrowth",
+   "operatingMargin",
+   "returnOnEquity",
+   "totalCash",
+   "totalDebt",
+   "dividendYield",
+   "payoutRatio",
+   "beta",
+   "evToEbitda",
+   "priceToSales"
+  ]
+ },
+ "output": {
+  "symbol": "INFY.NS",
+  "name": "Infosys Limited",
+  "currency": "INR",
+  "fxNote": "Reports in USD; amounts converted to INR at 96.7650.",
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 992
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 4017940856832
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 13.514986
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 12.401671
+   },
+   {
+    "key": "priceToSales",
+    "label": "Price / sales (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 2.045552353976053
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 8.7732414019609
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.21173
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.32
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "category": "Growth",
+    "format": "large",
+    "value": 1964232716421.12
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.029
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow (TTM)",
+    "category": "Financial health",
+    "format": "large",
+    "value": 306321711640.32
+   },
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow",
+    "category": "Financial health",
+    "format": "large",
+    "value": 395962380000
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 302293860000
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 89314095000
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0493
+   },
+   {
+    "key": "payoutRatio",
+    "label": "Payout ratio",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.6778
+   },
+   {
+    "key": "beta",
+    "label": "Beta (5Y)",
+    "category": "Risk & ownership",
+    "format": "ratio",
+    "value": null
+   }
+  ]
+ }
+}

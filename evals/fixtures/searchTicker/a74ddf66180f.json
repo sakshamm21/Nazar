@@ -1,0 +1,29 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ITC Limited"
+ },
+ "output": {
+  "query": "ITC Limited",
+  "results": [
+   {
+    "symbol": "ITC.NS",
+    "name": "ITC Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ITC.BO",
+    "name": "ITC Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ITCTY",
+    "name": "ITC Limited",
+    "exchange": "OTC Markets",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

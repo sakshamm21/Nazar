@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty 50 IT sector fall today",
+  "count": 5
+ },
+ "output": {
+  "query": "Nifty 50 IT sector fall today",
+  "articles": []
+ }
+}

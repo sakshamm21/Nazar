@@ -1,0 +1,85 @@
+{
+ "tool": "getFinancialHealthScore",
+ "input": {
+  "symbol": "ETERNAL.NS"
+ },
+ "output": {
+  "symbol": "ETERNAL.NS",
+  "periods": [
+   "2025-03-31",
+   "2026-03-31"
+  ],
+  "fScore": 4,
+  "scoredTests": 9,
+  "tests": [
+   {
+    "name": "Positive net income",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "ROA 0.9%"
+   },
+   {
+    "name": "Positive operating cash flow",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "cash from operations > 0"
+   },
+   {
+    "name": "ROA improved",
+    "group": "Profitability",
+    "pass": false,
+    "detail": "1.5% → 0.9%"
+   },
+   {
+    "name": "Cash flow exceeds profit (earnings quality)",
+    "group": "Profitability",
+    "pass": true,
+    "detail": "operating cash flow > net income"
+   },
+   {
+    "name": "Long-term debt ratio fell",
+    "group": "Leverage & liquidity",
+    "pass": false,
+    "detail": "4.6% → 9.4% of assets"
+   },
+   {
+    "name": "Current ratio improved",
+    "group": "Leverage & liquidity",
+    "pass": false,
+    "detail": "3.52 → 2.77"
+   },
+   {
+    "name": "No new shares issued",
+    "group": "Leverage & liquidity",
+    "pass": false,
+    "detail": "share count not up"
+   },
+   {
+    "name": "Gross margin improved",
+    "group": "Efficiency",
+    "pass": false,
+    "detail": "72.5% → 44.5%"
+   },
+   {
+    "name": "Asset turnover improved",
+    "group": "Efficiency",
+    "pass": true,
+    "detail": "0.57 → 1.33"
+   }
+  ],
+  "altman": {
+   "z": 20.12,
+   "zone": "Safe",
+   "parts": {
+    "x1": 0.2462,
+    "x2": -0.1038,
+    "x3": 0.0246,
+    "x4": 30.9267,
+    "x5": 1.3345
+   }
+  },
+  "financialSector": false,
+  "score": 67,
+  "note": null
+ }
+}

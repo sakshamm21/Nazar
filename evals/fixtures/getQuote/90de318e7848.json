@@ -1,0 +1,100 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "TCS.NS",
+   "INFY.NS",
+   "WIPRO.NS",
+   "HCLTECH.NS",
+   "LTIM.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 2080.3,
+    "change": -19.699951,
+    "changePercent": -0.93809295,
+    "previousClose": 2100,
+    "open": 2085.2,
+    "dayHigh": 2105,
+    "dayLow": 2076,
+    "volume": 1348590,
+    "marketCap": 7526707363840,
+    "fiftyTwoWeekHigh": 3350,
+    "fiftyTwoWeekLow": 1976.8,
+    "trailingPE": 15.11187,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:04.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 992,
+    "change": -21.849976,
+    "changePercent": -2.1551487,
+    "previousClose": 1013.85,
+    "open": 1006,
+    "dayHigh": 1009,
+    "dayLow": 990.1,
+    "volume": 7490956,
+    "marketCap": 4017940856832,
+    "fiftyTwoWeekHigh": 1728,
+    "fiftyTwoWeekLow": 980.4,
+    "trailingPE": 13.514986,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:44:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "WIPRO.NS",
+    "name": "Wipro Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 159.6,
+    "change": -2.2399902,
+    "changePercent": -1.3840771,
+    "previousClose": 161.84,
+    "open": 160.6,
+    "dayHigh": 162.2,
+    "dayLow": 158.7,
+    "volume": 12402577,
+    "marketCap": 1578992664576,
+    "fiftyTwoWeekHigh": 273.1,
+    "fiftyTwoWeekLow": 156.79,
+    "trailingPE": 12.676728,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:04.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 1185,
+    "change": -19.400024,
+    "changePercent": -1.6107626,
+    "previousClose": 1204.4,
+    "open": 1196.1,
+    "dayHigh": 1202.6,
+    "dayLow": 1172.8,
+    "volume": 1809362,
+    "marketCap": 3206333595648,
+    "fiftyTwoWeekHigh": 1780.1,
+    "fiftyTwoWeekLow": 1030,
+    "trailingPE": 18.434973,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:01.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

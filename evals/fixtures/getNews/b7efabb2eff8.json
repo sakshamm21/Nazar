@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Sun Pharmaceutical Industries quarterly results June 2026",
+  "count": 5
+ },
+ "output": {
+  "query": "Sun Pharmaceutical Industries quarterly results June 2026",
+  "articles": []
+ }
+}

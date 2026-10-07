@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal Limited"
+ },
+ "output": {
+  "query": "Eternal Limited",
+  "results": [
+   {
+    "symbol": "ETERNAL.NS",
+    "name": "Eternal Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ETERNAL.BO",
+    "name": "Eternal Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

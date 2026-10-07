@@ -1,0 +1,90 @@
+{
+ "tool": "getEarnings",
+ "input": {
+  "symbol": "SUNPHARMA.NS"
+ },
+ "output": {
+  "symbol": "SUNPHARMA.NS",
+  "currency": "INR",
+  "currencyUncertain": false,
+  "nextEarningsDate": "2026-11-05",
+  "history": [
+   {
+    "quarter": "2025-09-30",
+    "actual": 13,
+    "estimate": 11.96722,
+    "surprisePct": 0.0863
+   },
+   {
+    "quarter": "2025-12-31",
+    "actual": 15.4819,
+    "estimate": 12.72765,
+    "surprisePct": 0.2164
+   },
+   {
+    "quarter": "2026-03-31",
+    "actual": 11.3,
+    "estimate": 11.81215,
+    "surprisePct": -0.0434
+   },
+   {
+    "quarter": "2026-06-30",
+    "actual": 12.7058,
+    "estimate": 12.483,
+    "surprisePct": 0.0178
+   }
+  ],
+  "quarterly": [
+   {
+    "period": "3Q2025",
+    "revenue": 144783100000,
+    "earnings": 31179500000
+   },
+   {
+    "period": "4Q2025",
+    "revenue": 155205400000,
+    "earnings": 33688100000
+   },
+   {
+    "period": "1Q2026",
+    "revenue": 146117900000,
+    "earnings": 27140300000
+   },
+   {
+    "period": "2Q2026",
+    "revenue": 152998800000,
+    "earnings": 28947900000
+   }
+  ],
+  "estimates": [
+   {
+    "period": "0q",
+    "endDate": "2026-09-30",
+    "epsAvg": 13.1675,
+    "revenueAvg": 160198896620,
+    "growth": 0.0128999995
+   },
+   {
+    "period": "+1q",
+    "endDate": "2026-12-31",
+    "epsAvg": 13.89,
+    "revenueAvg": 172861926000,
+    "growth": -0.1028
+   },
+   {
+    "period": "0y",
+    "endDate": "2027-03-31",
+    "epsAvg": 54.81154,
+    "revenueAvg": 651193857360,
+    "growth": 0.0538
+   },
+   {
+    "period": "+1y",
+    "endDate": "2028-03-31",
+    "epsAvg": 64.79986,
+    "revenueAvg": 729436502990,
+    "growth": 0.1822
+   }
+  ]
+ }
+}

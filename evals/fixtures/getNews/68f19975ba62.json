@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "RBI repo rate policy",
+  "count": 8
+ },
+ "output": {
+  "query": "RBI repo rate policy",
+  "articles": []
+ }
+}

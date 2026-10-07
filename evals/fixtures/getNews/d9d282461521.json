@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Zomato Eternal",
+  "count": 8
+ },
+ "output": {
+  "query": "Zomato Eternal",
+  "articles": []
+ }
+}

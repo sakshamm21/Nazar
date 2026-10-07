@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Kotak Mahindra Bank"
+ },
+ "output": {
+  "query": "Kotak Mahindra Bank",
+  "results": [
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "KOTAKBANK.BO",
+    "name": "Kotak Mahindra Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

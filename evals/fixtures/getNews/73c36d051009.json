@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Zomato ZOMATO.NS",
+  "count": 5
+ },
+ "output": {
+  "query": "Zomato ZOMATO.NS",
+  "articles": []
+ }
+}

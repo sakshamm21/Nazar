@@ -1,0 +1,119 @@
+{
+ "tool": "getMarketOverview",
+ "input": {
+  "region": "GLOBAL"
+ },
+ "output": {
+  "region": "GLOBAL",
+  "indices": [
+   {
+    "symbol": "^GSPC",
+    "label": "S&P 500",
+    "price": 7795.94,
+    "change": -22.990234,
+    "changePercent": -0.29403335,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^IXIC",
+    "label": "Nasdaq",
+    "price": 27477.389,
+    "change": -122.49805,
+    "changePercent": -0.44381225,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^NSEI",
+    "label": "Nifty 50",
+    "price": 22603.05,
+    "change": -173.04883,
+    "changePercent": -0.75978255,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^BSESN",
+    "label": "Sensex",
+    "price": 72638.7,
+    "change": -429.10938,
+    "changePercent": -0.5872755,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^FTSE",
+    "label": "FTSE 100",
+    "price": 10458.5,
+    "change": -83.19043,
+    "changePercent": -0.78915644,
+    "marketState": "POSTPOST",
+    "currency": "GBP"
+   },
+   {
+    "symbol": "^GDAXI",
+    "label": "DAX",
+    "price": 25104.36,
+    "change": -344.83008,
+    "changePercent": -1.3549747,
+    "marketState": "POST",
+    "currency": "EUR"
+   },
+   {
+    "symbol": "^N225",
+    "label": "Nikkei 225",
+    "price": 70035.71,
+    "change": -648.2656,
+    "changePercent": -0.9171324,
+    "marketState": "PREPRE",
+    "currency": "JPY"
+   },
+   {
+    "symbol": "^HSI",
+    "label": "Hang Seng",
+    "price": 24130.5,
+    "change": -150.06055,
+    "changePercent": -0.6180275,
+    "marketState": "PREPRE",
+    "currency": "HKD"
+   },
+   {
+    "symbol": "USDINR=X",
+    "label": "USD / INR",
+    "price": 96.765,
+    "change": 0.40499878,
+    "changePercent": 0.42029762,
+    "marketState": "REGULAR",
+    "currency": "INR"
+   },
+   {
+    "symbol": "GC=F",
+    "label": "Gold",
+    "price": 4136,
+    "change": -51.100098,
+    "changePercent": -1.2204174,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "CL=F",
+    "label": "Crude oil (WTI)",
+    "price": 88.76,
+    "change": -0.6800003,
+    "changePercent": -0.76028657,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "BTC-USD",
+    "label": "Bitcoin",
+    "price": 83562.38,
+    "change": -2013.7109,
+    "changePercent": -2.3531232,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   }
+  ]
+ }
+}

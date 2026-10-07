@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Sun Pharma"
+ },
+ "output": {
+  "query": "Sun Pharma",
+  "results": [
+   {
+    "symbol": "SUNPHARMA.NS",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SUNPHARMA.BO",
+    "name": "Sun Pharmaceutical Industries Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SPARC.NS",
+    "name": "Sun Pharma Advanced Research Company Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "6887.HK",
+    "name": "Sunshine Lake Pharma Co., Ltd.",
+    "exchange": "Hong Kong",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "300026.SZ",
+    "name": "Tianjin Chase Sun Pharmaceutical Co.,Ltd",
+    "exchange": "Shenzhen",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

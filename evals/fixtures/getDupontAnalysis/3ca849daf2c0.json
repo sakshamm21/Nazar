@@ -1,0 +1,56 @@
+{
+ "tool": "getDupontAnalysis",
+ "input": {
+  "symbol": "MARUTI.NS"
+ },
+ "output": {
+  "symbol": "MARUTI.NS",
+  "currency": "INR",
+  "years": [
+   {
+    "period": "2023-03-31",
+    "netIncome": 82637000000,
+    "revenue": 1137648000000,
+    "totalAssets": 1003854000000,
+    "equity": 746002000000,
+    "netMargin": 0.0726,
+    "assetTurnover": 1.1333,
+    "equityMultiplier": 1.346,
+    "roe": 0.1108
+   },
+   {
+    "period": "2024-03-31",
+    "netIncome": 134882000000,
+    "revenue": 1364838000000,
+    "totalAssets": 1153508000000,
+    "equity": 856360000000,
+    "netMargin": 0.0988,
+    "assetTurnover": 1.1832,
+    "equityMultiplier": 1.347,
+    "roe": 0.1575
+   },
+   {
+    "period": "2025-03-31",
+    "netIncome": 145002000000,
+    "revenue": 1474686000000,
+    "totalAssets": 1310163000000,
+    "equity": 962399000000,
+    "netMargin": 0.0983,
+    "assetTurnover": 1.1256,
+    "equityMultiplier": 1.361,
+    "roe": 0.1507
+   },
+   {
+    "period": "2026-03-31",
+    "netIncome": 146795000000,
+    "revenue": 1770941000000,
+    "totalAssets": 1488810000000,
+    "equity": 1071563000000,
+    "netMargin": 0.0829,
+    "assetTurnover": 1.1895,
+    "equityMultiplier": 1.389,
+    "roe": 0.137
+   }
+  ]
+ }
+}

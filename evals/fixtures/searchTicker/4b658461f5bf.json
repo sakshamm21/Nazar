@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Nifty Pharma index"
+ },
+ "output": {
+  "query": "Nifty Pharma index",
+  "results": []
+ }
+}

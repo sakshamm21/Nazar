@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "TCS.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 2080.3,
+    "change": -19.699951,
+    "changePercent": -0.93809295,
+    "previousClose": 2100,
+    "open": 2085.2,
+    "dayHigh": 2105,
+    "dayLow": 2076,
+    "volume": 1348590,
+    "marketCap": 7526707363840,
+    "fiftyTwoWeekHigh": 3350,
+    "fiftyTwoWeekLow": 1976.8,
+    "trailingPE": 15.11187,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:04.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

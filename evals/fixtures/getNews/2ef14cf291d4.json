@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Eternal Zomato Blinkit",
+  "count": 10
+ },
+ "output": {
+  "query": "Eternal Zomato Blinkit",
+  "articles": []
+ }
+}

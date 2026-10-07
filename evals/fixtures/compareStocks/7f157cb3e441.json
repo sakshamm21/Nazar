@@ -1,0 +1,162 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "HDFCBANK.NS",
+   "ICICIBANK.NS",
+   "KOTAKBANK.NS",
+   "AXISBANK.NS"
+  ],
+  "metrics": [
+   "trailingEps",
+   "forwardEps",
+   "bookValue",
+   "fiftyTwoWeekChange",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "dividendRate",
+   "revenue",
+   "ebitda",
+   "enterpriseValue"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited"
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited"
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited"
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "enterpriseValue",
+    "label": "Enterprise value",
+    "format": "large",
+    "values": [
+     14465161494528,
+     11438075674624,
+     4681847275520,
+     5367758061568
+    ]
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "format": "currency",
+    "values": [
+     1020.5,
+     1480,
+     453.2,
+     1418.3
+    ]
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "format": "currency",
+    "values": [
+     681.9,
+     1187.6,
+     345.5,
+     1150.3
+    ]
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "format": "percent",
+    "values": [
+     -0.27306634,
+     -0.020068586,
+     0.019690275,
+     0.057089567
+    ]
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "format": "large",
+    "values": [
+     2949644288000,
+     2037316714496,
+     712962932736,
+     770813591552
+    ]
+   },
+   {
+    "key": "ebitda",
+    "label": "EBITDA (TTM)",
+    "format": "large",
+    "values": [
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "key": "trailingEps",
+    "label": "EPS (TTM)",
+    "format": "currency",
+    "values": [
+     45.75,
+     77.36,
+     20.4,
+     89.3
+    ]
+   },
+   {
+    "key": "forwardEps",
+    "label": "EPS (forward)",
+    "format": "currency",
+    "values": [
+     62.63304,
+     93.25641,
+     23.49047,
+     120.71083
+    ]
+   },
+   {
+    "key": "bookValue",
+    "label": "Book value / share",
+    "format": "currency",
+    "values": [
+     393.813,
+     530.377,
+     182.201,
+     717.547
+    ]
+   },
+   {
+    "key": "dividendRate",
+    "label": "Dividend / share",
+    "format": "currency",
+    "values": [
+     13,
+     12,
+     0.65,
+     1
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "HDFCBANK.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 702.75,
+    "change": -8.700012,
+    "changePercent": -1.2228564,
+    "previousClose": 711.45,
+    "open": 708.55,
+    "dayHigh": 711,
+    "dayLow": 701.7,
+    "volume": 29934694,
+    "marketCap": 10835334266880,
+    "fiftyTwoWeekHigh": 1020.5,
+    "fiftyTwoWeekLow": 681.9,
+    "trailingPE": 15.360656,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:00.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

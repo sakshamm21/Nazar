@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Tata Motors"
+ },
+ "output": {
+  "query": "Tata Motors",
+  "results": [
+   {
+    "symbol": "TMCV.NS",
+    "name": "Tata Motors Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TMPV.NS",
+    "name": "Tata Motors Passenger Vehicles Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TMCV.BO",
+    "name": "Tata Motors Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TMPV.BO",
+    "name": "Tata Motors Passenger Vehicles Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TMCV-BL.NS",
+    "name": "TATA MOTORS LIMITED",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

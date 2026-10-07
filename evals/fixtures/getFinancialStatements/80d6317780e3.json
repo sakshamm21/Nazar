@@ -1,0 +1,114 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "SUNPHARMA.NS",
+  "statement": "income",
+  "period": "quarterly"
+ },
+ "output": {
+  "symbol": "SUNPHARMA.NS",
+  "currency": "INR",
+  "statement": "income",
+  "period": "quarterly",
+  "fields": [
+   {
+    "key": "totalRevenue",
+    "label": "Revenue"
+   },
+   {
+    "key": "costOfRevenue",
+    "label": "Cost of revenue"
+   },
+   {
+    "key": "grossProfit",
+    "label": "Gross profit"
+   },
+   {
+    "key": "researchAndDevelopment",
+    "label": "R&D"
+   },
+   {
+    "key": "sellingGeneralAndAdministration",
+    "label": "SG&A"
+   },
+   {
+    "key": "operatingIncome",
+    "label": "Operating income"
+   },
+   {
+    "key": "EBITDA",
+    "label": "EBITDA"
+   },
+   {
+    "key": "netIncome",
+    "label": "Net income"
+   },
+   {
+    "key": "dilutedEPS",
+    "label": "Diluted EPS"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2025-03-31",
+    "totalRevenue": 128155800000,
+    "costOfRevenue": 26371900000,
+    "grossProfit": 101783900000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": null,
+    "operatingIncome": 27610600000,
+    "EBITDA": 39672800000,
+    "netIncome": 21498800000,
+    "dilutedEPS": 9
+   },
+   {
+    "period": "2025-06-30",
+    "totalRevenue": 137860700000,
+    "costOfRevenue": 28147600000,
+    "grossProfit": 109713100000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": null,
+    "operatingIncome": 33720700000,
+    "EBITDA": 39481200000,
+    "netIncome": 22786300000,
+    "dilutedEPS": 9.5
+   },
+   {
+    "period": "2025-12-31",
+    "totalRevenue": 154690700000,
+    "costOfRevenue": 29451000000,
+    "grossProfit": 125239700000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": null,
+    "operatingIncome": 40622400000,
+    "EBITDA": 50378500000,
+    "netIncome": 33688100000,
+    "dilutedEPS": 14
+   },
+   {
+    "period": "2026-03-31",
+    "totalRevenue": 145597500000,
+    "costOfRevenue": 28010900000,
+    "grossProfit": 117586600000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": null,
+    "operatingIncome": 27519800000,
+    "EBITDA": 44127000000,
+    "netIncome": 27140300000,
+    "dilutedEPS": 11.3
+   },
+   {
+    "period": "2026-06-30",
+    "totalRevenue": 151835500000,
+    "costOfRevenue": 29631600000,
+    "grossProfit": 122203900000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": null,
+    "operatingIncome": 35569600000,
+    "EBITDA": 49372000000,
+    "netIncome": 28947900000,
+    "dilutedEPS": 12.1
+   }
+  ]
+ }
+}

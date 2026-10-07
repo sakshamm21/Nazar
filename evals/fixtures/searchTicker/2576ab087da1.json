@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ITC"
+ },
+ "output": {
+  "query": "ITC",
+  "results": [
+   {
+    "symbol": "ITC.NS",
+    "name": "ITC Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ITCHOTELS.NS",
+    "name": "ITC Hotels Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ITCHOTELS.BO",
+    "name": "ITC Hotels Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ITC.BO",
+    "name": "ITC Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "0199.HK",
+    "name": "ITC Properties Group Limited",
+    "exchange": "Hong Kong",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

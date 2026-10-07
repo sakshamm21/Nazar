@@ -1,0 +1,29 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Asian Paints"
+ },
+ "output": {
+  "query": "Asian Paints",
+  "results": [
+   {
+    "symbol": "ASIANPAINT.NS",
+    "name": "Asian Paints Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ASIANPAINT.BO",
+    "name": "Asian Paints Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ASIANPAINT-BL.NS",
+    "name": "ASIAN PAINTS LIMITED",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

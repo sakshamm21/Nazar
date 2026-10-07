@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Tata Steel"
+ },
+ "output": {
+  "query": "Tata Steel",
+  "results": [
+   {
+    "symbol": "TATASTEEL.NS",
+    "name": "Tata Steel Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TATASTEEL.BO",
+    "name": "Tata Steel Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TTST.IL",
+    "name": "Tata Steel Limited",
+    "exchange": "International Orderbook - London",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TSTH.BK",
+    "name": "Tata Steel (Thailand) Public Company Limited",
+    "exchange": "SET",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "MVX.SG",
+    "name": "Tata Steel Thailand PCL",
+    "exchange": "Stuttgart",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

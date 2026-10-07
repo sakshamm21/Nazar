@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ICICI Bank"
+ },
+ "output": {
+  "query": "ICICI Bank",
+  "results": [
+   {
+    "symbol": "IBN",
+    "name": "ICICI Bank Limited",
+    "exchange": "NYSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICICIBANK.BO",
+    "name": "ICICI Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICBA.DU",
+    "name": "ICICI Bank Ltd",
+    "exchange": "Dusseldorf Stock Exchange",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "0A7M.L",
+    "name": "ICICI Bank Limited",
+    "exchange": "London",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "IBN.BA",
+    "name": "ICICI Bank Limited",
+    "exchange": "Buenos Aires",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICBA.MU",
+    "name": "ICICI Bank Ltd",
+    "exchange": "Munich",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

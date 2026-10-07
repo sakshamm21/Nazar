@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Indian stock market today",
+  "count": 8
+ },
+ "output": {
+  "query": "Indian stock market today",
+  "articles": []
+ }
+}

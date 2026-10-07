@@ -1,0 +1,64 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "INFY.NS",
+  "metrics": [
+   "price",
+   "revenueGrowth",
+   "earningsGrowth",
+   "operatingMargin",
+   "profitMargin",
+   "trailingPE"
+  ]
+ },
+ "output": {
+  "symbol": "INFY.NS",
+  "name": "Infosys Limited",
+  "currency": "INR",
+  "fxNote": "Reports in USD; amounts converted to INR at 96.7650.",
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 992
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 13.514986
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.21173
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.16370001
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.029
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.053
+   }
+  ]
+ }
+}

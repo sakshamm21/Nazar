@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Nifty IT index"
+ },
+ "output": {
+  "query": "Nifty IT index",
+  "results": [
+   {
+    "symbol": "0P0001PFVG.BO",
+    "name": "ICICI Pru Nifty IT Index Dir IDCW-R",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PFVD.BO",
+    "name": "ICICI Pru Nifty IT Index Dir Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001RGPV.BO",
+    "name": "Bandhan Nifty IT Index Dir IDCW-R",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001RGPZ.BO",
+    "name": "Bandhan Nifty IT Index Reg IDCW-R",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001RGPU.BO",
+    "name": "Bandhan Nifty IT Index Dir IDCW-P",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001R2H8.BO",
+    "name": "Axis Nifty IT Index Reg Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0001PFVH.BO",
+    "name": "ICICI Pru Nifty IT Index Reg Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   }
+  ]
+ }
+}

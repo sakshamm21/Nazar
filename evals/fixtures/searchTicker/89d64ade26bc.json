@@ -1,0 +1,17 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ETERNAL.NS"
+ },
+ "output": {
+  "query": "ETERNAL.NS",
+  "results": [
+   {
+    "symbol": "ETERNAL.NS",
+    "name": "Eternal Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

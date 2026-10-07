@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Nykaa FSN E-Commerce"
+ },
+ "output": {
+  "query": "Nykaa FSN E-Commerce",
+  "results": []
+ }
+}

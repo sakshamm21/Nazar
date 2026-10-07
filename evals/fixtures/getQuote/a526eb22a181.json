@@ -1,0 +1,34 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "SWIGGY.NS",
+   "ZOMATO.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "SWIGGY.NS",
+    "name": "Swiggy Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 246,
+    "change": 1.800003,
+    "changePercent": 0.73710203,
+    "previousClose": 244.2,
+    "open": 244,
+    "dayHigh": 253.6,
+    "dayLow": 242.6,
+    "volume": 16168042,
+    "marketCap": 644520411136,
+    "fiftyTwoWeekHigh": 459.95,
+    "fiftyTwoWeekLow": 235.5,
+    "trailingPE": null,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:44:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

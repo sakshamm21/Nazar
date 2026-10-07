@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Axis Bank"
+ },
+ "output": {
+  "query": "Axis Bank",
+  "results": [
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "AXISBANK.BO",
+    "name": "Axis Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "AXB.IL",
+    "name": "Axis Bank Limited",
+    "exchange": "International Orderbook - London",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "0P0000XY0B.BO",
+    "name": "Axis Banking and PSU Debt Dir Wk IDCW-P",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0000W9NM.BO",
+    "name": "Axis Banking and PSU Debt Mn IDCW-P",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0000W9NJ.BO",
+    "name": "Axis Banking and PSU Debt Gr",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   },
+   {
+    "symbol": "0P0000XUXK.BO",
+    "name": "Axis Banking and PSU Debt Dir Dl IDCW-R",
+    "exchange": "Bombay",
+    "type": "MUTUALFUND"
+   }
+  ]
+ }
+}

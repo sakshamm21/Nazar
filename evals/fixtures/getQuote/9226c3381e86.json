@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "ETERNAL.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "ETERNAL.NS",
+    "name": "Eternal Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 328,
+    "change": -1,
+    "changePercent": -0.30395138,
+    "previousClose": 329,
+    "open": 332.6,
+    "dayHigh": 332.7,
+    "dayLow": 324.6,
+    "volume": 23803873,
+    "marketCap": 3019369086976,
+    "fiftyTwoWeekHigh": 368.45,
+    "fiftyTwoWeekLow": 212.6,
+    "trailingPE": 697.8723,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:02.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

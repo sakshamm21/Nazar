@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty stock market India",
+  "count": 6
+ },
+ "output": {
+  "query": "Nifty stock market India",
+  "articles": []
+ }
+}

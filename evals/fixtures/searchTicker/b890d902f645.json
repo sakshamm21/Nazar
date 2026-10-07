@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal"
+ },
+ "output": {
+  "query": "Eternal",
+  "results": [
+   {
+    "symbol": "ETERNAL.NS",
+    "name": "Eternal Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "1717.TW",
+    "name": "Eternal Materials Co., Ltd.",
+    "exchange": "Taiwan",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "002183.SZ",
+    "name": "Eternal Asia Supply Chain Management Ltd.",
+    "exchange": "Shenzhen",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "7795.TW",
+    "name": "Eternal Precision Mechanics Co., Ltd.",
+    "exchange": "Taiwan",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "3193.T",
+    "name": "Eternal Hospitality Group Co.,Ltd.",
+    "exchange": "Tokyo Stock Exchange",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

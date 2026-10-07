@@ -1,0 +1,15 @@
+{
+ "tool": "getOwnership",
+ "input": {
+  "symbol": "ITC.NS"
+ },
+ "output": {
+  "symbol": "ITC.NS",
+  "currency": "INR",
+  "insidersPct": 0.29488,
+  "institutionsPct": 0.52244,
+  "institutionCount": 191,
+  "topHolders": [],
+  "insiderTransactions": []
+ }
+}

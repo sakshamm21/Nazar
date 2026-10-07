@@ -1,0 +1,507 @@
+{
+ "tool": "runSipBacktest",
+ "input": {
+  "symbol": "^NSEI",
+  "monthlyAmount": 10000,
+  "years": 5
+ },
+ "output": {
+  "symbol": "^NSEI",
+  "currency": "INR",
+  "monthlyAmount": 10000,
+  "years": 5,
+  "installments": 60,
+  "invested": 600000,
+  "value": 644094.54,
+  "gain": 44094.54,
+  "absoluteReturn": 0.0735,
+  "xirr": 0.0296,
+  "lastPrice": 22603.05,
+  "lumpSum": {
+   "value": 781479.22,
+   "return": 0.3025
+  },
+  "schedule": [
+   {
+    "date": "2021-11-30",
+    "price": 17354.05,
+    "units": 0.576234,
+    "cumulativeUnits": 0.576234,
+    "invested": 10000,
+    "value": 9999.99
+   },
+   {
+    "date": "2021-12-31",
+    "price": 17339.85,
+    "units": 0.576706,
+    "cumulativeUnits": 1.152941,
+    "invested": 20000,
+    "value": 19991.82
+   },
+   {
+    "date": "2022-01-31",
+    "price": 16793.9,
+    "units": 0.595454,
+    "cumulativeUnits": 1.748395,
+    "invested": 30000,
+    "value": 29362.37
+   },
+   {
+    "date": "2022-02-28",
+    "price": 17464.75,
+    "units": 0.572582,
+    "cumulativeUnits": 2.320977,
+    "invested": 40000,
+    "value": 40535.28
+   },
+   {
+    "date": "2022-03-31",
+    "price": 17102.55,
+    "units": 0.584708,
+    "cumulativeUnits": 2.905685,
+    "invested": 50000,
+    "value": 49694.62
+   },
+   {
+    "date": "2022-04-30",
+    "price": 16584.55,
+    "units": 0.602971,
+    "cumulativeUnits": 3.508656,
+    "invested": 60000,
+    "value": 58189.48
+   },
+   {
+    "date": "2022-05-31",
+    "price": 15780.25,
+    "units": 0.633704,
+    "cumulativeUnits": 4.142359,
+    "invested": 70000,
+    "value": 65367.46
+   },
+   {
+    "date": "2022-06-30",
+    "price": 17158.25,
+    "units": 0.58281,
+    "cumulativeUnits": 4.725169,
+    "invested": 80000,
+    "value": 81075.63
+   },
+   {
+    "date": "2022-07-31",
+    "price": 17759.3,
+    "units": 0.563085,
+    "cumulativeUnits": 5.288254,
+    "invested": 90000,
+    "value": 93915.69
+   },
+   {
+    "date": "2022-08-31",
+    "price": 17094.35,
+    "units": 0.584989,
+    "cumulativeUnits": 5.873243,
+    "invested": 100000,
+    "value": 100399.27
+   },
+   {
+    "date": "2022-09-30",
+    "price": 18012.2,
+    "units": 0.555179,
+    "cumulativeUnits": 6.428422,
+    "invested": 110000,
+    "value": 115790.02
+   },
+   {
+    "date": "2022-10-31",
+    "price": 18758.35,
+    "units": 0.533096,
+    "cumulativeUnits": 6.961518,
+    "invested": 120000,
+    "value": 130586.59
+   },
+   {
+    "date": "2022-11-30",
+    "price": 18105.3,
+    "units": 0.552324,
+    "cumulativeUnits": 7.513843,
+    "invested": 130000,
+    "value": 136040.38
+   },
+   {
+    "date": "2022-12-31",
+    "price": 17662.15,
+    "units": 0.566182,
+    "cumulativeUnits": 8.080025,
+    "invested": 140000,
+    "value": 142710.61
+   },
+   {
+    "date": "2023-01-31",
+    "price": 17303.95,
+    "units": 0.577903,
+    "cumulativeUnits": 8.657928,
+    "invested": 150000,
+    "value": 149816.35
+   },
+   {
+    "date": "2023-02-28",
+    "price": 17359.75,
+    "units": 0.576045,
+    "cumulativeUnits": 9.233973,
+    "invested": 160000,
+    "value": 160299.46
+   },
+   {
+    "date": "2023-03-31",
+    "price": 18065,
+    "units": 0.553557,
+    "cumulativeUnits": 9.78753,
+    "invested": 170000,
+    "value": 176811.73
+   },
+   {
+    "date": "2023-04-30",
+    "price": 18534.4,
+    "units": 0.539537,
+    "cumulativeUnits": 10.327067,
+    "invested": 180000,
+    "value": 191405.99
+   },
+   {
+    "date": "2023-05-31",
+    "price": 19189.05,
+    "units": 0.521131,
+    "cumulativeUnits": 10.848198,
+    "invested": 190000,
+    "value": 208166.61
+   },
+   {
+    "date": "2023-06-30",
+    "price": 19753.8,
+    "units": 0.506232,
+    "cumulativeUnits": 11.354429,
+    "invested": 200000,
+    "value": 224293.12
+   },
+   {
+    "date": "2023-07-31",
+    "price": 19253.8,
+    "units": 0.519378,
+    "cumulativeUnits": 11.873807,
+    "invested": 210000,
+    "value": 228615.91
+   },
+   {
+    "date": "2023-08-31",
+    "price": 19638.3,
+    "units": 0.509209,
+    "cumulativeUnits": 12.383016,
+    "invested": 220000,
+    "value": 243181.38
+   },
+   {
+    "date": "2023-09-30",
+    "price": 19079.6,
+    "units": 0.52412,
+    "cumulativeUnits": 12.907136,
+    "invested": 230000,
+    "value": 246262.99
+   },
+   {
+    "date": "2023-10-31",
+    "price": 20133.15,
+    "units": 0.496693,
+    "cumulativeUnits": 13.40383,
+    "invested": 240000,
+    "value": 269861.32
+   },
+   {
+    "date": "2023-11-30",
+    "price": 21731.4,
+    "units": 0.460164,
+    "cumulativeUnits": 13.863993,
+    "invested": 250000,
+    "value": 301283.98
+   },
+   {
+    "date": "2023-12-31",
+    "price": 21725.7,
+    "units": 0.460284,
+    "cumulativeUnits": 14.324278,
+    "invested": 260000,
+    "value": 311204.97
+   },
+   {
+    "date": "2024-01-31",
+    "price": 21982.8,
+    "units": 0.454901,
+    "cumulativeUnits": 14.779179,
+    "invested": 270000,
+    "value": 324887.74
+   },
+   {
+    "date": "2024-02-29",
+    "price": 22326.9,
+    "units": 0.44789,
+    "cumulativeUnits": 15.227069,
+    "invested": 280000,
+    "value": 339973.25
+   },
+   {
+    "date": "2024-03-31",
+    "price": 22604.85,
+    "units": 0.442383,
+    "cumulativeUnits": 15.669452,
+    "invested": 290000,
+    "value": 354205.61
+   },
+   {
+    "date": "2024-04-30",
+    "price": 22530.7,
+    "units": 0.443839,
+    "cumulativeUnits": 16.113291,
+    "invested": 300000,
+    "value": 363043.73
+   },
+   {
+    "date": "2024-05-31",
+    "price": 24010.6,
+    "units": 0.416483,
+    "cumulativeUnits": 16.529773,
+    "invested": 310000,
+    "value": 396889.77
+   },
+   {
+    "date": "2024-06-30",
+    "price": 24951.15,
+    "units": 0.400783,
+    "cumulativeUnits": 16.930557,
+    "invested": 320000,
+    "value": 422436.87
+   },
+   {
+    "date": "2024-07-31",
+    "price": 25235.9,
+    "units": 0.396261,
+    "cumulativeUnits": 17.326817,
+    "invested": 330000,
+    "value": 437257.82
+   },
+   {
+    "date": "2024-08-31",
+    "price": 25810.85,
+    "units": 0.387434,
+    "cumulativeUnits": 17.714251,
+    "invested": 340000,
+    "value": 457219.88
+   },
+   {
+    "date": "2024-09-30",
+    "price": 24205.35,
+    "units": 0.413132,
+    "cumulativeUnits": 18.127383,
+    "invested": 350000,
+    "value": 438779.65
+   },
+   {
+    "date": "2024-10-31",
+    "price": 24131.1,
+    "units": 0.414403,
+    "cumulativeUnits": 18.541786,
+    "invested": 360000,
+    "value": 447433.69
+   },
+   {
+    "date": "2024-11-30",
+    "price": 23644.8,
+    "units": 0.422926,
+    "cumulativeUnits": 18.964712,
+    "invested": 370000,
+    "value": 448416.82
+   },
+   {
+    "date": "2024-12-31",
+    "price": 23508.4,
+    "units": 0.42538,
+    "cumulativeUnits": 19.390092,
+    "invested": 380000,
+    "value": 455830.04
+   },
+   {
+    "date": "2025-01-31",
+    "price": 22124.7,
+    "units": 0.451984,
+    "cumulativeUnits": 19.842076,
+    "invested": 390000,
+    "value": 438999.98
+   },
+   {
+    "date": "2025-02-28",
+    "price": 23519.35,
+    "units": 0.425182,
+    "cumulativeUnits": 20.267257,
+    "invested": 400000,
+    "value": 476672.71
+   },
+   {
+    "date": "2025-03-31",
+    "price": 24334.2,
+    "units": 0.410944,
+    "cumulativeUnits": 20.678202,
+    "invested": 410000,
+    "value": 503187.5
+   },
+   {
+    "date": "2025-04-30",
+    "price": 24750.7,
+    "units": 0.404029,
+    "cumulativeUnits": 21.082231,
+    "invested": 420000,
+    "value": 521799.97
+   },
+   {
+    "date": "2025-05-31",
+    "price": 25517.05,
+    "units": 0.391895,
+    "cumulativeUnits": 21.474125,
+    "invested": 430000,
+    "value": 547956.32
+   },
+   {
+    "date": "2025-06-30",
+    "price": 24768.35,
+    "units": 0.403741,
+    "cumulativeUnits": 21.877867,
+    "invested": 440000,
+    "value": 541878.67
+   },
+   {
+    "date": "2025-07-31",
+    "price": 24426.85,
+    "units": 0.409386,
+    "cumulativeUnits": 22.287252,
+    "invested": 450000,
+    "value": 544407.36
+   },
+   {
+    "date": "2025-08-31",
+    "price": 24611.1,
+    "units": 0.406321,
+    "cumulativeUnits": 22.693573,
+    "invested": 460000,
+    "value": 558513.79
+   },
+   {
+    "date": "2025-09-30",
+    "price": 25722.1,
+    "units": 0.388771,
+    "cumulativeUnits": 23.082344,
+    "invested": 470000,
+    "value": 593726.36
+   },
+   {
+    "date": "2025-10-31",
+    "price": 26202.95,
+    "units": 0.381636,
+    "cumulativeUnits": 23.46398,
+    "invested": 480000,
+    "value": 614825.49
+   },
+   {
+    "date": "2025-11-30",
+    "price": 26129.6,
+    "units": 0.382708,
+    "cumulativeUnits": 23.846688,
+    "invested": 490000,
+    "value": 623104.42
+   },
+   {
+    "date": "2025-12-31",
+    "price": 25320.65,
+    "units": 0.394935,
+    "cumulativeUnits": 24.241622,
+    "invested": 500000,
+    "value": 613813.63
+   },
+   {
+    "date": "2026-01-31",
+    "price": 25178.65,
+    "units": 0.397162,
+    "cumulativeUnits": 24.638784,
+    "invested": 510000,
+    "value": 620371.32
+   },
+   {
+    "date": "2026-02-28",
+    "price": 22331.4,
+    "units": 0.4478,
+    "cumulativeUnits": 25.086584,
+    "invested": 520000,
+    "value": 560218.54
+   },
+   {
+    "date": "2026-03-31",
+    "price": 23997.55,
+    "units": 0.416709,
+    "cumulativeUnits": 25.503293,
+    "invested": 530000,
+    "value": 612016.55
+   },
+   {
+    "date": "2026-04-30",
+    "price": 23547.75,
+    "units": 0.424669,
+    "cumulativeUnits": 25.927962,
+    "invested": 540000,
+    "value": 610545.17
+   },
+   {
+    "date": "2026-05-31",
+    "price": 23865.75,
+    "units": 0.419011,
+    "cumulativeUnits": 26.346973,
+    "invested": 550000,
+    "value": 628790.27
+   },
+   {
+    "date": "2026-06-30",
+    "price": 24383.6,
+    "units": 0.410112,
+    "cumulativeUnits": 26.757085,
+    "invested": 560000,
+    "value": 652434.06
+   },
+   {
+    "date": "2026-07-31",
+    "price": 24080.4,
+    "units": 0.415275,
+    "cumulativeUnits": 27.17236,
+    "invested": 570000,
+    "value": 654321.3
+   },
+   {
+    "date": "2026-08-31",
+    "price": 22620.45,
+    "units": 0.442078,
+    "cumulativeUnits": 27.614438,
+    "invested": 580000,
+    "value": 624651.01
+   },
+   {
+    "date": "2026-09-30",
+    "price": 22776.1,
+    "units": 0.439057,
+    "cumulativeUnits": 28.053495,
+    "invested": 590000,
+    "value": 638949.21
+   },
+   {
+    "date": "2026-10-07",
+    "price": 22603.05,
+    "units": 0.442418,
+    "cumulativeUnits": 28.495913,
+    "invested": 600000,
+    "value": 644094.55
+   }
+  ]
+ }
+}

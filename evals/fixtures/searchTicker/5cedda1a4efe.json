@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Tata Consultancy Services TCS"
+ },
+ "output": {
+  "query": "Tata Consultancy Services TCS",
+  "results": []
+ }
+}

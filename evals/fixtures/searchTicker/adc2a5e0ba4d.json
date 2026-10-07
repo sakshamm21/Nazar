@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ZOMATO.NS"
+ },
+ "output": {
+  "query": "ZOMATO.NS",
+  "results": []
+ }
+}

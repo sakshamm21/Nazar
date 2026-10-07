@@ -1,0 +1,64 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TMCV.NS",
+  "metrics": [
+   "price",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "trailingPE",
+   "debtToEquity",
+   "beta"
+  ]
+ },
+ "output": {
+  "symbol": "TMCV.NS",
+  "name": "Tata Motors Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 427.9
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 509
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 306.3
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 37.56804
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 44.095
+   },
+   {
+    "key": "beta",
+    "label": "Beta (5Y)",
+    "category": "Risk & ownership",
+    "format": "ratio",
+    "value": null
+   }
+  ]
+ }
+}

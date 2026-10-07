@@ -1,0 +1,56 @@
+{
+ "tool": "getDupontAnalysis",
+ "input": {
+  "symbol": "ASIANPAINT.NS"
+ },
+ "output": {
+  "symbol": "ASIANPAINT.NS",
+  "currency": "INR",
+  "years": [
+   {
+    "period": "2023-03-31",
+    "netIncome": 41064500000,
+    "revenue": 343887100000,
+    "totalAssets": 257980000000,
+    "equity": 159922300000,
+    "netMargin": 0.1194,
+    "assetTurnover": 1.333,
+    "equityMultiplier": 1.613,
+    "roe": 0.2568
+   },
+   {
+    "period": "2024-03-31",
+    "netIncome": 54602300000,
+    "revenue": 353954200000,
+    "totalAssets": 299240900000,
+    "equity": 187283000000,
+    "netMargin": 0.1543,
+    "assetTurnover": 1.1828,
+    "equityMultiplier": 1.598,
+    "roe": 0.2915
+   },
+   {
+    "period": "2025-03-31",
+    "netIncome": 36672300000,
+    "revenue": 338151700000,
+    "totalAssets": 303713700000,
+    "equity": 193998100000,
+    "netMargin": 0.1084,
+    "assetTurnover": 1.1134,
+    "equityMultiplier": 1.566,
+    "roe": 0.189
+   },
+   {
+    "period": "2026-03-31",
+    "netIncome": 43253500000,
+    "revenue": 355409000000,
+    "totalAssets": 345344900000,
+    "equity": 213715900000,
+    "netMargin": 0.1217,
+    "assetTurnover": 1.0291,
+    "equityMultiplier": 1.616,
+    "roe": 0.2024
+   }
+  ]
+ }
+}

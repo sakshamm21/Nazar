@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Titan"
+ },
+ "output": {
+  "query": "Titan",
+  "results": [
+   {
+    "symbol": "BTTC",
+    "name": "Black Titan Corporation",
+    "exchange": "NASDAQ",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TII",
+    "name": "Titan Mining Corporation",
+    "exchange": "NYSE MKT",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "KQQQ",
+    "name": "Kurv Technology Titans Select E",
+    "exchange": "NASDAQ",
+    "type": "ETF"
+   },
+   {
+    "symbol": "TITC.AT",
+    "name": "Titan S.A.",
+    "exchange": "Athens",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

@@ -1,0 +1,99 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "BHARTIARTL.NS",
+   "HINDUNILVR.NS",
+   "GOLDBEES.NS",
+   "NIFTYBEES.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "BHARTIARTL.NS",
+    "name": "Bharti Airtel Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 1833.9,
+    "change": 23.400024,
+    "changePercent": 1.292462,
+    "previousClose": 1810.5,
+    "open": 1823,
+    "dayHigh": 1854.7,
+    "dayLow": 1810.5,
+    "volume": 13920615,
+    "marketCap": 11441075650560,
+    "fiftyTwoWeekHigh": 2174.5,
+    "fiftyTwoWeekLow": 1726.3,
+    "trailingPE": 37.68804,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:44:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "HINDUNILVR.NS",
+    "name": "Hindustan Unilever Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 1865.4,
+    "change": -29.799927,
+    "changePercent": -1.5723895,
+    "previousClose": 1895.2,
+    "open": 1888,
+    "dayHigh": 1888,
+    "dayLow": 1864.3,
+    "volume": 619905,
+    "marketCap": 4382927618048,
+    "fiftyTwoWeekHigh": 2667.2,
+    "fiftyTwoWeekLow": 1826.9,
+    "trailingPE": 41.825115,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:01.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "GOLDBEES.NS",
+    "name": "Nippon India ETF Gold BeES",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 121.08,
+    "change": -0.37999725,
+    "changePercent": -0.31285793,
+    "previousClose": 121.46,
+    "open": 121.46,
+    "dayHigh": 121.48,
+    "dayLow": 121.01,
+    "volume": 13743878,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 148.14,
+    "fiftyTwoWeekLow": 95.55,
+    "trailingPE": null,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T10:00:02.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "NIFTYBEES.NS",
+    "name": "Nippon India ETF Nifty 50 BeES",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 257.59,
+    "change": -1.3000183,
+    "changePercent": -0.50215083,
+    "previousClose": 258.89,
+    "open": 258.59,
+    "dayHigh": 258.99,
+    "dayLow": 257.13,
+    "volume": 5894813,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 302.25,
+    "fiftyTwoWeekLow": 251.7,
+    "trailingPE": 19.642492,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T10:00:01.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

@@ -1,0 +1,55 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "TMPV.NS",
+   "TMCV.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "TMPV.NS",
+    "name": "Tata Motors Passenger Vehicles Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 283,
+    "change": -2.7999878,
+    "changePercent": -0.9797019,
+    "previousClose": 285.8,
+    "open": 285.6,
+    "dayHigh": 286.65,
+    "dayLow": 280.8,
+    "volume": 9263126,
+    "marketCap": 1042286772224,
+    "fiftyTwoWeekHigh": 702,
+    "fiftyTwoWeekLow": 272.2,
+    "trailingPE": null,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:45:04.000Z",
+    "timeZone": "Asia/Kolkata"
+   },
+   {
+    "symbol": "TMCV.NS",
+    "name": "Tata Motors Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 427.9,
+    "change": -5.899994,
+    "changePercent": -1.3600724,
+    "previousClose": 433.8,
+    "open": 432.5,
+    "dayHigh": 433.8,
+    "dayLow": 424.05,
+    "volume": 5489849,
+    "marketCap": 1575865548800,
+    "fiftyTwoWeekHigh": 509,
+    "fiftyTwoWeekLow": 306.3,
+    "trailingPE": 37.56804,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:59:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

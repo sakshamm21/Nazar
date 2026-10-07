@@ -1,0 +1,56 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "metrics": [
+   "priceToBook",
+   "returnOnEquity",
+   "trailingEps",
+   "dividendYield",
+   "fiftyTwoWeekChange"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -0.27306634
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 1.7844764
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.13838
+   },
+   {
+    "key": "trailingEps",
+    "label": "EPS (TTM)",
+    "category": "Per share",
+    "format": "currency",
+    "value": 45.75
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0183
+   }
+  ]
+ }
+}

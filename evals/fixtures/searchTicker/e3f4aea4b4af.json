@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Infosys"
+ },
+ "output": {
+  "query": "Infosys",
+  "results": [
+   {
+    "symbol": "INFY",
+    "name": "Infosys Limited",
+    "exchange": "NYSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "INFY.BO",
+    "name": "Infosys Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HCL-INSYS.NS",
+    "name": "HCL Infosystems Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "IOY.HM",
+    "name": "Infosys Ltd",
+    "exchange": "Hamburg",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

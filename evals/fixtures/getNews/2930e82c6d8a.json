@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Tata Motors Passenger Vehicles TMPV",
+  "count": 6
+ },
+ "output": {
+  "query": "Tata Motors Passenger Vehicles TMPV",
+  "articles": []
+ }
+}

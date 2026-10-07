@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty 50 fall reasons today",
+  "count": 8
+ },
+ "output": {
+  "query": "Nifty 50 fall reasons today",
+  "articles": []
+ }
+}

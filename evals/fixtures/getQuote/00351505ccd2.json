@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "INFY.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 992,
+    "change": -21.849976,
+    "changePercent": -2.1551487,
+    "previousClose": 1013.85,
+    "open": 1006,
+    "dayHigh": 1009,
+    "dayLow": 990.1,
+    "volume": 7490956,
+    "marketCap": 4017940856832,
+    "fiftyTwoWeekHigh": 1728,
+    "fiftyTwoWeekLow": 980.4,
+    "trailingPE": 13.514986,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:44:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

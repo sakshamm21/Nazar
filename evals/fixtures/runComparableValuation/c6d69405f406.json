@@ -1,0 +1,86 @@
+{
+ "tool": "runComparableValuation",
+ "input": {
+  "symbol": "TCS.NS",
+  "peers": [
+   "INFY.NS",
+   "HCLTECH.NS",
+   "WIPRO.NS"
+  ]
+ },
+ "output": {
+  "symbol": "TCS.NS",
+  "name": "Tata Consultancy Services Limited",
+  "currency": "INR",
+  "price": 2080.3,
+  "shares": 3618087518,
+  "netDebt": -337220009984,
+  "inputs": {
+   "trailingEps": 137.66,
+   "forwardEps": 161.95914,
+   "ebitda": 720690020352,
+   "bookValue": 303.014,
+   "revenue": 2758590070784
+  },
+  "target": {
+   "symbol": "TCS.NS",
+   "name": "Tata Consultancy Services Limited",
+   "currency": "INR",
+   "trailingPE": 15.11,
+   "forwardPE": 12.84,
+   "evToEbitda": 9.99,
+   "priceToBook": 6.87,
+   "priceToSales": 2.73
+  },
+  "peers": [
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "currency": "INR",
+    "trailingPE": 13.51,
+    "forwardPE": 12.4,
+    "evToEbitda": 8.77,
+    "priceToBook": 4.34,
+    "priceToSales": 2.05
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited",
+    "currency": "INR",
+    "trailingPE": 18.43,
+    "forwardPE": 14.79,
+    "evToEbitda": 11.13,
+    "priceToBook": 4.34,
+    "priceToSales": 2.24
+   },
+   {
+    "symbol": "WIPRO.NS",
+    "name": "Wipro Limited",
+    "currency": "INR",
+    "trailingPE": 12.68,
+    "forwardPE": 11.48,
+    "evToEbitda": 8,
+    "priceToBook": 2.04,
+    "priceToSales": 1.66
+   }
+  ],
+  "missingPeers": [],
+  "medians": {
+   "trailingPE": 13.51,
+   "forwardPE": 12.4,
+   "evToEbitda": 8.77,
+   "priceToBook": 4.34,
+   "priceToSales": 2.05
+  },
+  "implied": {
+   "trailingPE": 1860.47,
+   "forwardPE": 2008.56,
+   "evToEbitda": 1840.75,
+   "priceToBook": 1313.86,
+   "priceToSales": 1559.62
+  },
+  "blended": 1716.65,
+  "upside": -0.1748,
+  "fxNote": null
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Wipro"
+ },
+ "output": {
+  "query": "Wipro",
+  "results": [
+   {
+    "symbol": "WIT",
+    "name": "Wipro Limited",
+    "exchange": "NYSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "WIPRO.NS",
+    "name": "Wipro Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "WIPRO.BO",
+    "name": "Wipro Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "WIOA.MU",
+    "name": "Wipro Ltd",
+    "exchange": "Munich",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "WIOA.F",
+    "name": "Wipro Limited",
+    "exchange": "Frankfurt",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

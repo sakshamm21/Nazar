@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "TCS"
+ },
+ "output": {
+  "query": "TCS",
+  "results": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TCS.TO",
+    "name": "Tecsys Inc.",
+    "exchange": "Toronto",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TCS.BO",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TCSH.TO",
+    "name": "TD Cash Management ETF",
+    "exchange": "Toronto",
+    "type": "ETF"
+   },
+   {
+    "symbol": "TCSEX",
+    "name": "Nuveen Quant Small Cap Equity A",
+    "exchange": "NASDAQ",
+    "type": "MUTUALFUND"
+   }
+  ]
+ }
+}

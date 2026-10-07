@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty Sensex",
+  "count": 8
+ },
+ "output": {
+  "query": "Nifty Sensex",
+  "articles": []
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "RBI repo rate 2026",
+  "count": 6
+ },
+ "output": {
+  "query": "RBI repo rate 2026",
+  "articles": []
+ }
+}

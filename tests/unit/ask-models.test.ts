@@ -34,9 +34,9 @@ describe("what a call costs", () => {
 });
 
 describe("the catalog", () => {
-  it("has no duplicate ids, and each provider has every tier", () => {
+  it("has no duplicate ids, and each provider can serve a lookup and a deep dive", () => {
     expect(new Set(MODELS.map((m) => m.id)).size).toBe(MODELS.length);
-    for (const via of ["openrouter", "openai"] as const) for (const tier of ["economy", "balanced", "premium"] as const) expect(MODELS.some((m) => m.via === via && m.tier === tier), `${via} ${tier}`).toBe(true);
+    for (const via of ["openrouter", "openai"] as const) for (const tier of ["economy", "premium"] as const) expect(MODELS.some((m) => m.via === via && m.tier === tier), `${via} ${tier}`).toBe(true);
   });
   it("OpenRouter ids name their maker; OpenAI ids do not", () => {
     for (const id of viaRouter) expect(id).toMatch(/^[a-z0-9-]+\/[a-z0-9.:-]+$/);
@@ -53,7 +53,8 @@ describe("Auto routing", () => {
     const tierOf = (q: string) => getModel(routeModel(q, available))!.tier;
     expect(available).toContain(routeModel("What is TCS trading at?", available));
     expect(tierOf("What is an ETF?")).toBe("economy");
-    expect(tierOf("Compare HDFC Bank and ICICI Bank on valuation")).toBe("balanced");
+    // On OpenRouter no model has earned the middle tier yet, so analysis falls through to the lookup model.
+    expect(tierOf("Compare HDFC Bank and ICICI Bank on valuation")).toBe(available[0].includes("/") ? "economy" : "balanced");
     expect(tierOf("Write a deep dive on Reliance")).toBe("premium");
   });
   it("falls to the nearest tier when the one it wants is not available", () => {

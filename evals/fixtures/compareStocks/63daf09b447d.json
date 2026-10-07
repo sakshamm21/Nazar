@@ -1,0 +1,139 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "HDFCBANK.NS",
+   "ICICIBANK.NS",
+   "SBIN.NS",
+   "AXISBANK.NS",
+   "KOTAKBANK.NS"
+  ],
+  "metrics": [
+   "price",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "returnOnEquity",
+   "revenueGrowth",
+   "earningsGrowth"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited"
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited"
+   },
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India"
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited"
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "format": "currency",
+    "values": [
+     702.75,
+     1357.5,
+     954,
+     1242.5,
+     440
+    ]
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.360656,
+     17.547829,
+     10.2250805,
+     13.913774,
+     21.568628
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     11.220117,
+     14.556641,
+     9.069621,
+     10.293194,
+     18.730999
+    ]
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "format": "ratio",
+    "values": [
+     1.7844764,
+     2.5595,
+     1.4158945,
+     1.7315938,
+     2.4149153
+    ]
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "format": "percent",
+    "values": [
+     0.13838,
+     0.16073999,
+     0.15177,
+     0.13352999,
+     null
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.166,
+     0.114,
+     0.103,
+     0.14,
+     0.21
+    ]
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.181,
+     0.138,
+     0.099,
+     0.218,
+     0.225
+    ]
+   }
+  ]
+ }
+}

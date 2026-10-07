@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TCS Tata Consultancy Services",
+  "count": 5
+ },
+ "output": {
+  "query": "TCS Tata Consultancy Services",
+  "articles": []
+ }
+}

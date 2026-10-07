@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HCLTech"
+ },
+ "output": {
+  "query": "HCLTech",
+  "results": [
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HCLTECH.BO",
+    "name": "HCL Technologies Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

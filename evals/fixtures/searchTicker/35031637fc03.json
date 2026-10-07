@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Nifty Metal index"
+ },
+ "output": {
+  "query": "Nifty Metal index",
+  "results": []
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty Sensex market fall",
+  "count": 8
+ },
+ "output": {
+  "query": "Nifty Sensex market fall",
+  "articles": []
+ }
+}

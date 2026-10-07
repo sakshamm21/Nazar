@@ -1,0 +1,41 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Reliance"
+ },
+ "output": {
+  "query": "Reliance",
+  "results": [
+   {
+    "symbol": "RELIANCE.NS",
+    "name": "Reliance Industries Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RS",
+    "name": "Reliance, Inc.",
+    "exchange": "NYSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "EZRA",
+    "name": "Reliance Global Group, Inc.",
+    "exchange": "NASDAQ",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RPOWER.NS",
+    "name": "Reliance Power Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "RELIANCE.BO",
+    "name": "Reliance Industries Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

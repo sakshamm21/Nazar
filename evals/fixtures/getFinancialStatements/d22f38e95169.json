@@ -1,0 +1,87 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "ASIANPAINT.NS",
+  "statement": "cashflow",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "ASIANPAINT.NS",
+  "currency": "INR",
+  "statement": "cashflow",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow"
+   },
+   {
+    "key": "capitalExpenditure",
+    "label": "Capex"
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow"
+   },
+   {
+    "key": "repurchaseOfCapitalStock",
+    "label": "Buybacks"
+   },
+   {
+    "key": "cashDividendsPaid",
+    "label": "Dividends paid"
+   },
+   {
+    "key": "stockBasedCompensation",
+    "label": "Stock-based comp"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2022-03-31",
+    "operatingCashFlow": null,
+    "capitalExpenditure": null,
+    "freeCashFlow": null,
+    "repurchaseOfCapitalStock": -749500000,
+    "cashDividendsPaid": null,
+    "stockBasedCompensation": null
+   },
+   {
+    "period": "2023-03-31",
+    "operatingCashFlow": 41934300000,
+    "capitalExpenditure": -14456100000,
+    "freeCashFlow": 27478200000,
+    "repurchaseOfCapitalStock": -355700000,
+    "cashDividendsPaid": -19360500000,
+    "stockBasedCompensation": 133800000
+   },
+   {
+    "period": "2024-03-31",
+    "operatingCashFlow": 61036000000,
+    "capitalExpenditure": -24960800000,
+    "freeCashFlow": 36075200000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -25508800000,
+    "stockBasedCompensation": 218400000
+   },
+   {
+    "period": "2025-03-31",
+    "operatingCashFlow": 44239600000,
+    "capitalExpenditure": -18300700000,
+    "freeCashFlow": 25938900000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -31402100000,
+    "stockBasedCompensation": 212500000
+   },
+   {
+    "period": "2026-03-31",
+    "operatingCashFlow": 70881800000,
+    "capitalExpenditure": -14873200000,
+    "freeCashFlow": 56008600000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -24253800000,
+    "stockBasedCompensation": 293500000
+   }
+  ]
+ }
+}

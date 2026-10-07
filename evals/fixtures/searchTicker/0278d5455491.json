@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal Ltd"
+ },
+ "output": {
+  "query": "Eternal Ltd",
+  "results": []
+ }
+}

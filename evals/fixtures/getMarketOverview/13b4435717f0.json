@@ -1,0 +1,65 @@
+{
+ "tool": "getMarketOverview",
+ "input": {
+  "region": "US"
+ },
+ "output": {
+  "region": "US",
+  "indices": [
+   {
+    "symbol": "^GSPC",
+    "label": "S&P 500",
+    "price": 7796.5,
+    "change": -22.430176,
+    "changePercent": -0.2868683,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^IXIC",
+    "label": "Nasdaq Composite",
+    "price": 27479.154,
+    "change": -120.73242,
+    "changePercent": -0.4374394,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^DJI",
+    "label": "Dow Jones",
+    "price": 51175.8,
+    "change": -345.48047,
+    "changePercent": -0.67055136,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^RUT",
+    "label": "Russell 2000",
+    "price": 2793.2712,
+    "change": -37.026123,
+    "changePercent": -1.308196,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^VIX",
+    "label": "VIX",
+    "price": 15.34,
+    "change": 0.32999992,
+    "changePercent": 2.1999996,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   },
+   {
+    "symbol": "^TNX",
+    "label": "US 10Y yield",
+    "price": 5.311,
+    "change": 0.041999817,
+    "changePercent": 0.7971117,
+    "marketState": "REGULAR",
+    "currency": "USD"
+   }
+  ]
+ }
+}

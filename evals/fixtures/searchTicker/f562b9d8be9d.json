@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Zomato Limited"
+ },
+ "output": {
+  "query": "Zomato Limited",
+  "results": []
+ }
+}

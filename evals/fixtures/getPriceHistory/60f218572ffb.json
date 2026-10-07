@@ -1,0 +1,10 @@
+{
+ "tool": "getPriceHistory",
+ "input": {
+  "symbol": "^NSEENERGY",
+  "range": "5d"
+ },
+ "output": {
+  "error": "Symbol not found or no data available."
+ }
+}

@@ -1,0 +1,223 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "TCS.NS",
+   "INFY.NS",
+   "HCLTECH.NS"
+  ],
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "ebitdaMargin",
+   "profitMargin",
+   "returnOnEquity",
+   "revenue",
+   "revenueGrowth",
+   "earningsGrowth",
+   "dividendYield",
+   "freeCashFlow",
+   "pegRatio"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited"
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "format": "currency",
+    "values": [
+     2080.3,
+     992,
+     1185
+    ]
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "format": "large",
+    "values": [
+     7526707363840,
+     4017940856832,
+     3206333595648
+    ]
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.11187,
+     13.514986,
+     18.434973
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     12.844598,
+     12.401671,
+     14.793755
+    ]
+   },
+   {
+    "key": "pegRatio",
+    "label": "PEG ratio",
+    "format": "ratio",
+    "values": [
+     2.74,
+     1.79,
+     2.39
+    ]
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "format": "ratio",
+    "values": [
+     6.8653593,
+     4.33598,
+     4.344174
+    ]
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "format": "ratio",
+    "values": [
+     10.09,
+     8.7732414019609,
+     11.1285837394465
+    ]
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "format": "percent",
+    "values": [
+     0.40389,
+     0.29676,
+     0.34004003
+    ]
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "format": "percent",
+    "values": [
+     0.23963,
+     0.21173,
+     0.16877002
+    ]
+   },
+   {
+    "key": "ebitdaMargin",
+    "label": "EBITDA margin",
+    "format": "percent",
+    "values": [
+     0.26125,
+     0.2208,
+     0.18917999
+    ]
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "format": "percent",
+    "values": [
+     0.18052,
+     0.16370001,
+     0.12966
+    ]
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "format": "percent",
+    "values": [
+     0.47743,
+     0.32,
+     0.24067
+    ]
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "format": "large",
+    "values": [
+     2758590070784,
+     1964232716421.12,
+     1429122328350.72
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.139,
+     0.029,
+     0.03
+    ]
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.046,
+     0.053,
+     0.084
+    ]
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow (TTM)",
+    "format": "large",
+    "values": [
+     397165002752,
+     306321711640.32,
+     175434938807.04
+    ]
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "format": "percent",
+    "values": [
+     0.031,
+     0.0493,
+     0.0498
+    ]
+   }
+  ]
+ }
+}

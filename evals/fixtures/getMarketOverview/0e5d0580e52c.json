@@ -1,0 +1,155 @@
+{
+ "tool": "getMarketOverview",
+ "input": {
+  "region": "IN"
+ },
+ "output": {
+  "region": "IN",
+  "indices": [
+   {
+    "symbol": "^NSEI",
+    "label": "Nifty 50",
+    "price": 22603.05,
+    "change": -173.04883,
+    "changePercent": -0.75978255,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^BSESN",
+    "label": "Sensex",
+    "price": 72638.7,
+    "change": -429.10938,
+    "changePercent": -0.5872755,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^NSEBANK",
+    "label": "Nifty Bank",
+    "price": 55055.55,
+    "change": -72.84766,
+    "changePercent": -0.1321418,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^NSMIDCP",
+    "label": "Nifty Next 50",
+    "price": 69404,
+    "change": -569.7031,
+    "changePercent": -0.81416744,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXSC",
+    "label": "Nifty Smallcap 100",
+    "price": 19506.95,
+    "change": 58.25,
+    "changePercent": 0.2995059,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "NIFTY_FIN_SERVICE.NS",
+    "label": "Nifty Financial Services",
+    "price": 24916.4,
+    "change": -29.65039,
+    "changePercent": -0.118858054,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXIT",
+    "label": "Nifty IT",
+    "price": 27757.8,
+    "change": -378.25,
+    "changePercent": -1.3443607,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXAUTO",
+    "label": "Nifty Auto",
+    "price": 25138.9,
+    "change": -403.04883,
+    "changePercent": -1.5779878,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXPHARMA",
+    "label": "Nifty Pharma",
+    "price": 26436.55,
+    "change": -113.04883,
+    "changePercent": -0.42580238,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXFMCG",
+    "label": "Nifty FMCG",
+    "price": 44800.85,
+    "change": -404.5,
+    "changePercent": -0.89480555,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXMETAL",
+    "label": "Nifty Metal",
+    "price": 12306.7,
+    "change": -293.0498,
+    "changePercent": -2.3258383,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXENERGY",
+    "label": "Nifty Energy",
+    "price": 36683.45,
+    "change": -232.30078,
+    "changePercent": -0.6292728,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXREALTY",
+    "label": "Nifty Realty",
+    "price": 822.6,
+    "change": -14.850037,
+    "changePercent": -1.7732445,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^CNXPSUBANK",
+    "label": "Nifty PSU Bank",
+    "price": 8088.7,
+    "change": 80.30029,
+    "changePercent": 1.0027008,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "^INDIAVIX",
+    "label": "India VIX",
+    "price": 13.885,
+    "change": 0.27750015,
+    "changePercent": 2.0393176,
+    "marketState": "POSTPOST",
+    "currency": "INR"
+   },
+   {
+    "symbol": "USDINR=X",
+    "label": "USD / INR",
+    "price": 96.765,
+    "change": 0.40499878,
+    "changePercent": 0.42029762,
+    "marketState": "REGULAR",
+    "currency": "INR"
+   }
+  ]
+ }
+}

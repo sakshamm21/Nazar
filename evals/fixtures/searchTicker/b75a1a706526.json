@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "State Bank of India"
+ },
+ "output": {
+  "query": "State Bank of India",
+  "results": [
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBIN.BO",
+    "name": "State Bank of India",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SID.MU",
+    "name": "State Bank of India",
+    "exchange": "Munich",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBKFF",
+    "name": "State Bank of India",
+    "exchange": "OTC Markets",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBID.IL",
+    "name": "State Bank of India",
+    "exchange": "International Orderbook - London",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SID.F",
+    "name": "State Bank of India",
+    "exchange": "Frankfurt",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SID.SG",
+    "name": "State Bank of India",
+    "exchange": "Stuttgart",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

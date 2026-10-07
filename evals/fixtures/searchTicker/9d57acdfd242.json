@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Sun Pharmaceutical Industries Ltd"
+ },
+ "output": {
+  "query": "Sun Pharmaceutical Industries Ltd",
+  "results": []
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ETERNAL.NS Zomato Eternal India",
+  "count": 5
+ },
+ "output": {
+  "query": "ETERNAL.NS Zomato Eternal India",
+  "articles": []
+ }
+}
