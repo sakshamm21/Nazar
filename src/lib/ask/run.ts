@@ -36,14 +36,25 @@ export type AskInput = {
   ip: string;
   /** Aborts when the reader stops the answer or goes away. */
   signal?: AbortSignal;
+  /**
+   * For evals only; the chat route never sets it. Lets a run replay recorded tool results, pin the
+   * date those recordings were made on, try a model that is not in the catalog, and skip the
+   * per-user limits that would otherwise stop a batch of questions after the first few.
+   */
+  harness?: {
+    tools?: (tools: ReturnType<typeof makeTools>) => ReturnType<typeof makeTools>;
+    today?: string;
+    model?: string;
+    skipLimits?: boolean;
+  };
 };
 
 const textOf = (m: Msg | undefined) => (m?.parts ?? []).map((p) => (p.type === "text" ? p.text : "")).join(" ").trim();
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
 function friendlyError(msg: string, modelId: string) {
-  if (/model/i.test(msg) && /(not found|does not exist|access)/i.test(msg)) return `Model "${modelId}" isn't available for this OpenAI key. Pick another model.`;
-  if (/quota|billing|insufficient/i.test(msg)) return "The OpenAI account behind this app is out of credit. Please try again later.";
+  if (/model/i.test(msg) && /(not found|does not exist|access)/i.test(msg)) return `Model "${modelId}" isn't available with the current API key. Pick another model.`;
+  if (/quota|billing|insufficient/i.test(msg)) return "The AI account behind this app is out of credit. Please try again later.";
   if (/rate limit|429/i.test(msg)) return "The AI provider is busy right now. Please retry in a few seconds.";
   if (/context|too long|maximum.*tokens/i.test(msg)) return "This conversation has grown too long. Start a new research chat.";
   return "Something went wrong while generating the answer. Please try again.";
@@ -61,7 +72,7 @@ function friendlyError(msg: string, modelId: string) {
 export async function runAsk(input: AskInput): Promise<Response> {
   const { user, chatId: id, mode, requestedModel: requested } = input;
   const userId = user.id;
-  if (!askConfigured()) return fail(500, "OPENAI_API_KEY is not set. Add it to .env.local (local) or your Vercel project env vars.");
+  if (!askConfigured()) return fail(500, "No AI key is set. Add OPENROUTER_API_KEY (or OPENAI_API_KEY) to .env.local (local) or your Vercel project env vars.");
 
   const startedAt = Date.now();
   const text = input.text.trim();
@@ -78,7 +89,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const messages: Msg[] = [...history, userMessage];
   const turn = history.filter((m) => m.role === "user").length + 1;
 
-  const limit = await checkAndRecord(userId, input.ip, user.isDemo || user.isTestAccount);
+  const limit = input.harness?.skipLimits ? ({ ok: true } as const) : await checkAndRecord(userId, input.ip, user.isDemo || user.isTestAccount);
   if (!limit.ok) {
     track(userId, "rate_limited", { status: limit.status, reason: limit.error.slice(0, 60) }, id);
     return fail(limit.status, limit.error);
@@ -95,9 +106,9 @@ export async function runAsk(input: AskInput): Promise<Response> {
       console.error("chat save failed", e);
     }
   };
-  const logUsage = async (model: string, inputTokens: number, outputTokens: number) => {
+  const logUsage = async (model: string, inputTokens: number, outputTokens: number, cachedInputTokens = 0) => {
     try {
-      await db.insert(schema.usage).values({ id: randomUUID(), userId, chatId: id, model, inputTokens, outputTokens, costUsd: estimateCost(model, inputTokens, outputTokens) });
+      await db.insert(schema.usage).values({ id: randomUUID(), userId, chatId: id, model, inputTokens, outputTokens, costUsd: estimateCost(model, inputTokens, outputTokens, cachedInputTokens) });
     } catch (e) {
       console.error("usage log failed", e);
     }
@@ -143,7 +154,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
 
   // ── Main agent ──────────────────────────────────────────────
   const auto = !requested || requested === AUTO_MODEL || !getModel(requested) || !available.includes(requested);
-  const modelId = auto ? routeModel(text, available) : requested;
+  const modelId = input.harness?.model ?? (auto ? routeModel(text, available) : requested);
   let firstTokenAt: number | null = null;
   let firstOutputAt: number | null = null;
   /** Text streamed in the step still under way, which no usage figure covers yet. */
@@ -151,7 +162,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
 
   // Each tool call is timed where it runs; the step it belonged to picks the time up when it ends.
   const toolMs = new Map<string, number>();
-  const plainTools = makeTools(userId);
+  const plainTools = input.harness?.tools ? input.harness.tools(makeTools(userId)) : makeTools(userId);
   const tools = Object.fromEntries(
     Object.entries(plainTools).map(([name, t]) => {
       const run = (t as unknown as { execute: (i: unknown, o: { toolCallId: string }) => Promise<unknown> }).execute;
@@ -186,7 +197,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       cachedInputTokens: totals.cachedInputTokens ?? 0,
       outputTokens: totals.outputTokens,
       reasoningTokens: totals.reasoningTokens ?? 0,
-      costUsd: estimateCost(modelId, totals.inputTokens, totals.outputTokens),
+      costUsd: estimateCost(modelId, totals.inputTokens, totals.outputTokens, totals.cachedInputTokens),
       ttftMs: firstTokenAt ? firstTokenAt - startedAt : null,
       latencyMs: Date.now() - startedAt,
       error: error?.slice(0, 200) ?? null,
@@ -196,7 +207,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const result = streamText({
     model: languageModel(modelId),
     // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
-    system: systemPrompt(mode, istToday()),
+    system: systemPrompt(mode, input.harness?.today ?? istToday()),
     // Unfinished tool calls are dropped by convertToModelMessages.
     messages: convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools }),
     tools,
@@ -244,7 +255,8 @@ export async function runAsk(input: AskInput): Promise<Response> {
     onFinish: ({ totalUsage, steps: done, finishReason }) => {
       const inputTokens = totalUsage.inputTokens ?? 0;
       const outputTokens = totalUsage.outputTokens ?? 0;
-      void logUsage(modelId, inputTokens, outputTokens);
+      const cachedInputTokens = totalUsage.cachedInputTokens ?? 0;
+      void logUsage(modelId, inputTokens, outputTokens, cachedInputTokens);
       const calls = done.flatMap((s) => s.toolCalls);
       const results = done.flatMap((s) => s.toolResults);
       const tickers = [
@@ -274,10 +286,10 @@ export async function runAsk(input: AskInput): Promise<Response> {
           tickers,
           market: markets.length === 1 ? markets[0] : markets.length ? "MIXED" : "NONE",
           inputTokens,
-          cachedInputTokens: totalUsage.cachedInputTokens ?? 0,
+          cachedInputTokens,
           outputTokens,
           reasoningTokens: totalUsage.reasoningTokens ?? 0,
-          costUsd: estimateCost(modelId, inputTokens, outputTokens),
+          costUsd: estimateCost(modelId, inputTokens, outputTokens, cachedInputTokens),
           guardMs,
           ttftMs: firstTokenAt ? firstTokenAt - startedAt : null,
           firstOutputMs: firstOutputAt ? firstOutputAt - startedAt : null,
@@ -285,7 +297,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
         },
         id,
       );
-      trace("finished", { inputTokens, outputTokens, cachedInputTokens: totalUsage.cachedInputTokens, reasoningTokens: totalUsage.reasoningTokens });
+      trace("finished", { inputTokens, outputTokens, cachedInputTokens, reasoningTokens: totalUsage.reasoningTokens });
     },
     onError: ({ error }) => {
       const message = String(error instanceof Error ? error.message : error);
@@ -303,7 +315,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       if (part.type === "finish") {
         const i = part.totalUsage.inputTokens ?? 0;
         const o = part.totalUsage.outputTokens ?? 0;
-        return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o), latencyMs: Date.now() - startedAt };
+        return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, part.totalUsage.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt };
       }
     },
     onError: (error) => {

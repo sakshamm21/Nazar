@@ -393,15 +393,18 @@ describe("a stopped answer", () => {
 describe("without a key", () => {
   it("Ask says it is not set up, and nothing else runs", async () => {
     const key = process.env.OPENAI_API_KEY;
+    const routerKey = process.env.OPENROUTER_API_KEY;
     delete process.env.OPENAI_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
     setModelsForTests(null);
     try {
       const r = await ask(await makeUser(db), chatId(), "hello");
       expect(r.status).toBe(500);
-      expect(r.text).toContain("OPENAI_API_KEY is not set");
+      expect(r.text).toContain("No AI key is set");
     } finally {
       setModelsForTests((id) => (id === GUARD_MODEL ? guardModel : answerModel));
       if (key) process.env.OPENAI_API_KEY = key;
+      if (routerKey) process.env.OPENROUTER_API_KEY = routerKey;
     }
   });
 });

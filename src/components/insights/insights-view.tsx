@@ -164,7 +164,7 @@ export function InsightsView({ data }: { data: Insights }) {
         <Kpi label="Ask questions (7d)" value={String(data.ask.questions7)} sub={`${data.ask.askers7} ${data.ask.askers7 === 1 ? "person" : "people"} · ${pct(data.ask.portfolioToolShare)} about their portfolio`} />
         <Kpi label="Answers rated helpful" value={pct(data.ask.helpfulRate7)} sub={`${data.ask.ratings7} ratings · ${pct(data.ask.blockRate7)} off-topic, declined`} />
         <Kpi label="Answer time" value={data.ask.p50Latency ? `${(data.ask.p50Latency / 1000).toFixed(1)}s` : "—"} sub={`p95 ${data.ask.p95Latency ? `${(data.ask.p95Latency / 1000).toFixed(1)}s` : "—"} · ${data.ask.errors7} errors`} />
-        <Kpi label="OpenAI spend (7d)" value={usd(data.ask.spend7)} sub={`${usd(data.ask.costPerAnswer7, 4)} per answer · ${usd(data.ask.spend30)} in 30 days`} />
+        <Kpi label="AI spend (7d)" value={usd(data.ask.spend7)} sub={`${usd(data.ask.costPerAnswer7, 4)} per answer · ${usd(data.ask.spend30)} in 30 days`} />
       </div>
 
       {/* Data and demo */}

@@ -78,12 +78,12 @@ flowchart LR
 | Market data | Yahoo Finance via `yahoo-finance2`, AMFI NAVs, mfapi.in, the NSE equity and ETF lists, Google News RSS |
 | Auth | Email and password (bcrypt), a 6-digit email code, a signed session cookie (JWT) |
 | Email | Brevo HTTP API (free tier) |
-| AI | Vercel AI SDK with OpenAI, in the Ask tab only |
+| AI | Vercel AI SDK, with models reached through OpenRouter, in the Ask tab only |
 | Jobs | Vercel Cron |
 | Testing | Vitest (unit and integration), Playwright (end to end) |
 | Hosting | Vercel |
 
-Running cost is zero apart from light OpenAI use in Ask, which has per-user and daily spending caps.
+Running cost is zero apart from light model use in Ask, which has per-user and daily spending caps.
 
 ## Project structure
 
@@ -159,7 +159,7 @@ No database or API keys are needed, only an internet connection. Without a datab
 
 | Feature | Variable |
 |---|---|
-| Ask tab | `OPENAI_API_KEY` |
+| Ask tab | `OPENROUTER_API_KEY` (or `OPENAI_API_KEY`) |
 | Real email (sign-up codes and password resets) | `BREVO_API_KEY`, `MAIL_FROM` |
 
 Every variable is documented, one per line, in `.env.example`.
@@ -174,7 +174,8 @@ Every variable is documented, one per line, in `.env.example`.
 | `npm run lint` · `npm run typecheck` | ESLint and TypeScript checks |
 | `npm run demo:reset` | Rebuild the local database and test accounts (stop `npm run dev` first) |
 | `npm run pipeline:run` | Run the nightly checkup now, against live market data |
-| `npm run eval:guard` | Measure the Ask topic filter's precision and recall (needs `npm run dev` and an OpenAI key) |
+| `npm run eval:guard` | Measure the Ask topic filter's precision and recall on labelled questions (needs a model key) |
+| `npm run eval:agent` | Score Ask's answers on labelled questions: right tools, right language, no advice, numbers traced to data (needs a model key; costs a little) |
 | `npm run db:generate` | Create a migration after changing `src/lib/db/schema.ts` |
 | `npm run nse:refresh` · `npm run catalog:refresh` | Refresh the search lists: NSE equities, and ETFs, REITs and mutual funds |
 
@@ -196,7 +197,7 @@ Every variable is documented, one per line, in `.env.example`.
 ## Deploy your own
 
 1. Create a free Postgres database (for example on Neon) and a free Brevo account with a verified sender.
-2. Import the repository on Vercel and set at least `NAZAR_DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, `BREVO_API_KEY`, `MAIL_FROM` and `OPENAI_API_KEY`.
+2. Import the repository on Vercel and set at least `NAZAR_DATABASE_URL`, `AUTH_SECRET`, `CRON_SECRET`, `BREVO_API_KEY`, `MAIL_FROM` and `OPENROUTER_API_KEY`.
 3. Deploy. The build applies migrations and builds the test accounts from live data. `vercel.json` schedules the nightly checkup (weekday evenings IST) and the nightly maintenance.
 
 ## Disclaimer

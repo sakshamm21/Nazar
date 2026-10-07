@@ -1,32 +1,37 @@
 import "server-only";
 import { MODELS } from "./models";
+import { OPENROUTER_URL, activeProvider } from "./provider";
 
-let cache: { at: number; ids: string[] } | null = null;
+let cache: { at: number; key: string; ids: string[] } | null = null;
 
-/** Models from our catalog that the configured OpenAI key can actually use (cached 10 min). */
+/**
+ * Models from our catalog that the active provider can actually serve (cached 10 min).
+ * OpenRouter's list is public; OpenAI's depends on the key. If the list cannot be fetched, the
+ * whole catalog for that provider is assumed, and a model that is not there fails at the call.
+ */
 async function availableModelIds(): Promise<string[]> {
-  const all = MODELS.map((m) => m.id);
-  const key = process.env.OPENAI_API_KEY;
+  const via = activeProvider();
+  const all = MODELS.filter((m) => m.via === via).map((m) => m.id);
+  const key = via === "openrouter" ? process.env.OPENROUTER_API_KEY : process.env.OPENAI_API_KEY;
   if (!key) return all;
-  if (cache && Date.now() - cache.at < 10 * 60_000) return cache.ids;
+  const cacheKey = `${via}:${key.slice(-6)}`;
+  if (cache && cache.key === cacheKey && Date.now() - cache.at < 10 * 60_000) return cache.ids;
   try {
-    const res = await fetch(`${process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1"}/models`, {
-      headers: { Authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(5000),
-    });
+    const base = via === "openrouter" ? OPENROUTER_URL : (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1");
+    const res = await fetch(`${base}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(String(res.status));
     const json = (await res.json()) as { data: { id: string }[] };
     const have = new Set(json.data.map((d) => d.id));
     const ids = all.filter((id) => have.has(id));
-    cache = { at: Date.now(), ids: ids.length ? ids : all };
+    cache = { at: Date.now(), key: cacheKey, ids: ids.length ? ids : all };
   } catch {
-    cache = { at: Date.now(), ids: all };
+    cache = { at: Date.now(), key: cacheKey, ids: all };
   }
   return cache.ids;
 }
 
 /**
- * Models users may pick: what the key can access, optionally narrowed by ALLOWED_MODELS
+ * Models users may pick: what the provider can serve, optionally narrowed by ALLOWED_MODELS
  * (comma-separated ids) — e.g. to keep expensive premium models off a public deployment.
  */
 export async function allowedModelIds(): Promise<string[]> {

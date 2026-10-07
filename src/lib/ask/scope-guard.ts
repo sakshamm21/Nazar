@@ -9,7 +9,9 @@ import { languageModel } from "./provider";
  * It fails OPEN — if the classifier errors or times out, the request proceeds and the
  * system prompt's own scope rules still apply.
  */
-export const GUARD_MODEL = process.env.GUARD_MODEL || "gpt-4.1-mini";
+/** On OpenRouter a model id carries its maker, so a bare id from an older setting is read as OpenAI's. */
+const viaOpenRouter = (id: string) => (id.includes("/") ? id : `openai/${id}`);
+export const GUARD_MODEL = process.env.OPENROUTER_API_KEY ? viaOpenRouter(process.env.GUARD_MODEL || "gpt-4.1-mini") : process.env.GUARD_MODEL || "gpt-4.1-mini";
 
 const Verdict = z.object({
   verdict: z.enum(["in_scope", "out_of_scope", "prompt_attack"]),
