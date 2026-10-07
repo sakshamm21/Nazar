@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ETERNAL.NS Eternal formerly Zomato",
+  "count": 5
+ },
+ "output": {
+  "query": "ETERNAL.NS Eternal formerly Zomato",
+  "articles": []
+ }
+}

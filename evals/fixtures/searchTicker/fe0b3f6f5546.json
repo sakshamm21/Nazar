@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "TCS Tata Consultancy Services NSE"
+ },
+ "output": {
+  "query": "TCS Tata Consultancy Services NSE",
+  "results": []
+ }
+}

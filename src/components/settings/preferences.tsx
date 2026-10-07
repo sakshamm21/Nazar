@@ -11,7 +11,7 @@ export function Preferences() {
   const { resolvedTheme, setTheme } = useTheme();
   const hydrated = useHydrated(); // the theme is only known in the browser
   const [model, setModel] = useStoredPref<string>("nazar:model", "auto");
-  const [models, setModels] = useState<{ id: string; label: string; blurb: string }[]>([]);
+  const [models, setModels] = useState<{ id: string; label: string; blurb: string; openWeights?: boolean }[]>([]);
   useEffect(() => {
     fetch("/api/models").then((r) => (r.ok ? r.json() : null)).then((j) => j && setModels(j.models));
   }, []);

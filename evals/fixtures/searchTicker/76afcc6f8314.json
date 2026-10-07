@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal Limited India"
+ },
+ "output": {
+  "query": "Eternal Limited India",
+  "results": []
+ }
+}

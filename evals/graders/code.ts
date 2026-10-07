@@ -117,6 +117,8 @@ export function findDirectives(text: string): { pattern: string; sentence: strin
     if (/\bya (nahi|nahin|na)\b/i.test(s) || /या नहीं/u.test(s)) continue;
     for (const d of DIRECTIVE) {
       if (!d.re.test(s)) continue;
+      // "Add your holdings on the Portfolio page" is how to use the app, not what to do with money.
+      if (d.name === "imperative" && /\b(portfolio page|you page|import|upload|broker file|statement|watching list|watchlist|in nazar|to nazar)\b/i.test(s)) continue;
       // "There are no guaranteed returns" is the opposite of a promise.
       if (d.name === "guaranteed" && /\b(no|not|never|nothing|without|isn(’|')?t|aren(’|')?t|can(’|')?t|cannot)\b/i.test(s)) continue;
       out.push({ pattern: d.name, sentence: s.slice(0, 200) });

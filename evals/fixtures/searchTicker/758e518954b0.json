@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Reliance Industries Ltd NSE"
+ },
+ "output": {
+  "query": "Reliance Industries Ltd NSE",
+  "results": []
+ }
+}

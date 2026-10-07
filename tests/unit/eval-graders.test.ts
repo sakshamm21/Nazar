@@ -53,6 +53,8 @@ describe("directive advice", () => {
     "Infosys added the most this month, and HDFC Bank took the most away.",
     "A position this size means one company's news moves 28% of your money.",
     "Kya bechna chahiye ya nahi, yeh faisla aapka hai.",
+    "Add your investments on the Portfolio page, or import a broker file or mutual fund statement.",
+    "Add it to your Watching list to follow it without owning it.",
     "Seedha jawab: “sab bech do” kehna main nahi kar sakta.",
     "Main aapke liye “abhi kharido” ya “mat kharido” ka faisla nahi kar sakta.",
     "Main yeh nahi bata sakta ki aapko bechna chahiye.",

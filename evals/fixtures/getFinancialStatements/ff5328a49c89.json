@@ -1,0 +1,102 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "statement": "income",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "currency": "INR",
+  "statement": "income",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "totalRevenue",
+    "label": "Revenue"
+   },
+   {
+    "key": "costOfRevenue",
+    "label": "Cost of revenue"
+   },
+   {
+    "key": "grossProfit",
+    "label": "Gross profit"
+   },
+   {
+    "key": "researchAndDevelopment",
+    "label": "R&D"
+   },
+   {
+    "key": "sellingGeneralAndAdministration",
+    "label": "SG&A"
+   },
+   {
+    "key": "operatingIncome",
+    "label": "Operating income"
+   },
+   {
+    "key": "EBITDA",
+    "label": "EBITDA"
+   },
+   {
+    "key": "netIncome",
+    "label": "Net income"
+   },
+   {
+    "key": "dilutedEPS",
+    "label": "Diluted EPS"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "totalRevenue": 1205375000000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 400219800000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 495446900000,
+    "dilutedEPS": 88.68
+   },
+   {
+    "period": "2024-03-31",
+    "totalRevenue": 1604968500000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 569796800000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 622656600000,
+    "dilutedEPS": 44.16
+   },
+   {
+    "period": "2025-03-31",
+    "totalRevenue": 1838641100000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 592009400000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 673508300000,
+    "dilutedEPS": 44.82
+   },
+   {
+    "period": "2026-03-31",
+    "totalRevenue": 1925667800000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 628690500000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 704793400000,
+    "dilutedEPS": 45.75
+   }
+  ]
+ }
+}

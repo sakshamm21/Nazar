@@ -1,0 +1,138 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "TCS.NS",
+   "INFY.NS",
+   "HCLTECH.NS",
+   "WIPRO.NS"
+  ],
+  "metrics": [
+   "price",
+   "trailingPE",
+   "forwardPE",
+   "pegRatio",
+   "revenueGrowth",
+   "earningsGrowth",
+   "freeCashFlow",
+   "dividendYield"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited"
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited"
+   },
+   {
+    "symbol": "WIPRO.NS",
+    "name": "Wipro Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "format": "currency",
+    "values": [
+     2080.3,
+     992,
+     1185,
+     159.6
+    ]
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.11187,
+     13.514986,
+     18.434973,
+     12.676728
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     12.844598,
+     12.401671,
+     14.793755,
+     11.482511
+    ]
+   },
+   {
+    "key": "pegRatio",
+    "label": "PEG ratio",
+    "format": "ratio",
+    "values": [
+     2.74,
+     1.79,
+     2.39,
+     1.34
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.139,
+     0.029,
+     0.03,
+     0.106
+    ]
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.046,
+     0.053,
+     0.084,
+     0.009
+    ]
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow (TTM)",
+    "format": "large",
+    "values": [
+     397165002752,
+     306305883514.88,
+     175425873807.36002,
+     108508127232
+    ]
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "format": "percent",
+    "values": [
+     0.031,
+     0.0493,
+     0.0498,
+     0.0494
+    ]
+   }
+  ]
+ }
+}

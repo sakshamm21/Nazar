@@ -1,0 +1,103 @@
+{
+ "tool": "getIndianMarketMovers",
+ "input": {
+  "screen": "most_active",
+  "count": 10
+ },
+ "output": {
+  "screen": "most_active",
+  "title": "Nifty 50 · most active (traded value)",
+  "rows": [
+   {
+    "symbol": "BHARTIARTL.NS",
+    "name": "Bharti Airtel Limited",
+    "currency": "INR",
+    "price": 1833.9,
+    "changePercent": 1.292462,
+    "volume": 13920615,
+    "marketCap": 11441075650560
+   },
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited",
+    "currency": "INR",
+    "price": 702.75,
+    "changePercent": -1.2228564,
+    "volume": 29934694,
+    "marketCap": 10835334266880
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "currency": "INR",
+    "price": 1357.5,
+    "changePercent": 1.0947238,
+    "volume": 14773773,
+    "marketCap": 9744967270400
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited",
+    "currency": "INR",
+    "price": 440,
+    "changePercent": 1.8754356,
+    "volume": 37970218,
+    "marketCap": 4377067913216
+   },
+   {
+    "symbol": "RELIANCE.NS",
+    "name": "Reliance Industries Limited",
+    "currency": "INR",
+    "price": 1207.7,
+    "changePercent": -0.84565264,
+    "volume": 11878971,
+    "marketCap": 16343166353408
+   },
+   {
+    "symbol": "ITC.NS",
+    "name": "ITC Limited",
+    "currency": "INR",
+    "price": 265.7,
+    "changePercent": -0.37495312,
+    "volume": 50022644,
+    "marketCap": 3329358561280
+   },
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "currency": "INR",
+    "price": 4377,
+    "changePercent": -3.8021977,
+    "volume": 2951029,
+    "marketCap": 3883766120448
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "currency": "INR",
+    "price": 1242.5,
+    "changePercent": -0.44070515,
+    "volume": 9677744,
+    "marketCap": 3868862971904
+   },
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India",
+    "currency": "INR",
+    "price": 954,
+    "changePercent": -0.4954368,
+    "volume": 12519088,
+    "marketCap": 8806009405440
+   },
+   {
+    "symbol": "BAJFINANCE.NS",
+    "name": "Bajaj Finance Limited",
+    "currency": "INR",
+    "price": 963.85,
+    "changePercent": 0.077873535,
+    "volume": 11412796,
+    "marketCap": 5996027052032
+   }
+  ]
+ }
+}

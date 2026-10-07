@@ -47,14 +47,18 @@ const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}… [cut
 
 export async function judge(name: JudgeName, turn: TurnRecord, earlier: TurnRecord[]): Promise<{ grade: Grade; costUsd: number }> {
   const model = judgeModel();
-  const history = earlier.map((t) => `User: ${t.question}\nAssistant: ${clip(t.answer, 600)}`).join("\n\n");
-  const tools = turn.tools.length ? turn.tools.map((t, i) => `${t.name}(${clip(JSON.stringify(t.input), 200)}) →\n${clip(turn.modelViews[i] ?? JSON.stringify(t.output), 3500)}`).join("\n\n") : "(no tools were called)";
+  // The grounding judge has to see everything the model saw, or it reports a real figure as invented:
+  // the whole of each result, and the results from earlier turns, which the model still had in front of it.
+  const full = name === "grounded";
+  const shown = (t: TurnRecord) => t.tools.map((u, i) => `${u.name}(${clip(JSON.stringify(u.input), 200)}) →\n${clip(t.modelViews[i] ?? JSON.stringify(u.output), full ? 14_000 : 1500)}`).join("\n\n");
+  const history = earlier.map((t) => `User: ${t.question}\n${full && t.tools.length ? `Tool results then:\n${shown(t)}\n` : ""}Assistant: ${clip(t.answer, full ? 2500 : 600)}`).join("\n\n");
+  const tools = turn.tools.length ? shown(turn) : earlier.some((t) => t.tools.length) ? "(none on this turn; the results from earlier turns are above)" : "(no tools were called)";
   try {
     const { object, usage } = await generateObject({
       model: languageModel(model),
       schema: Verdict,
       system: `${CONTEXT}\n\nYou are grading one answer from that assistant on one question only. Decide strictly by the rubric. Give the reason first, then the verdict.\n\nRUBRIC (${name}):\n${RUBRICS[name]}`,
-      prompt: `${history ? `EARLIER IN THE CONVERSATION:\n${history}\n\n` : ""}QUESTION:\n${turn.question}\n\nTOOL RESULTS THE ASSISTANT WAS GIVEN:\n${name === "grounded" ? tools : clip(tools, 1500)}\n\nANSWER TO GRADE:\n${turn.answer}`,
+      prompt: `${history ? `EARLIER IN THE CONVERSATION:\n${history}\n\n` : ""}QUESTION:\n${turn.question}\n\nTOOL RESULTS THE ASSISTANT WAS GIVEN:\n${tools}\n\nANSWER TO GRADE:\n${turn.answer}`,
       temperature: 0,
       maxRetries: 1,
       abortSignal: AbortSignal.timeout(60_000),

@@ -1,0 +1,40 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ICICIBANK.NS",
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "priceToBook"
+  ]
+ },
+ "output": {
+  "symbol": "ICICIBANK.NS",
+  "name": "ICICI Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 17.547829
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 14.556641
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 2.5595
+   }
+  ]
+ }
+}

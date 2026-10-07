@@ -1,9 +1,0 @@
-{
- "tool": "getTechnicalIndicators",
- "input": {
-  "symbol": "TATAMOTORS.NS"
- },
- "output": {
-  "error": "Symbol not found or not enough data for this analysis."
- }
-}

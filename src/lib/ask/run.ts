@@ -154,7 +154,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
 
   // ── Main agent ──────────────────────────────────────────────
   const auto = !requested || requested === AUTO_MODEL || !getModel(requested) || !available.includes(requested);
-  const modelId = input.harness?.model ?? (auto ? routeModel(text, available) : requested);
+  const modelId = input.harness?.model ?? (auto ? routeModel(text, available, process.env.ASK_AUTO_MODEL) : requested);
   let firstTokenAt: number | null = null;
   let firstOutputAt: number | null = null;
   /** Text streamed in the step still under way, which no usage figure covers yet. */

@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Maruti Suzuki India Ltd"
+ },
+ "output": {
+  "query": "Maruti Suzuki India Ltd",
+  "results": [
+   {
+    "symbol": "MARUTI.NS",
+    "name": "Maruti Suzuki India Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "MARUTI.BO",
+    "name": "Maruti Suzuki India Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

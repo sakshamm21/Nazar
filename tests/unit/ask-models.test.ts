@@ -57,6 +57,20 @@ describe("Auto routing", () => {
     expect(tierOf("Compare HDFC Bank and ICICI Bank on valuation")).toBe(available[0].includes("/") ? "economy" : "balanced");
     expect(tierOf("Write a deep dive on Reliance")).toBe("premium");
   });
+  it("never chooses a model that is offered for picking only", () => {
+    for (const q of ["What is an ETF?", "Compare HDFC Bank and ICICI Bank on valuation", "Write a deep dive on Reliance"]) expect(getModel(routeModel(q, viaRouter))!.auto, q).not.toBe(false);
+  });
+  it("uses the deployment's chosen model for everything short of a deep dive, if it can be served", () => {
+    expect(routeModel("What is an ETF?", viaRouter, "z-ai/glm-5.3-flash")).toBe("z-ai/glm-5.3-flash");
+    expect(routeModel("Compare HDFC Bank and ICICI Bank", viaRouter, "z-ai/glm-5.3-flash")).toBe("z-ai/glm-5.3-flash");
+    expect(getModel(routeModel("Write a deep dive on Reliance", viaRouter, "z-ai/glm-5.3-flash"))!.tier).toBe("premium");
+    expect(routeModel("What is an ETF?", viaRouter, "someone/not-offered")).toBe("openai/gpt-6-luna");
+  });
+  it("offers open-weight models, and says so", () => {
+    const open = MODELS.filter((m) => m.openWeights);
+    expect(open.length).toBeGreaterThanOrEqual(3);
+    for (const m of open) expect(m.blurb).toMatch(/^Open weights\./);
+  });
   it("falls to the nearest tier when the one it wants is not available", () => {
     expect(routeModel("Write a deep dive on Reliance", ["openai/gpt-6-luna"])).toBe("openai/gpt-6-luna");
   });

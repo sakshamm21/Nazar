@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ETERNAL.NS",
+  "count": 5
+ },
+ "output": {
+  "query": "ETERNAL.NS",
+  "articles": []
+ }
+}

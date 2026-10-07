@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "INFY.NS Infosys latest quarterly results earnings",
+  "count": 5
+ },
+ "output": {
+  "query": "INFY.NS Infosys latest quarterly results earnings",
+  "articles": []
+ }
+}

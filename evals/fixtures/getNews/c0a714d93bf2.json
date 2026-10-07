@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TMCV.NS",
+  "count": 6
+ },
+ "output": {
+  "query": "TMCV.NS",
+  "articles": []
+ }
+}
