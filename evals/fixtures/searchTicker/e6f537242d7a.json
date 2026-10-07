@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Bharti Airtel"
+ },
+ "output": {
+  "query": "Bharti Airtel",
+  "results": [
+   {
+    "symbol": "BHARTIARTL.NS",
+    "name": "Bharti Airtel Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "BHARTIARTL.BO",
+    "name": "Bharti Airtel Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

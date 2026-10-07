@@ -19,7 +19,8 @@
     "nse:refresh": "tsx --conditions=react-server scripts/refresh-nse-master.ts",
     "catalog:refresh": "tsx --conditions=react-server scripts/refresh-catalog.ts",
     "pipeline:run": "tsx --conditions=react-server scripts/run-pipeline.ts",
-    "eval:guard": "node scripts/eval-guard.mjs"
+    "eval:guard": "tsx --conditions=react-server evals/guard.ts",
+    "eval:agent": "tsx --conditions=react-server evals/run.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.133",

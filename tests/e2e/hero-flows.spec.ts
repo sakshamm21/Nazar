@@ -235,7 +235,8 @@ test.describe("Ask and You", () => {
     await startDemo(page);
     await page.goto("/ask");
     await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?" })).toBeVisible();
+    // The history list can hold conversations with this title; the suggestion is the last such button.
+    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last()).toBeVisible();
     await page.getByRole("tab", { name: "One company" }).click();
     await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
     await expect(page.getByLabel("Your question")).toBeVisible();

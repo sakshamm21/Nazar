@@ -17,6 +17,9 @@ next-env.d.ts
 # Local embedded database (PGlite), created by `npm run dev`
 /.data
 
+# Eval run reports (the cases, recordings and baseline are committed; each run's output is not)
+/evals/runs
+
 # Test output
 /coverage
 /playwright-report

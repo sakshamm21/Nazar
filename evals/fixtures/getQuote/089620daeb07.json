@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "BHARTIARTL.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "BHARTIARTL.NS",
+    "name": "Bharti Airtel Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 1833.9,
+    "change": 23.400024,
+    "changePercent": 1.292462,
+    "previousClose": 1810.5,
+    "open": 1823,
+    "dayHigh": 1854.7,
+    "dayLow": 1810.5,
+    "volume": 13920615,
+    "marketCap": 11441075650560,
+    "fiftyTwoWeekHigh": 2174.5,
+    "fiftyTwoWeekLow": 1726.3,
+    "trailingPE": 37.68804,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-07T09:44:59.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}
