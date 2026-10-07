@@ -6,9 +6,11 @@ import { useState } from "react";
 import { NazarMark } from "@/components/rings/nazar-mark";
 import { cn } from "@/lib/cn";
 import { TOOL_COUNT } from "@/lib/ask/registry";
+import type { Starter } from "@/lib/ask/starters";
+import { trackClient } from "@/lib/events-client";
 
 /** What the page knows about the person asking, used to make the examples about their own money. */
-export type AskContext = { stock: string | null; second: string | null; hasPortfolio: boolean };
+export type AskContext = { stock: string | null; second: string | null; hasPortfolio: boolean; today?: Starter[] };
 
 type Topic = { id: string; label: string; icon: LucideIcon; blurb: string; questions: string[] };
 
@@ -71,6 +73,27 @@ export function AskStart({ context, mode, onPick }: { context: AskContext; mode:
         Ask anything about <span className="text-accent">your money</span>
       </h1>
       <p className="mx-auto mt-3 max-w-lg text-[15px] leading-6 text-muted">Nazar reads your portfolio and live market data, then explains in plain words. English, Hindi or Hinglish.</p>
+
+      {(context.today?.length ?? 0) > 0 && (
+        <div className="mt-7" aria-label="From your portfolio today">
+          <div className="t-overline mb-2">From your portfolio today</div>
+          <div className="flex flex-wrap justify-center gap-2">
+            {context.today!.map((s, i) => (
+              <button
+                key={s.id}
+                title={s.question}
+                onClick={() => {
+                  trackClient("suggestion_click", { position: i, kind: "today" });
+                  onPick(s.question);
+                }}
+                className="rounded-full border border-accent/30 bg-accent-soft px-3.5 py-1.5 text-[13px] font-medium text-text transition hover:-translate-y-0.5 hover:border-accent"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-wrap justify-center gap-1.5" role="tablist" aria-label="Kinds of question">
         {list.map((t) => (

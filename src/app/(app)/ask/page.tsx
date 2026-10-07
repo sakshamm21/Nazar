@@ -6,6 +6,7 @@ import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { portfolioView } from "@/lib/views/portfolio";
 import { headers } from "next/headers";
 import { ipHashOf, remainingToday } from "@/lib/limits";
+import { startersFor } from "@/lib/ask/starters";
 
 export const metadata: Metadata = { title: "Ask" };
 
@@ -20,7 +21,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   const stocks = view.empty ? [] : view.cards.filter((c) => c.assetClass === "stock").map((c) => c.name);
   return (
     <Suspense>
-      <AskWorkspace context={{ stock: stocks[0] ?? null, second: stocks[1] ?? null, hasPortfolio: !view.empty }} remaining={await remainingToday(user.id, user.isTestAccount, ipHashOf(await headers()))} start={start} />
+      <AskWorkspace context={{ stock: stocks[0] ?? null, second: stocks[1] ?? null, hasPortfolio: !view.empty, today: view.empty ? [] : startersFor({ dayChange: view.valuation.dayChange, dayChangePct: view.valuation.dayChangePct, notes: view.notes }) }} remaining={await remainingToday(user.id, user.isTestAccount, ipHashOf(await headers()))} start={start} />
     </Suspense>
   );
 }

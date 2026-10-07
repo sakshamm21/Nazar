@@ -1,0 +1,78 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "INFY.NS",
+  "statement": "cashflow",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "INFY.NS",
+  "currency": "USD",
+  "statement": "cashflow",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow"
+   },
+   {
+    "key": "capitalExpenditure",
+    "label": "Capex"
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow"
+   },
+   {
+    "key": "repurchaseOfCapitalStock",
+    "label": "Buybacks"
+   },
+   {
+    "key": "cashDividendsPaid",
+    "label": "Dividends paid"
+   },
+   {
+    "key": "stockBasedCompensation",
+    "label": "Stock-based comp"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "operatingCashFlow": 2853000000,
+    "capitalExpenditure": -319000000,
+    "freeCashFlow": 2534000000,
+    "repurchaseOfCapitalStock": -1398000000,
+    "cashDividendsPaid": -1697000000,
+    "stockBasedCompensation": 64000000
+   },
+   {
+    "period": "2024-03-31",
+    "operatingCashFlow": 3148000000,
+    "capitalExpenditure": -266000000,
+    "freeCashFlow": 2882000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -1777000000,
+    "stockBasedCompensation": 79000000
+   },
+   {
+    "period": "2025-03-31",
+    "operatingCashFlow": 4351000000,
+    "capitalExpenditure": -263000000,
+    "freeCashFlow": 4088000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -2416000000,
+    "stockBasedCompensation": 95000000
+   },
+   {
+    "period": "2026-03-31",
+    "operatingCashFlow": 4039000000,
+    "capitalExpenditure": -306000000,
+    "freeCashFlow": 3733000000,
+    "repurchaseOfCapitalStock": -2006000000,
+    "cashDividendsPaid": -2133000000,
+    "stockBasedCompensation": 108000000
+   }
+  ]
+ }
+}

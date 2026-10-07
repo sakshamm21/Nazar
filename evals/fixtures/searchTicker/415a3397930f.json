@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Adani Enterprises NSE"
+ },
+ "output": {
+  "query": "Adani Enterprises NSE",
+  "results": []
+ }
+}

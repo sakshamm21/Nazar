@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Zomato Limited NSE"
+ },
+ "output": {
+  "query": "Zomato Limited NSE",
+  "results": []
+ }
+}

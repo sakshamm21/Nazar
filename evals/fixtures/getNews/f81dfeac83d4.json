@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Indian stock market Nifty October 7 2026 fall reasons",
+  "count": 6
+ },
+ "output": {
+  "query": "Indian stock market Nifty October 7 2026 fall reasons",
+  "articles": []
+ }
+}

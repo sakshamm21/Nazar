@@ -1,0 +1,13 @@
+{
+ "tool": "runDcfValuation",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "growthRate": 0.08,
+  "terminalGrowth": 0.025,
+  "discountRate": 0.09,
+  "years": 5
+ },
+ "output": {
+  "error": "Free cash flow or share count unavailable — DCF not possible for this ticker."
+ }
+}

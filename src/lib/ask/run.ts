@@ -16,6 +16,17 @@ import { classify, GUARD_MODEL, refusalText } from "./scope-guard";
 import { makeTools } from "./tools";
 import { writeTrace, type Trace, type TraceGuard, type TraceOutcome, type TraceStep } from "./trace";
 
+/**
+ * The script to answer in, said outright when the question's language is certain. Left to itself a
+ * model sometimes answers a Hinglish question in Devanagari; the code already knows which it was.
+ * English gets no note: a message with no Hindi words may still be one, and the prompt's own rule covers it.
+ */
+const LANGUAGE_NOTE = {
+  en: "",
+  hinglish: "\n\nTHIS MESSAGE is in Hinglish (Hindi written in Latin letters). Answer in Hinglish, in Latin letters. Do not use Devanagari script.",
+  hi: "\n\nTHIS MESSAGE is in Hindi (Devanagari). Answer in Hindi, in Devanagari script.",
+} as const;
+
 /** The most model calls one answer may take. The last one is not offered tools, so it has to answer. */
 export const MAX_STEPS = 10;
 
@@ -46,6 +57,8 @@ export type AskInput = {
     today?: string;
     model?: string;
     skipLimits?: boolean;
+    /** How hard a reasoning model thinks before it answers: an experiment in trading depth for speed. */
+    reasoningEffort?: string;
   };
 };
 
@@ -178,6 +191,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
     }),
   ) as unknown as typeof plainTools;
 
+  const effort = input.harness?.reasoningEffort ?? process.env.ASK_REASONING_EFFORT ?? getModel(modelId)?.reasoningEffort;
   const steps: TraceStep[] = [];
   let stepStartedAt = Date.now();
   const isError = (out: unknown) => Boolean(out && typeof out === "object" && "error" in out);
@@ -207,7 +221,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const result = streamText({
     model: languageModel(modelId),
     // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
-    system: systemPrompt(mode, input.harness?.today ?? istToday()),
+    system: systemPrompt(mode, input.harness?.today ?? istToday()) + LANGUAGE_NOTE[lang],
     // Unfinished tool calls are dropped by convertToModelMessages.
     messages: convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools }),
     tools,
@@ -215,6 +229,9 @@ export async function runAsk(input: AskInput): Promise<Response> {
     // Without this, a run that is still looking things up at the cap ends with no answer at all.
     prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 ? { toolChoice: "none" } : undefined),
     maxOutputTokens: 8000,
+    // Most questions are lookups over data Nazar has already worked out, so a reasoning model is told
+    // how much to deliberate: the catalog's setting for it, or ASK_REASONING_EFFORT for the deployment.
+    providerOptions: effort ? { openai: { reasoningEffort: effort } } : undefined,
     abortSignal: input.signal,
     onChunk: ({ chunk }) => {
       if (firstOutputAt === null && (chunk.type === "text-delta" || chunk.type === "tool-input-start" || chunk.type === "tool-call")) firstOutputAt = Date.now();

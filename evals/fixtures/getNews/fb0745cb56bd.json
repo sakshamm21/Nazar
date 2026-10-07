@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "HDFC Bank merger deposit growth net interest margin October 2026",
+  "count": 4
+ },
+ "output": {
+  "query": "HDFC Bank merger deposit growth net interest margin October 2026",
+  "articles": []
+ }
+}

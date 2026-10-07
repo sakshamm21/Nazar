@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty 50 India market October 7 2026 fall today",
+  "count": 6
+ },
+ "output": {
+  "query": "Nifty 50 India market October 7 2026 fall today",
+  "articles": []
+ }
+}

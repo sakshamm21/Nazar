@@ -10,6 +10,7 @@
  *
  * Flags: --suite golden|adversarial|all · --models a,b (or "auto") · --repeat N · --filter text
  *        --limit N · --no-judge · --frozen (never call Yahoo; replay recordings only)
+ *        --effort low|medium|high (reasoning effort for the answering model)
  *        --max-usd N (stop starting new cases past this spend; default 3) · --concurrency N
  *
  * It needs a model key (OPENROUTER_API_KEY, or OPENAI_API_KEY) and spends real money: the report
@@ -40,6 +41,7 @@ const MAX_USD = Number(opt("max-usd", "3"));
 const CONCURRENCY = Math.max(1, Number(opt("concurrency", "3")));
 const JUDGE = !flag("no-judge");
 const FROZEN = flag("frozen");
+const EFFORT = opt("effort", "");
 
 const DIR = path.join(process.cwd(), "evals");
 const BASELINE = path.join(DIR, "baseline.json");
@@ -139,7 +141,7 @@ async function main() {
           mode: c.mode ?? "simple",
           ip: "eval",
           signal: AbortSignal.timeout(120_000),
-          harness: { today: EVAL_TODAY, skipLimits: true, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
+          harness: { today: EVAL_TODAY, skipLimits: true, reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
         });
         const body = await res.text();
         if (res.status !== 200) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);

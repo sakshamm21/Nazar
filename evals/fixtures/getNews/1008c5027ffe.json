@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Eternal Ltd Zomato",
+  "count": 6
+ },
+ "output": {
+  "query": "Eternal Ltd Zomato",
+  "articles": []
+ }
+}

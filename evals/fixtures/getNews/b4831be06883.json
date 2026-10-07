@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Infosys latest quarterly results June 2026 Q1 FY27",
+  "count": 5
+ },
+ "output": {
+  "query": "Infosys latest quarterly results June 2026 Q1 FY27",
+  "articles": []
+ }
+}

@@ -44,16 +44,22 @@ export interface ModelInfo {
   openWeights?: true;
   /** False for a model the user may pick but Auto never does. */
   auto?: false;
+  /**
+   * How hard a reasoning model thinks before answering. Set where an eval showed that thinking
+   * less costs nothing: Luna at "minimal" passed the same 92 of 93 cases over three runs and
+   * reached its first word in 4.6 s instead of 7.0 s.
+   */
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
 }
 
 export const MODELS: ModelInfo[] = [
   // ── OpenRouter ──────────────────────────────────────────────
-  { id: "openai/gpt-6-luna", label: "GPT-6 Luna", via: "openrouter", tier: "economy", inputCost: 0.1, cachedInputCost: 0.01, outputCost: 0.5, speed: 5, quality: 3, blurb: "Fastest & cheapest. Quotes, lookups." },
+  { id: "openai/gpt-6-luna", label: "GPT-6 Luna", via: "openrouter", tier: "economy", inputCost: 0.1, cachedInputCost: 0.01, outputCost: 0.5, speed: 5, quality: 3, blurb: "The default: best on Nazar's own tests, and the cheapest.", reasoningEffort: "minimal" },
   { id: "z-ai/glm-5.3-flash", label: "GLM 5.3 Flash", via: "openrouter", tier: "economy", inputCost: 0.15, cachedInputCost: 0.03, outputCost: 0.5, speed: 3, quality: 3, blurb: "Open weights. Closest to the default on Nazar's own tests.", openWeights: true, auto: false },
   { id: "deepseek/deepseek-v4-pro-0813", label: "DeepSeek V4 Pro", via: "openrouter", tier: "balanced", inputCost: 0.66, cachedInputCost: 0.022, outputCost: 1.98, speed: 3, quality: 3, blurb: "Open weights. A larger model, for longer analysis.", openWeights: true, auto: false },
   { id: "deepseek/deepseek-v4.1-flash", label: "DeepSeek V4.1 Flash", via: "openrouter", tier: "economy", inputCost: 0.3, cachedInputCost: 0.006, outputCost: 1.2, speed: 5, quality: 2, blurb: "Open weights. The quickest to start answering.", openWeights: true, auto: false },
   { id: "openai/gpt-6-sol", label: "GPT-6 Sol", via: "openrouter", tier: "premium", inputCost: 2, cachedInputCost: 0.2, outputCost: 10, speed: 3, quality: 5, blurb: "Deepest analysis." },
-  { id: "anthropic/claude-sonnet-5.5", label: "Claude Sonnet 5.5", via: "openrouter", tier: "premium", inputCost: 2, cachedInputCost: 0.2, outputCost: 10, speed: 3, quality: 5, blurb: "Careful long-form analysis." },
+  { id: "anthropic/claude-sonnet-5.5", label: "Claude Sonnet 5.5", via: "openrouter", tier: "premium", inputCost: 2, cachedInputCost: 0.2, outputCost: 10, speed: 2, quality: 5, blurb: "Long-form analysis. Writes more than Simple mode asks for.", auto: false },
   { id: "openai/gpt-4.1-mini", label: "GPT-4.1 mini", via: "openrouter", tier: "economy", inputCost: 0.4, cachedInputCost: 0.1, outputCost: 1.6, speed: 5, quality: 2, blurb: "No reasoning, very fast. Used by the topic filter." },
   // ── OpenAI direct (used only when no OpenRouter key is set) ──
   { id: "gpt-6-luna", label: "GPT-6 Luna", via: "openai", tier: "economy", inputCost: 0.1, cachedInputCost: 0.01, outputCost: 0.5, speed: 5, quality: 3, blurb: "Fastest & cheapest. Quotes, lookups." },

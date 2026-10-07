@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ITC Ltd India"
+ },
+ "output": {
+  "query": "ITC Ltd India",
+  "results": []
+ }
+}
