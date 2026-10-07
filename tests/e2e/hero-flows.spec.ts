@@ -341,7 +341,9 @@ test.describe("Ask @openai", () => {
   test("answers a portfolio question with getMyPortfolio", async ({ page }) => {
     await startDemo(page);
     await page.goto("/ask");
-    await page.getByRole("button", { name: "Why is my portfolio down this month?" }).click();
+    // Earlier runs leave conversations with this title in the history list, which comes first in
+    // the page; the suggestion on the start screen is the last button with the name.
+    await page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last().click();
     await expect(page.getByText(/Reading your portfolio|read-only from Nazar's checkup/).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/the decision is yours/i)).toBeVisible({ timeout: 90_000 });
   });

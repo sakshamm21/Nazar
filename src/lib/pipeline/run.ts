@@ -104,6 +104,8 @@ export async function runMaintenance(provider: MarketDataProvider = resilientPro
   const db = await getDb();
   const expired = await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.demoExpiresAt, new Date()))).returning({ id: schema.users.id });
   await db.delete(schema.rateEvents).where(lt(schema.rateEvents.createdAt, new Date(Date.now() - 48 * 3600_000)));
+  // Ask traces are for tuning recent behaviour, not a permanent record.
+  await db.delete(schema.askTraces).where(lt(schema.askTraces.createdAt, new Date(Date.now() - 90 * 86_400_000)));
   const backfilled = await repairMissingResults(db, provider);
   const { ensureTestAccounts } = await import("@/lib/demo/seed");
   const accounts = await ensureTestAccounts(db);

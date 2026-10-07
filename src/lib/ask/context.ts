@@ -26,7 +26,7 @@ export function compactHistory<M extends UIMessage>(messages: M[], tools: Record
     if (i >= recent.length - KEEP_WHOLE) return m;
     const parts = m.parts.map((p: any) => {
       if (typeof p.type !== "string" || !p.type.startsWith("tool-") || p.state !== "output-available") return p;
-      const seen = modelView(tools[p.type.slice(5)], p.output);
+      const seen = modelViewOf(tools[p.type.slice(5)], p.output);
       if (seen.length <= MAX_CHARS) return p;
       const output: TruncatedOutput = { truncated: true, note: "Older tool output truncated to save context; call the tool again if exact figures are needed.", excerpt: seen.slice(0, EXCERPT_CHARS) };
       return { ...p, output };
@@ -36,7 +36,7 @@ export function compactHistory<M extends UIMessage>(messages: M[], tools: Record
 }
 
 /** The tool result as the model would read it, as JSON text. */
-function modelView(tool: ToolLike | undefined, output: unknown): string {
+export function modelViewOf(tool: ToolLike | undefined, output: unknown): string {
   let seen: unknown = output;
   if (tool?.toModelOutput) {
     try {
@@ -47,4 +47,25 @@ function modelView(tool: ToolLike | undefined, output: unknown): string {
     }
   }
   return JSON.stringify(seen ?? null);
+}
+
+export type AskLang = "en" | "hi" | "hinglish";
+
+/** Hindi words people type in Latin letters. Two different ones in a message make it Hinglish. */
+const HINGLISH = new Set([
+  "kya", "kyun", "kyu", "kyon", "hai", "hain", "tha", "thi", "mera", "mere", "meri", "apna", "apni", "kaise", "kaisa", "kitna", "kitne", "kitni", "kaun", "kaunsa", "kaunsi",
+  "samjhao", "batao", "bataiye", "dikhao", "nahi", "nahin", "abhi", "aaj", "kal", "mein", "aur", "sabse", "paisa", "paise", "chahiye", "karo", "karna", "gira", "giri", "badha", "badhi", "sasta", "mehnga", "accha", "kharab", "kab", "kahan", "kuch", "bahut",
+]);
+
+/**
+ * The language a question was asked in, for telemetry and for checking the answer came back in it.
+ * Devanagari is Hindi. Latin letters with Hindi words are Hinglish. Everything else counts as
+ * English: a rupee sign or an Indian company name says nothing about language.
+ */
+export function detectLang(text: string): AskLang {
+  const devanagari = (text.match(/[ऀ-ॿ]/g) ?? []).length;
+  const latin = (text.match(/[A-Za-z]/g) ?? []).length;
+  if (devanagari > 0 && devanagari >= latin / 2) return "hi";
+  const hits = new Set((text.toLowerCase().match(/[a-z]+/g) ?? []).filter((w) => HINGLISH.has(w)));
+  return hits.size >= 2 ? "hinglish" : "en";
 }

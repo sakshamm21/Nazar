@@ -22,18 +22,18 @@ export const POST = api(async (req) => {
   const db = await getDb();
   const [chat] = await db.select({ messages: schema.chats.messages }).from(schema.chats).where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, u.id))).limit(1);
   const msg = (Array.isArray(chat?.messages) ? chat.messages : []).find((m: { id?: string; role?: string }) => m.id === messageId && m.role === "assistant") as
-    | { metadata?: { model?: string; mode?: string } }
+    | { metadata?: { model?: string; mode?: string; promptVersion?: string } }
     | undefined;
   if (!msg) throw notFound("Message not found.");
   if (rating === null) {
     await db.delete(schema.feedback).where(and(eq(schema.feedback.userId, u.id), eq(schema.feedback.messageId, messageId)));
     return json({ ok: true });
   }
-  const row = { userId: u.id, messageId, chatId, rating, reason: rating === "down" ? (reason ?? null) : null, model: msg.metadata?.model ?? null, mode: msg.metadata?.mode ?? null };
+  const row = { userId: u.id, messageId, chatId, rating, reason: rating === "down" ? (reason ?? null) : null, model: msg.metadata?.model ?? null, mode: msg.metadata?.mode ?? null, promptVersion: msg.metadata?.promptVersion ?? null };
   await db
     .insert(schema.feedback)
     .values(row)
     .onConflictDoUpdate({ target: [schema.feedback.userId, schema.feedback.messageId], set: { rating: row.rating, reason: row.reason, createdAt: new Date() } });
-  track(u.id, "feedback", { rating, reason: row.reason, model: row.model, mode: row.mode }, chatId);
+  track(u.id, "feedback", { rating, reason: row.reason, model: row.model, mode: row.mode, promptVersion: row.promptVersion }, chatId);
   return json({ ok: true });
 });

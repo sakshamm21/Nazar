@@ -17,5 +17,5 @@ export async function POST(req: Request) {
   if (!body.success) return Response.json({ error: "Bad request" }, { status: 400 });
   const t = Date.now();
   const r = await classify(body.data.text, body.data, await allowedModelIds());
-  return Response.json({ verdict: r.verdict, topic: r.topic, skipped: r.skipped ?? false, ms: Date.now() - t });
+  return Response.json({ verdict: r.verdict, topic: r.topic, skipped: Boolean(r.skipped), ms: Date.now() - t });
 }

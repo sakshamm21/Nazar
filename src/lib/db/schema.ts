@@ -306,6 +306,8 @@ export const feedback = pgTable(
     reason: text("reason"),
     model: text("model"),
     mode: text("mode"),
+    /** Which wording of the prompts and tools produced the answer being rated. */
+    promptVersion: text("prompt_version"),
     createdAt: created(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.messageId] }), index("feedback_created_idx").on(t.createdAt)],
@@ -335,4 +337,48 @@ export const usage = pgTable(
     createdAt: created(),
   },
   (t) => [index("usage_user_idx").on(t.userId), index("usage_created_idx").on(t.createdAt)],
+);
+
+/**
+ * One row per Ask answer: what ran, how long it took and what it cost. No free text: the question
+ * and the answer live in `chats`, and this points at them. Kept 90 days (see runMaintenance).
+ */
+export const askTraces = pgTable(
+  "ask_traces",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    chatId: text("chat_id").notNull(),
+    /** The assistant message this describes, as stored in the chat. */
+    messageId: text("message_id").notNull(),
+    promptVersion: text("prompt_version").notNull(),
+    /** Null when the scope guard refused the question before a model was chosen. */
+    model: text("model"),
+    /** True when Nazar picked the model, false when the user did. */
+    auto: boolean("auto").notNull().default(true),
+    mode: text("mode").notNull(),
+    lang: text("lang").notNull(),
+    /** Which question of the conversation this was, from 1. */
+    turn: integer("turn").notNull(),
+    outcome: text("outcome").$type<"finished" | "stopped" | "blocked" | "error">().notNull(),
+    guard: jsonb("guard").$type<{ verdict: string; ms: number; skipped: string | null }>().notNull(),
+    steps: jsonb("steps")
+      .$type<{ n: number; ms: number; finishReason: string; inputTokens: number; outputTokens: number; tools: { name: string; ms: number | null; ok: boolean; outChars: number; viewChars: number }[] }[]>()
+      .notNull()
+      .default([]),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    /** The part of inputTokens the provider served from its prompt cache. */
+    cachedInputTokens: integer("cached_input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    /** The part of outputTokens spent on reasoning rather than the answer. */
+    reasoningTokens: integer("reasoning_tokens").notNull().default(0),
+    costUsd: doublePrecision("cost_usd").notNull().default(0),
+    /** Time to the first word of the answer; null when there was none. */
+    ttftMs: integer("ttft_ms"),
+    latencyMs: integer("latency_ms").notNull(),
+    /** A short provider error, when outcome is "error". */
+    error: text("error"),
+    createdAt: created(),
+  },
+  (t) => [index("ask_traces_created_idx").on(t.createdAt), index("ask_traces_chat_idx").on(t.chatId), index("ask_traces_version_idx").on(t.promptVersion, t.createdAt)],
 );
