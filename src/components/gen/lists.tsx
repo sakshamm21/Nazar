@@ -196,7 +196,7 @@ export function PortfolioToolView({ data }: { data: any }) {
         </thead>
         <tbody className="divide-y divide-line">
           {top.map((h: any) => (
-            <tr key={h.symbol}>
+            <tr key={h.symbol ?? h.name}>
               <td className="py-1.5 text-text">{h.name}</td>
               <td className="py-1.5 text-right text-muted">{(h.weight * 100).toFixed(0)}%</td>
               <td className={`py-1.5 text-right ${upDown(h.todayPct)}`}>{pct(h.todayPct)}</td>

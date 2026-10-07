@@ -25,6 +25,7 @@ export async function safe<T>(fn: () => Promise<T>, what: "data" | "analysis" = 
 /**
  * What the MODEL sees of a tool result. The UI still receives the full output (every chart point),
  * but the model gets a compact summary: bulky arrays re-sent on every agent step were the main
- * driver of input tokens (and therefore cost and latency). Errors pass through unchanged.
+ * driver of input tokens (and therefore cost and latency). Errors pass through unchanged, and so
+ * does a result that history compaction has already cut down: it no longer has the tool's shape.
  */
-export const forModel = (fn: (o: any) => unknown) => (o: any) => ({ type: "json" as const, value: (o && typeof o === "object" && "error" in o ? o : fn(o)) as any });
+export const forModel = (fn: (o: any) => unknown) => (o: any) => ({ type: "json" as const, value: (o && typeof o === "object" && ("error" in o || o.truncated === true) ? o : fn(o)) as any });

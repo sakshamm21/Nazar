@@ -16,6 +16,8 @@ import { getDb, schema } from "@/lib/db";
 import { classify, GUARD_MODEL, refusalText } from "@/lib/ask/scope-guard";
 import { api, parseBody, requireUser } from "@/lib/http";
 import { LIMITS, checkAndRecord, ipHash } from "@/lib/limits";
+import { compactHistory } from "@/lib/ask/context";
+import { today as istToday } from "@/lib/goals/draft";
 import { ADVICE_RULES, NAZAR_SCOPE } from "@/lib/ask/prompt";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "@/lib/ask/models";
 import { allowedModelIds } from "@/lib/ask/openai-models";
@@ -36,7 +38,8 @@ const MODE_STYLE = {
 
 /** Built per request so the date is always current on long-running servers. */
 function systemPrompt(mode: keyof typeof MODE_STYLE) {
-  const today = new Date().toISOString().slice(0, 10);
+  // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
+  const today = istToday();
   return `You are Nazar's "Ask" assistant: a calm, precise research companion for Indian retail investors. Nazar watches the user's portfolio every day and explains what happened and why. Today is ${today}.
 
 LANGUAGE (highest priority for formatting): answer in the language of the user's latest message. Default to English. Use Devanagari Hindi only when the message itself is mostly in Devanagari; use Hinglish only when the message is Hindi written in Latin letters ("kya hai", "samjhao"). A ₹ sign or Indian company names do NOT mean Hindi. Keep tickers, numbers and terms like P/E as-is.
@@ -81,22 +84,8 @@ function textOf(m: Msg | undefined) {
   return (m?.parts ?? []).map((p) => (p.type === "text" ? p.text : "")).join(" ").trim();
 }
 
-/**
- * What the model sees: recent history only, with bulky tool outputs from older turns
- * summarised (the UI keeps the full data). Unfinished tool calls are dropped by convertToModelMessages.
- */
-function forModel(messages: Msg[]): Msg[] {
-  const recent = messages.slice(-30);
-  return recent.map((m, i) => {
-    const old = i < recent.length - 4;
-    const parts = m.parts.map((p: any) => {
-      if (!old || !p.type?.startsWith("tool-") || p.state !== "output-available") return p;
-      const json = JSON.stringify(p.output ?? null);
-      return json.length > 2500 ? { ...p, output: { note: "Older tool output truncated to save context; call the tool again if exact figures are needed.", excerpt: json.slice(0, 1500) } } : p;
-    });
-    return { ...m, parts };
-  });
-}
+/** The most model calls one answer may take. The last one is not offered tools, so it has to answer. */
+const MAX_STEPS = 10;
 
 function friendlyError(msg: string, modelId: string) {
   if (/model/i.test(msg) && /(not found|does not exist|access)/i.test(msg)) return `Model "${modelId}" isn't available for this OpenAI key. Pick another model.`;
@@ -190,19 +179,42 @@ export const POST = api(async (req: Request) => {
   const modelId = auto ? routeModel(text, available) : requested;
   let firstTokenAt: number | null = null;
   let firstOutputAt: number | null = null;
+  /** Text streamed in the step still under way, which no usage figure covers yet. */
+  let unbilledChars = 0;
   const tools = makeTools(userId);
 
   const result = streamText({
     model: openai(modelId),
     system: systemPrompt(mode),
-    messages: convertToModelMessages(forModel(messages), { ignoreIncompleteToolCalls: true, tools }),
+    // Unfinished tool calls are dropped by convertToModelMessages.
+    messages: convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools }),
     tools,
-    stopWhen: stepCountIs(10),
+    stopWhen: stepCountIs(MAX_STEPS),
+    // Without this, a run that is still looking things up at the cap ends with no answer at all.
+    prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 ? { toolChoice: "none" } : undefined),
     maxOutputTokens: 8000,
     abortSignal: req.signal,
     onChunk: ({ chunk }) => {
       if (firstOutputAt === null && (chunk.type === "text-delta" || chunk.type === "tool-input-start" || chunk.type === "tool-call")) firstOutputAt = Date.now();
       if (firstTokenAt === null && chunk.type === "text-delta") firstTokenAt = Date.now();
+      if (chunk.type === "text-delta") unbilledChars += chunk.text.length;
+    },
+    onStepFinish: () => {
+      unbilledChars = 0;
+    },
+    // Stop (or a closed tab) skips onFinish. The tokens were still spent, so they still count
+    // toward the budgets, and the answer still shows up in Insights.
+    onAbort: ({ steps }) => {
+      const inputTokens = steps.reduce((a, s) => a + (s.usage.inputTokens ?? 0), 0);
+      // The provider reports nothing for the step that was cut off: estimate its text at 4 characters a token.
+      const outputTokens = steps.reduce((a, s) => a + (s.usage.outputTokens ?? 0), 0) + Math.ceil(unbilledChars / 4);
+      void logUsage(modelId, inputTokens, outputTokens);
+      track(
+        userId,
+        "answer_stopped",
+        { model: modelId, auto, mode, tools: steps.flatMap((s) => s.toolCalls).map((c) => c.toolName), steps: steps.length, inputTokens, outputTokens, costUsd: estimateCost(modelId, inputTokens, outputTokens), guardMs, latencyMs: Date.now() - startedAt },
+        id,
+      );
     },
     onFinish: ({ totalUsage, steps }) => {
       const inputTokens = totalUsage.inputTokens ?? 0;
