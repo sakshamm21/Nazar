@@ -241,7 +241,7 @@ describe("the fourth question after a chart", () => {
     const prompt = sent(calls[0]);
     expect(prompt).toContain("maxDrawdown");
     // The 260 raw points are not sent: the model gets the tool's sampled summary.
-    expect(prompt.length).toBeLessThan(6000);
+    expect(prompt.length).toBeLessThan(9000);
     expect((await traceOf(id)).turn).toBe(4);
   });
 });

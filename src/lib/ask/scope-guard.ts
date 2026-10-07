@@ -27,6 +27,7 @@ in_scope — anything a stock-market research assistant should answer:
 - investing & personal-finance concepts and education ("what is P/E", "how do SIPs work", "explain beta", tax on capital gains)
 - questions about the user's OWN portfolio, holdings, analysis or risk checks ("why is my portfolio down", "which holding is riskiest", "mere portfolio mein kya hua")
 - portfolio questions, risk, diversification, "should I buy X" (the assistant will answer with balanced analysis, never a recommendation)
+- pressing for a verdict on an investment ("just tell me yes or no", "what would you do", "seedha batao bechun ya nahi"): still in_scope. The assistant declines to advise; this filter does not
 - analysis models: DCF, comparable-company valuation, SIP backtests, risk/return, correlation, DuPont, financial-health scores, technical indicators
 - building, exporting or downloading these stock analyses as Excel/spreadsheet models
 - using this app: the analysis, Watching list, importing holdings, sharing, Excel downloads, what the assistant can do

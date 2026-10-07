@@ -44,7 +44,7 @@ function topics(c: AskContext): Topic[] {
       label: "Markets today",
       icon: Globe2,
       blurb: "Indices, sectors, the day's movers and headlines, from live data.",
-      questions: ["How are Indian markets doing today?", "Top Nifty 50 losers today", "Which sectors are up the most this week?"],
+      questions: ["How are Indian markets doing today?", "Top Nifty 50 losers today", "Which Nifty sectors moved the most today?"],
     },
     {
       id: "learn",

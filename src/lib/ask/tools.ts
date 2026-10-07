@@ -13,6 +13,9 @@ import { displayName } from "../market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "../market/store";
 import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo/portfolios";
 import { buildPortfolioView } from "../views/portfolio";
+import { goalsView } from "../views/goals";
+import { LONG_TERM_DAYS, LTCG_EXEMPTION } from "../portfolio/capital-gains";
+import { PERIODS, explain } from "../portfolio/performance";
 
 /** Market-data tools: stateless, safe to share between users. */
 const marketTools = {
@@ -379,10 +382,26 @@ const marketTools = {
           sensitivity: { growthRates: gs, discountRates: rs, grid: rs.map((r) => gs.map((g) => value(g, r).perShare)) },
         };
       }),
+    // The model reads the result under neutral names. A field called "upside" invites the answer
+    // to call a share cheap or dear, which is a view on what to do with it; a gap is just a gap.
+    toModelOutput: forModel((o) => ({
+      symbol: o.symbol,
+      currency: o.currency,
+      fxConversion: o.fxConversion,
+      price: o.price,
+      modelValuePerShare: o.intrinsicValue,
+      gapVsPrice: o.upside,
+      assumptions: o.assumptions,
+      breakdown: o.breakdown,
+      sensitivity: o.sensitivity,
+      note: "A DCF is an estimate that moves a lot with its assumptions. Report the model value and the gap with the assumptions beside them; never as a price to act on.",
+    })),
   }),
 };
 
-/** Tools that read the signed-in user's own data (portfolio, Watching). */
+const EMPTY_NOTE = "No holdings yet. On the Portfolio page the user can search and add stocks, funds, ETFs, gold, US stocks and crypto, add deposits and PF by hand, or import a broker file or mutual fund statement.";
+
+/** Tools that read the signed-in user's own data (portfolio, goals, Watching). */
 function userTools(userId: string) {
   const loadUser = async () => {
     const db = await getDb();
@@ -405,21 +424,136 @@ function userTools(userId: string) {
       }),
     };
   };
+  /** The user's portfolio view, or what to tell the model when there is nothing in it. */
+  const loadView = async (portfolio?: string) => {
+    const u = await loadUser();
+    const db = await getDb();
+    const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
+    const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase())) : null;
+    const v = await buildPortfolioView(u, match?.id ?? null);
+    const names = pfs.map((p) => p.name);
+    return v.empty ? { empty: { portfolios: names, empty: true as const, note: EMPTY_NOTE } } : { v, names };
+  };
+  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.");
+  const r0 = (n: number) => Math.round(n);
+
   return {
-    getMyPortfolio: tool({
+    getPortfolioPerformance: tool({
       description:
-        "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, and a hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration). Use it for any question about 'my portfolio', 'my holdings', 'why am I down', 'which holding is riskiest'. Describe and explain only; never suggest what to do with any holding.",
-      inputSchema: z.object({ portfolio: z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.") }),
+        "How the user's portfolio did over a period, and why: the change in rupees and percent, which holdings added and took away the most, how much the market alone explains (each holding's beta times the Nifty's move) against what is specific to what they own, the best and worst day, and the deepest fall. Use this for ANY question about a period: 'this week', 'this month', 'over the last year', 'since January', 'why am I down this month'. Its `summary` holds Nazar's own sentences for the period; build the answer on those numbers and do not recompute them. For today's move alone, getMyPortfolio is enough.",
+      inputSchema: z.object({
+        period: z.enum(["1D", "1W", "1M", "3M", "6M", "1Y"]).describe("1D today, 1W last week, 1M last month, 3M, 6M, 1Y last year. Pick the closest to what the user asked."),
+        portfolio: whichPortfolio,
+      }),
+      execute: async ({ period, portfolio }) =>
+        safe(async () => {
+          const r = await loadView(portfolio);
+          if (r.empty) return r.empty;
+          const { v } = r;
+          const a = v.performance.periods[period];
+          if (!a) return { error: "There is not enough price history yet to say how this portfolio did over a period." };
+          const line = (c: (typeof a.contributors)[number]) => ({ name: c.name, type: c.group, amount: r0(c.amount), pct: c.pct, weight: c.weight });
+          return {
+            portfolio: v.active!.name,
+            asOf: v.tradeDate,
+            period,
+            periodLabel: PERIODS.find((p) => p.id === period)!.phrase,
+            // False when Nazar's history is shorter than the period asked for: `from` is then the first day there is.
+            coversWholePeriod: a.full,
+            from: a.from,
+            to: a.to,
+            startValue: r0(a.startValue),
+            endValue: r0(a.endValue),
+            change: r0(a.change),
+            changePct: a.changePct,
+            niftyPct: a.niftyPct,
+            explainedByMarket: r0(a.marketPart),
+            specificToHoldings: r0(a.ownPart),
+            holdingsThatRose: a.rose,
+            holdingsThatFell: a.fell,
+            addedMost: a.contributors.filter((c) => c.amount > 0).slice(0, 6).map(line),
+            tookAwayMost: [...a.contributors].reverse().filter((c) => c.amount < 0).slice(0, 6).map(line),
+            byAssetType: a.groups.map((g) => ({ type: g.group, amount: r0(g.amount), pct: g.pct, weight: g.weight })),
+            bestDay: a.bestDay && { date: a.bestDay.date, amount: r0(a.bestDay.amount), pct: a.bestDay.pct },
+            worstDay: a.worstDay && { date: a.worstDay.date, amount: r0(a.worstDay.amount), pct: a.worstDay.pct },
+            deepestFallFromPeak: a.drawdown,
+            daysUp: a.upDays,
+            daysDown: a.downDays,
+            summary: explain(a),
+            note: "This prices what the user owns today on each past day. Purchases and sales made along the way are not replayed, so say so if the user asks about exact past values.",
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
+    getCapitalGains: tool({
+      description:
+        "The gains still sitting in the user's portfolio, unsold, by holding: the gain in rupees and percent, how long each has been owned, and whether a sale today would count as long-term or short-term under Indian rules. Use it for questions about unrealised gains, long-term versus short-term, or holding periods. Nazar keeps no record of sales, so it cannot say what tax is due; state the rules as facts and leave what to do to the user.",
+      inputSchema: z.object({ portfolio: whichPortfolio }),
       execute: async ({ portfolio }) =>
         safe(async () => {
-          const u = await loadUser();
-          const db = await getDb();
-          const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
-          const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase())) : null;
-          const v = await buildPortfolioView(u, match?.id ?? null);
-          if (v.empty) return { portfolios: pfs.map((p) => p.name), empty: true, note: "No holdings yet. On the Portfolio page the user can search and add stocks, funds, ETFs, gold, US stocks and crypto, add deposits and PF by hand, or import a broker file or mutual fund statement." };
+          const r = await loadView(portfolio);
+          if (r.empty) return r.empty;
+          const g = r.v.gains;
+          const sum = (xs: typeof g) => r0(xs.reduce((a, x) => a + x.gain, 0));
+          const part = (cls: "equity" | "other", long: boolean) => g.filter((x) => x.class === cls && x.wouldBeLongTerm === long);
           return {
-            portfolios: pfs.map((p) => p.name),
+            portfolio: r.v.active!.name,
+            asOf: r.v.tradeDate,
+            unrealisedGain: sum(g),
+            // Shares and equity funds follow the equity rules; everything else with a price follows the other set.
+            sharesAndEquityFunds: { longTerm: sum(part("equity", true)), shortTerm: sum(part("equity", false)) },
+            otherAssets: { longTerm: sum(part("other", true)), shortTerm: sum(part("other", false)) },
+            holdings: [...g].sort((a, b) => Math.abs(b.gain) - Math.abs(a.gain)).slice(0, 20).map((x) => ({ name: x.name, kind: x.class === "equity" ? "shares or equity fund" : "other asset", gain: r0(x.gain), gainPct: x.gainPct, daysOwned: x.daysHeld, wouldBeLongTermToday: x.wouldBeLongTerm })),
+            rules: { longTermAfterDays: LONG_TERM_DAYS, yearlyExemptionOnLongTermEquityGains: LTCG_EXEMPTION },
+            note: "These gains are unrealised: nothing is taxed until units are sold, and the bucket depends on the date of that sale. Deposits, provident funds, property and cash are not included.",
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
+    getGoals: tool({
+      description:
+        "The user's savings goals as they entered them: each goal's target, date, amount saved so far, monthly amount, what it needs each month from here, and whether today's pace reaches it. Use it for any question about goals or being on track. The figures are the user's own; a goal is not tied to particular holdings.",
+      inputSchema: z.object({}),
+      execute: async () =>
+        safe(async () => {
+          const g = await goalsView(userId);
+          if (!g.rows.length) return { goals: [], note: "No savings goals yet. A goal (an amount and a date) is added from the You page." };
+          return {
+            stillToSave: r0(g.toGo),
+            monthlyAcrossGoals: r0(g.monthly),
+            goalsBehindPlan: g.behind,
+            goals: g.rows.map((x) => ({
+              name: x.goal.name,
+              target: r0(x.goal.target),
+              by: x.goal.byDate,
+              saved: r0(x.goal.saved),
+              savedAsOf: x.goal.savedAsOf,
+              monthly: x.goal.monthly,
+              growthRateTheUserAssumed: x.goal.ratePct,
+              status: x.status,
+              monthsLeft: Math.round(x.projection.monthsLeft * 10) / 10,
+              stillToSave: r0(x.projection.toGo),
+              monthlyNeededFromHere: r0(x.projection.requiredMonthly),
+              reachedAtThisPace: r0(x.projection.projected),
+              gapAtThisPace: r0(x.projection.gap),
+              progress: x.projection.progress,
+              reachesTargetOn: x.projection.onTrackFor,
+            })),
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
+    getMyPortfolio: tool({
+      description:
+        "Read-only view of the user's own portfolios as Nazar tracks them (from the latest checkup). A portfolio can contain stocks, mutual funds, ETFs, REITs, gold and silver, US stocks, crypto, and assets without a price feed (deposits, PPF, EPF, NPS, bonds, property, cash), each with its `type`. Health scores, results and sectors exist only for Indian stocks; never describe a fund, gold or a deposit as a company. Returns: value, today's move and what drove it, unrealised P&L, XIRR vs Nifty, health score, each holding's weight/beta/health/trend, sector mix, and a hidden-risk summary (portfolio beta, stress test at Nifty −10%, correlated clusters, concentration). Use it for any question about 'my portfolio', 'my holdings', 'why am I down today', 'which holding is riskiest'. It is a snapshot: for how the portfolio did over a week, a month or a year use getPortfolioPerformance, for unsold gains and holding periods getCapitalGains, for savings goals getGoals. Describe and explain only; never suggest what to do with any holding.",
+      inputSchema: z.object({ portfolio: whichPortfolio }),
+      execute: async ({ portfolio }) =>
+        safe(async () => {
+          const r = await loadView(portfolio);
+          if (r.empty) return r.empty;
+          const { v, names } = r;
+          return {
+            portfolios: names,
             portfolio: v.active!.name,
             asOf: v.tradeDate,
             value: Math.round(v.valuation.value),

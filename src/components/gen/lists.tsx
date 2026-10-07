@@ -208,3 +208,115 @@ export function PortfolioToolView({ data }: { data: any }) {
     </Panel>
   );
 }
+
+const rupees = (n: number | null | undefined) => (n == null ? "—" : `${n < 0 ? "−" : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`);
+const signedRupees = (n: number | null | undefined) => (n == null ? "—" : `${n > 0 ? "+" : n < 0 ? "−" : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`);
+const EmptyPortfolio = ({ title }: { title: string }) => <Panel title={title} subtitle="No holdings yet">Import your holdings on the Portfolio page and Nazar starts watching.</Panel>;
+
+/** How the portfolio did over a period: the change, who caused it, and how much was the market. */
+export function PerformanceToolView({ data }: { data: any }) {
+  if (data.empty) return <EmptyPortfolio title="Your portfolio over a period" />;
+  const movers = [...(data.addedMost ?? []).slice(0, 4), ...(data.tookAwayMost ?? []).slice(0, 4)];
+  return (
+    <Panel
+      title={<span>{data.summary?.headline ?? data.portfolio}</span>}
+      subtitle={`${data.portfolio} · ${data.from} to ${data.to}${data.coversWholePeriod ? "" : " · as far back as Nazar has prices"} · read-only from Nazar's checkup`}
+      right={<div className={`text-sm font-semibold tabular-nums ${upDown(data.changePct)}`}>{pct(data.changePct)}</div>}
+    >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Change" value={signedRupees(data.change)} tone={upDown(data.change)} />
+        <Stat label="Nifty" value={pct(data.niftyPct)} tone={upDown(data.niftyPct)} />
+        <Stat label="The market" value={signedRupees(data.explainedByMarket)} tone={upDown(data.explainedByMarket)} />
+        <Stat label="What you own" value={signedRupees(data.specificToHoldings)} tone={upDown(data.specificToHoldings)} />
+      </div>
+      {movers.length > 0 && (
+        <table className="mt-4 w-full text-sm tabular-nums">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-subtle">
+              <th className="py-1 font-medium">Moved it most</th>
+              <th className="py-1 text-right font-medium">Amount</th>
+              <th className="py-1 text-right font-medium">Change</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {movers.map((m: any) => (
+              <tr key={`${m.name}:${m.amount}`}>
+                <td className="py-1.5 text-text">{m.name}</td>
+                <td className={`py-1.5 text-right ${upDown(m.amount)}`}>{signedRupees(m.amount)}</td>
+                <td className={`py-1.5 text-right ${upDown(m.pct)}`}>{pct(m.pct)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <div className="mt-3 text-[11px] leading-4 text-subtle">Prices what you own today on each past day; purchases and sales along the way are not replayed.</div>
+    </Panel>
+  );
+}
+
+/** Gains not yet realised, by holding, with how long each has been owned. */
+export function GainsToolView({ data }: { data: any }) {
+  if (data.empty) return <EmptyPortfolio title="Your unsold gains" />;
+  const rows = (data.holdings ?? []).slice(0, 8);
+  return (
+    <Panel title="Your unsold gains" subtitle={`${data.portfolio} · as of ${data.asOf} close · nothing here is taxed until units leave`} right={<div className={`text-sm font-semibold tabular-nums ${upDown(data.unrealisedGain)}`}>{signedRupees(data.unrealisedGain)}</div>}>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Shares · long-term" value={signedRupees(data.sharesAndEquityFunds?.longTerm)} tone={upDown(data.sharesAndEquityFunds?.longTerm)} />
+        <Stat label="Shares · short-term" value={signedRupees(data.sharesAndEquityFunds?.shortTerm)} tone={upDown(data.sharesAndEquityFunds?.shortTerm)} />
+        <Stat label="Other · long-term" value={signedRupees(data.otherAssets?.longTerm)} tone={upDown(data.otherAssets?.longTerm)} />
+        <Stat label="Other · short-term" value={signedRupees(data.otherAssets?.shortTerm)} tone={upDown(data.otherAssets?.shortTerm)} />
+      </div>
+      {rows.length > 0 && (
+        <table className="mt-4 w-full text-sm tabular-nums">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-subtle">
+              <th className="py-1 font-medium">Holding</th>
+              <th className="py-1 text-right font-medium">Gain</th>
+              <th className="py-1 text-right font-medium">Owned for</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {rows.map((h: any) => (
+              <tr key={`${h.name}:${h.gain}`}>
+                <td className="py-1.5 text-text">{h.name}</td>
+                <td className={`py-1.5 text-right ${upDown(h.gain)}`}>{signedRupees(h.gain)}</td>
+                <td className="py-1.5 text-right text-muted">{h.daysOwned} days · {h.wouldBeLongTermToday ? "long-term" : "short-term"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Panel>
+  );
+}
+
+/** Savings goals as the user entered them, with what each needs from here. */
+export function GoalsToolView({ data }: { data: any }) {
+  const goals = data.goals ?? [];
+  if (!goals.length) return <Panel title="Your savings goals" subtitle="None yet">A goal is an amount and a date. Add one from the You page.</Panel>;
+  return (
+    <Panel title="Your savings goals" subtitle="Your own figures · a goal is not tied to particular investments" right={<div className="text-sm font-semibold tabular-nums text-text">{rupees(data.stillToSave)} to go</div>}>
+      <table className="w-full text-sm tabular-nums">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-subtle">
+            <th className="py-1 font-medium">Goal</th>
+            <th className="py-1 text-right font-medium">Saved</th>
+            <th className="py-1 text-right font-medium">Needs each month</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {goals.map((g: any) => (
+            <tr key={`${g.name}:${g.by}`}>
+              <td className="py-1.5 text-text">
+                {g.name}
+                <div className="text-[11px] text-subtle">{rupees(g.target)} by {g.by} · {g.status}</div>
+              </td>
+              <td className="py-1.5 text-right text-muted">{rupees(g.saved)} ({Math.round((g.progress ?? 0) * 100)}%)</td>
+              <td className="py-1.5 text-right text-text">{rupees(g.monthlyNeededFromHere)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Panel>
+  );
+}

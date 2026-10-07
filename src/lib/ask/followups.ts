@@ -47,7 +47,9 @@ export function followUps(message: UIMessage, askedBefore: string[]): string[] {
   }
   if (has("getIndianMarketMovers")) out.push("How are Indian markets doing overall today?", "Which Nifty 50 stocks are near their 52-week low?");
   if (has("getMarketMovers")) out.push("How are US markets doing today?");
-  if (has("getMyPortfolio")) out.push("Which of my holdings is riskiest?", "How diversified am I really?");
+  if (has("getMyPortfolio") && !has("getPortfolioPerformance")) out.push("How did my portfolio do this month, and why?");
+  if (has("getPortfolioPerformance")) out.push("How much of that was just the market?", "And over the last year?");
+  if (has("getMyPortfolio") || has("getPortfolioPerformance")) out.push("Which of my holdings is riskiest?", "How diversified am I really?");
   if (has("getWatchlist") || has("addToWatchlist")) out.push("Give me a quick update on the stocks I'm watching");
   if (t && !has("addToWatchlist")) out.push(`Add ${t} to my Watching list`);
 
