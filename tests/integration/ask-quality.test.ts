@@ -3,8 +3,8 @@
  * insights page builds from them, and the candidates harvested from answers that went wrong.
  * Real SQL on an in-memory database, with answers produced through the real chat route.
  */
-import type { LanguageModelV2StreamPart } from "@ai-sdk/provider";
-import { MockLanguageModelV2 } from "ai/test";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
+import { MockLanguageModelV4 } from "ai/test";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as Chat from "@/app/api/chat/route";
@@ -18,19 +18,20 @@ import { makeUser, memoryDb, request, type TestUser } from "./harness";
 
 let db: DB;
 let tester: TestUser, admin: TestUser, stranger: TestUser;
-let next: LanguageModelV2StreamPart[] = [];
-const usage = { inputTokens: 1000, outputTokens: 50, totalTokens: 1050 };
-const say = (text: string): LanguageModelV2StreamPart[] => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, { type: "text-delta", id: "t", delta: text }, { type: "text-end", id: "t" }, { type: "finish", finishReason: "stop", usage }];
-const callTool = (toolName: string, input: unknown): LanguageModelV2StreamPart[] => [{ type: "stream-start", warnings: [] }, { type: "tool-call", toolCallId: "call_1", toolName, input: JSON.stringify(input) }, { type: "finish", finishReason: "tool-calls", usage }];
+let next: LanguageModelV4StreamPart[] = [];
+const tokens = (input: number, output: number) => ({ inputTokens: { total: input, noCache: input, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: output, text: output, reasoning: 0 } });
+const usage = tokens(1000, 50);
+const say = (text: string): LanguageModelV4StreamPart[] => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, { type: "text-delta", id: "t", delta: text }, { type: "text-end", id: "t" }, { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage }];
+const callTool = (toolName: string, input: unknown): LanguageModelV4StreamPart[] => [{ type: "stream-start", warnings: [] }, { type: "tool-call", toolCallId: "call_1", toolName, input: JSON.stringify(input) }, { type: "finish", finishReason: { unified: "tool-calls", raw: undefined }, usage }];
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const guard = new MockLanguageModelV2({ doGenerate: async () => ({ content: [{ type: "text", text: JSON.stringify({ verdict: "in_scope", topic: "stocks" }) }], finishReason: "stop", usage, warnings: [] }) });
-let turns: LanguageModelV2StreamPart[][] = [];
-const model = new MockLanguageModelV2({ doStream: async () => ({ stream: new ReadableStream({ start: (c) => { for (const p of turns.shift() ?? next) c.enqueue(p); c.close(); } }) }) });
+const guard = new MockLanguageModelV4({ doGenerate: async () => ({ content: [{ type: "text", text: JSON.stringify({ verdict: "in_scope", topic: "stocks" }) }], finishReason: { unified: "stop", raw: undefined }, usage, warnings: [] }) });
+let turns: LanguageModelV4StreamPart[][] = [];
+const model = new MockLanguageModelV4({ doStream: async () => ({ stream: new ReadableStream({ start: (c) => { for (const p of turns.shift() ?? next) c.enqueue(p); c.close(); } }) }) });
 
 let n = 0;
 /** Asks, waits for the trace, and returns it with the saved answer's id. */
-async function ask(user: TestUser, text: string, script: LanguageModelV2StreamPart[][]) {
+async function ask(user: TestUser, text: string, script: LanguageModelV4StreamPart[][]) {
   const id = `quality-${String(++n).padStart(4, "0")}`;
   turns = [...script];
   const res = await Chat.POST(await request("/api/chat", { user, method: "POST", body: { id, mode: "simple", message: { id: `u-${id}`, role: "user", parts: [{ type: "text", text }] } } }));

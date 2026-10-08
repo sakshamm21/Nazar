@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Titan Company Ltd NSE"
+ },
+ "output": {
+  "query": "Titan Company Ltd NSE",
+  "results": []
+ }
+}

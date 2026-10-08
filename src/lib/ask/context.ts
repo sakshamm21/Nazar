@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 
 /** A tool as far as history compaction cares: it may have its own compact view for the model. */
-type ToolLike = { toModelOutput?: (output: any) => unknown };
+type ToolLike = { toModelOutput?: (options: { toolCallId: string; input: any; output: any }) => unknown };
 
 const RECENT_MESSAGES = 30;
 /** Tool results in the last few messages are kept whole: the model is probably still using them. */
@@ -40,7 +40,7 @@ export function modelViewOf(tool: ToolLike | undefined, output: unknown): string
   let seen: unknown = output;
   if (tool?.toModelOutput) {
     try {
-      const v = tool.toModelOutput(output) as { value?: unknown } | undefined;
+      const v = tool.toModelOutput({ toolCallId: "", input: undefined, output }) as { value?: unknown } | undefined;
       seen = v && typeof v === "object" && "value" in v ? v.value : v;
     } catch {
       // A stored result the view can no longer read (the tool changed shape since): judge the raw result.

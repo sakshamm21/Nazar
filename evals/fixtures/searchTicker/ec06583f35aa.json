@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HDFC Bank India; ICICI Bank; Kotak Mahindra Bank; Axis Bank"
+ },
+ "output": {
+  "query": "HDFC Bank India; ICICI Bank; Kotak Mahindra Bank; Axis Bank",
+  "results": []
+ }
+}

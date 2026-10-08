@@ -29,8 +29,8 @@ const conversation = (name: ToolName, turns: number): UIMessage[] => {
 };
 
 /** The tool result as it reaches the model, as JSON text. */
-const seenByModel = (messages: UIMessage[]) => {
-  const model = convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
+const seenByModel = async (messages: UIMessage[]) => {
+  const model = await convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
   const result = model.flatMap((m) => (Array.isArray(m.content) ? (m.content as { type: string }[]) : [])).find((c) => c.type === "tool-result");
   return JSON.stringify((result as { output?: { value?: unknown } } | undefined)?.output?.value ?? null);
 };
@@ -40,15 +40,15 @@ describe("an older tool result", () => {
     for (const name of names) expect(JSON.stringify(TOOL_RESULTS[name].output).length, name).toBeGreaterThan(2500);
   });
 
-  it.each(names)("%s: the fourth question still goes through, and the model sees something small and real", (name) => {
-    const seen = seenByModel(conversation(name, 4));
+  it.each(names)("%s: the fourth question still goes through, and the model sees something small and real", async (name) => {
+    const seen = await seenByModel(conversation(name, 4));
     expect(seen.length).toBeLessThan(2600);
     // Not "{}" or null: the model must be left with either the tool's summary or a note that it was cut.
     expect(seen.length).toBeGreaterThan(40);
   });
 
-  it.each(names)("%s: a long conversation goes through too", (name) => {
-    expect(() => seenByModel(conversation(name, 12))).not.toThrow();
+  it.each(names)("%s: a long conversation goes through too", async (name) => {
+    await expect(seenByModel(conversation(name, 12))).resolves.toBeTypeOf("string");
   });
 
   it("is left whole while it is recent", () => {
@@ -57,14 +57,14 @@ describe("an older tool result", () => {
     expect(kept.output).toEqual(TOOL_RESULTS.getFinancialStatements.output);
   });
 
-  it("a tool with a compact view keeps that view, not a slice of raw chart points", () => {
-    const seen = JSON.parse(seenByModel(conversation("getPriceHistory", 4)));
+  it("a tool with a compact view keeps that view, not a slice of raw chart points", async () => {
+    const seen = JSON.parse(await seenByModel(conversation("getPriceHistory", 4)));
     expect(seen.stats.maxDrawdown).toBe(-0.31);
     expect(seen.truncated).toBeUndefined();
   });
 
-  it("a tool without one is cut down, and says so", () => {
-    const seen = JSON.parse(seenByModel(conversation("getFinancialStatements", 4)));
+  it("a tool without one is cut down, and says so", async () => {
+    const seen = JSON.parse(await seenByModel(conversation("getFinancialStatements", 4)));
     expect(seen.truncated).toBe(true);
     expect(seen.note).toMatch(/call the tool again/);
   });

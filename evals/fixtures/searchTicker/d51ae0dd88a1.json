@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal Ltd India formerly Zomato"
+ },
+ "output": {
+  "query": "Eternal Ltd India formerly Zomato",
+  "results": []
+ }
+}

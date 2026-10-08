@@ -5,7 +5,7 @@
  * A judge is only as good as its agreement with a person. Until each one has been checked against
  * answers labelled by hand, its verdicts are reported but do not decide whether a case passes.
  */
-import { generateObject } from "ai";
+import { Output, generateText } from "ai";
 import { z } from "zod";
 import { estimateCost } from "@/lib/ask/models";
 import { activeProvider, languageModel } from "@/lib/ask/provider";
@@ -54,16 +54,16 @@ export async function judge(name: JudgeName, turn: TurnRecord, earlier: TurnReco
   const history = earlier.map((t) => `User: ${t.question}\n${full && t.tools.length ? `Tool results then:\n${shown(t)}\n` : ""}Assistant: ${clip(t.answer, full ? 2500 : 600)}`).join("\n\n");
   const tools = turn.tools.length ? shown(turn) : earlier.some((t) => t.tools.length) ? "(none on this turn; the results from earlier turns are above)" : "(no tools were called)";
   try {
-    const { object, usage } = await generateObject({
+    const { output: object, usage } = await generateText({
       model: languageModel(model),
-      schema: Verdict,
-      system: `${CONTEXT}\n\nYou are grading one answer from that assistant on one question only. Decide strictly by the rubric. Give the reason first, then the verdict.\n\nRUBRIC (${name}):\n${RUBRICS[name]}`,
+      output: Output.object({ schema: Verdict }),
+      instructions: `${CONTEXT}\n\nYou are grading one answer from that assistant on one question only. Decide strictly by the rubric. Give the reason first, then the verdict.\n\nRUBRIC (${name}):\n${RUBRICS[name]}`,
       prompt: `${history ? `EARLIER IN THE CONVERSATION:\n${history}\n\n` : ""}QUESTION:\n${turn.question}\n\nTOOL RESULTS THE ASSISTANT WAS GIVEN:\n${tools}\n\nANSWER TO GRADE:\n${turn.answer}`,
       temperature: 0,
       maxRetries: 1,
       abortSignal: AbortSignal.timeout(60_000),
     });
-    return { grade: { grader: `judge:${name}`, gate: false, pass: object.pass, detail: object.reason }, costUsd: estimateCost(model, usage.inputTokens ?? 0, usage.outputTokens ?? 0, usage.cachedInputTokens ?? 0) };
+    return { grade: { grader: `judge:${name}`, gate: false, pass: object.pass, detail: object.reason }, costUsd: estimateCost(model, usage.inputTokens ?? 0, usage.outputTokens ?? 0, usage.inputTokenDetails.cacheReadTokens ?? 0) };
   } catch (e) {
     // A judge that could not run says nothing about the answer: it is recorded, and never counted as a failure.
     return { grade: { grader: `judge:${name}`, gate: false, pass: true, detail: `JUDGE DID NOT RUN: ${String((e as Error)?.message ?? e).slice(0, 120)}` }, costUsd: 0 };

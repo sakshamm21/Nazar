@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Titan Company Limited"
+ },
+ "output": {
+  "query": "Titan Company Limited",
+  "results": [
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "TITAN.BO",
+    "name": "Titan Company Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

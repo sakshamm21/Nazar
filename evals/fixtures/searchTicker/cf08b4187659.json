@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ZOMATO LTD NSE"
+ },
+ "output": {
+  "query": "ZOMATO LTD NSE",
+  "results": []
+ }
+}

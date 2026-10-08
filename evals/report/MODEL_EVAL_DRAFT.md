@@ -257,6 +257,23 @@ This run had the judges on (Sonnet 5.5), which the routine runs since 3.5 have n
 
 The `grounded` flags read so far are small misstatements a code grader would not catch: a sum given as 35.8% where the parts add to 34.8%, "each up around 9%" for holdings up 8.9% and 10.5%, and "deposits" named where the tool said only that three holdings would not move. `numbers_traced` was 241/258; its misses are again the statement tables, where the model reformats crore figures.
 
+### 3.12 AI SDK 5 to 7: the same agent on a new library (8 October)
+
+Not a model comparison: the same models, prompt (`2c11207c`) and cases, with the library that calls them upgraded two major versions. Recorded here because it is a measurement of how much a harness change moves the numbers.
+
+| Run | SDK | Cases × runs | Pass | First word p50 | Total p50 |
+|---|---|---|---|---|---|
+| `2026-10-08T13-01-33` | 5 | 97 × 3 | 97 | 4,890 ms | 6,482 ms |
+| `2026-10-08T13-23-18` | 7 | 97 × 3 | 97 | 5,494 ms | 7,153 ms |
+| `2026-10-08T13-32-19` | 5 | 67 golden × 2, same minutes as the next row | 66 | 5,903 ms | 7,955 ms |
+| `2026-10-08T13-31-31` | 7 | 67 golden × 2, same minutes as the row above | 66 | 5,558 ms | 7,157 ms |
+
+The first two rows, twenty minutes apart, made SDK 7 look 600 ms slower to the first word, at every step count and on the guard call too. The last two rows are the same comparison run at the same time from two checkouts: SDK 7 was 350 ms faster. The difference in the first pair was the provider's speed at that hour, not the library. **A latency difference between two runs at different times is not evidence**; these numbers move by more than 10% within an hour.
+
+Both arms of the paired run failed the same case, `pf-xirr-01`, on one run of two: asked how the portfolio has done against the Nifty "since I invested", the model answered from the one-year period. That is a property of the agent, not of either SDK.
+
+Rows `2026-10-08T13-10-25`, `13-36-23` and `13-37-26` in `runs.csv` are smoke tests of a few cases. In `13-36-23` the judges did not run (the OpenRouter account was short of credit for Sonnet) and are recorded as such.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -323,7 +340,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.11 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.12 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

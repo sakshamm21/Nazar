@@ -1,5 +1,5 @@
 import "server-only";
-import { convertToModelMessages, createIdGenerator, createUIMessageStream, createUIMessageStreamResponse, stepCountIs, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, createIdGenerator, createUIMessageStream, createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream, type UIMessage } from "ai";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
@@ -227,7 +227,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
         writer.write({ type: "text-end", id: tid });
         writer.write({ type: "finish", messageMetadata: { guarded: true, promptVersion: version } });
       },
-      onFinish: ({ messages: all }) => save(all),
+      onEnd: ({ messages: all }) => save(all),
     });
     return createUIMessageStreamResponse({ stream });
   }
@@ -249,9 +249,9 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const steps: TraceStep[] = [];
   // What was read ahead reaches the model exactly as a tool result it had asked for would.
   const ahead = plan && read ? { tool: plan.tool, input: plan.input, output: read.output } : null;
-  const modelMessages = convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
+  const modelMessages = await convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
   if (ahead) {
-    const view = (plainTools as unknown as Record<string, { toModelOutput?: (o: unknown) => { type: "json"; value: any } }>)[ahead.tool].toModelOutput?.(ahead.output) ?? { type: "json" as const, value: ahead.output as any };
+    const view = (plainTools as unknown as Record<string, { toModelOutput?: (o: { output: unknown }) => { type: "json"; value: any } }>)[ahead.tool].toModelOutput?.({ output: ahead.output }) ?? { type: "json" as const, value: ahead.output as any };
     modelMessages.push({ role: "assistant", content: [{ type: "tool-call", toolCallId: readAheadId, toolName: ahead.tool, input: ahead.input }] }, { role: "tool", content: [{ type: "tool-result", toolCallId: readAheadId, toolName: ahead.tool, output: view }] });
     steps.push({ n: 1, ms: read!.ms, finishReason: "read-ahead", inputTokens: 0, outputTokens: 0, tools: [{ name: ahead.tool, ms: read!.ms, ok: !isError(ahead.output), outChars: JSON.stringify(ahead.output ?? null).length, viewChars: JSON.stringify(view.value ?? null).length }] });
     firstOutputAt = Date.now();
@@ -307,12 +307,12 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const result = streamText({
     model: languageModel(modelId),
     // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
-    system: systemPrompt(mode, input.harness?.today ?? istToday()) + LANGUAGE_NOTE[lang],
+    instructions: systemPrompt(mode, input.harness?.today ?? istToday()) + LANGUAGE_NOTE[lang],
     // Unfinished tool calls are dropped by convertToModelMessages.
     messages: modelMessages,
     tools,
     activeTools,
-    stopWhen: stepCountIs(MAX_STEPS),
+    stopWhen: isStepCount(MAX_STEPS),
     // Without this, a run that is still looking things up at the cap ends with no answer at all.
     prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 || Date.now() - startedAt > maxSeconds() * 1000 || spent() > maxUsdPerAnswer() ? { toolChoice: "none" } : undefined),
     maxOutputTokens: 8000,
@@ -352,7 +352,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       if (firstTokenAt === null && chunk.type === "text-delta") firstTokenAt = Date.now();
       if (chunk.type === "text-delta") unbilledChars += chunk.text.length;
     },
-    onStepFinish: (step) => {
+    onStepEnd: (step) => {
       unbilledChars = 0;
       const now = Date.now();
       steps.push({
@@ -383,12 +383,13 @@ export async function runAsk(input: AskInput): Promise<Response> {
       );
       trace("stopped", { inputTokens, outputTokens });
     },
-    onFinish: ({ totalUsage, steps: done, finishReason }) => {
+    onEnd: ({ totalUsage, steps: done, finishReason }) => {
       if (guardMode === "shadow") advice.push(...findDirectives(done.map((s) => s.text).join("\n")).filter((d) => d.blocks).map((d) => d.pattern));
       if (advice.length) track(userId, "advice_filtered", { mode: guardMode, model: modelId, promptVersion: version, lang, sentences: advice.length, patterns: [...new Set(advice)] }, id);
       const inputTokens = totalUsage.inputTokens ?? 0;
       const outputTokens = totalUsage.outputTokens ?? 0;
-      const cachedInputTokens = totalUsage.cachedInputTokens ?? 0;
+      const cachedInputTokens = totalUsage.inputTokenDetails.cacheReadTokens ?? 0;
+      const reasoningTokens = totalUsage.outputTokenDetails.reasoningTokens ?? 0;
       void logUsage(modelId, inputTokens, outputTokens, cachedInputTokens);
       const calls = done.flatMap((s) => s.toolCalls);
       const results = done.flatMap((s) => s.toolResults);
@@ -423,7 +424,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
           inputTokens,
           cachedInputTokens,
           outputTokens,
-          reasoningTokens: totalUsage.reasoningTokens ?? 0,
+          reasoningTokens,
           costUsd: estimateCost(modelId, inputTokens, outputTokens, cachedInputTokens),
           guardMs,
           ttftMs: firstTokenAt ? firstTokenAt - startedAt : null,
@@ -432,7 +433,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
         },
         id,
       );
-      trace("finished", { inputTokens, outputTokens, cachedInputTokens, reasoningTokens: totalUsage.reasoningTokens }, undefined, checks(done.map((s) => s.text).join("\n"), [...(ahead ? [ahead.output] : []), ...results.map((r) => r.output)]));
+      trace("finished", { inputTokens, outputTokens, cachedInputTokens, reasoningTokens }, undefined, checks(done.map((s) => s.text).join("\n"), [...(ahead ? [ahead.output] : []), ...results.map((r) => r.output)]));
     },
     onError: ({ error }) => {
       const message = String(error instanceof Error ? error.message : error);
@@ -446,10 +447,10 @@ export async function runAsk(input: AskInput): Promise<Response> {
     console.error("[chat] ui stream error:", error);
     return friendlyError(error instanceof Error ? error.message : String(error), modelId);
   };
-  const finishMeta = (u: { inputTokens?: number; outputTokens?: number; cachedInputTokens?: number }): AskMeta => {
+  const finishMeta = (u: { inputTokens?: number; outputTokens?: number; inputTokenDetails?: { cacheReadTokens?: number } }): AskMeta => {
     const i = u.inputTokens ?? 0;
     const o = u.outputTokens ?? 0;
-    return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, u.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt, adviceRemoved: guardMode === "enforce" ? advice.length : 0 };
+    return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, u.inputTokenDetails?.cacheReadTokens ?? 0), latencyMs: Date.now() - startedAt, adviceRemoved: guardMode === "enforce" ? advice.length : 0 };
   };
 
   // With something read ahead, the answer opens with that result's card, then the model's stream follows it.
@@ -463,29 +464,22 @@ export async function runAsk(input: AskInput): Promise<Response> {
         writer.write({ type: "tool-input-available", toolCallId: readAheadId, toolName: ahead.tool, input: ahead.input });
         writer.write({ type: "tool-output-available", toolCallId: readAheadId, output: ahead.output });
         writer.write({ type: "finish-step" });
-        writer.merge(result.toUIMessageStream<Msg>({ sendStart: false, messageMetadata: ({ part }) => (part.type === "finish" ? finishMeta(part.totalUsage) : undefined), onError: friendly }));
+        writer.merge(toUIMessageStream<typeof tools, Msg>({ stream: result.stream, sendStart: false, messageMetadata: ({ part }) => (part.type === "finish" ? finishMeta(part.totalUsage) : undefined), onError: friendly }));
       },
       onError: friendly,
-      onFinish: ({ messages: all }) => save(all),
+      onEnd: ({ messages: all }) => save(all),
     });
     return createUIMessageStreamResponse({ stream });
   }
 
-  return result.toUIMessageStreamResponse<Msg>({
-    originalMessages: messages,
-    generateMessageId: () => answerId,
-    messageMetadata: ({ part }) => {
-      if (part.type === "start") return { model: modelId, mode, promptVersion: version };
-      if (part.type === "finish") {
-        const i = part.totalUsage.inputTokens ?? 0;
-        const o = part.totalUsage.outputTokens ?? 0;
-        return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, part.totalUsage.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt, adviceRemoved: guardMode === "enforce" ? advice.length : 0 };
-      }
-    },
-    onError: (error) => {
-      console.error("[chat] ui stream error:", error);
-      return friendlyError(error instanceof Error ? error.message : String(error), modelId);
-    },
-    onFinish: ({ messages: all }) => save(all),
+  return createUIMessageStreamResponse({
+    stream: toUIMessageStream<typeof tools, Msg>({
+      stream: result.stream,
+      originalMessages: messages,
+      generateMessageId: () => answerId,
+      messageMetadata: ({ part }) => (part.type === "start" ? { model: modelId, mode, promptVersion: version } : part.type === "finish" ? finishMeta(part.totalUsage) : undefined),
+      onError: friendly,
+      onEnd: ({ messages: all }) => save(all),
+    }),
   });
 }

@@ -6,8 +6,8 @@
  * database, limits and the scope guard stop a request before it costs anything, a run always ends
  * in an answer, and every answer (finished, stopped or refused) is saved, billed, counted and traced.
  */
-import type { LanguageModelV2CallOptions, LanguageModelV2StreamPart } from "@ai-sdk/provider";
-import { MockLanguageModelV2 } from "ai/test";
+import type { LanguageModelV4CallOptions, LanguageModelV4StreamPart } from "@ai-sdk/provider";
+import { MockLanguageModelV4 } from "ai/test";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import * as Chat from "@/app/api/chat/route";
@@ -27,19 +27,20 @@ const limits = { ...LIMITS };
 /* A scripted model                                                     */
 /* ------------------------------------------------------------------ */
 
-type Turn = (call: LanguageModelV2CallOptions) => LanguageModelV2StreamPart[];
-const usage = { inputTokens: 1000, outputTokens: 50, totalTokens: 1050 };
-const say = (text: string): LanguageModelV2StreamPart[] => [
+type Turn = (call: LanguageModelV4CallOptions) => LanguageModelV4StreamPart[];
+const tokens = (input: number, output: number) => ({ inputTokens: { total: input, noCache: input, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: output, text: output, reasoning: 0 } });
+const usage = tokens(1000, 50);
+const say = (text: string): LanguageModelV4StreamPart[] => [
   { type: "stream-start", warnings: [] },
   { type: "text-start", id: "t" },
   { type: "text-delta", id: "t", delta: text },
   { type: "text-end", id: "t" },
-  { type: "finish", finishReason: "stop", usage },
+  { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage },
 ];
-const callTool = (toolName: string, input: unknown): LanguageModelV2StreamPart[] => [
+const callTool = (toolName: string, input: unknown): LanguageModelV4StreamPart[] => [
   { type: "stream-start", warnings: [] },
   { type: "tool-call", toolCallId: `call_${Math.random().toString(36).slice(2)}`, toolName, input: JSON.stringify(input) },
-  { type: "finish", finishReason: "tool-calls", usage },
+  { type: "finish", finishReason: { unified: "tool-calls", raw: undefined }, usage },
 ];
 
 /** What the next test wants from the models. Reset before each test. */
@@ -51,25 +52,25 @@ const script = {
   delay: 0,
 };
 /** Every call the answering model received, in order. */
-let calls: LanguageModelV2CallOptions[] = [];
+let calls: LanguageModelV4CallOptions[] = [];
 let guardCalls = 0;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const guardModel = new MockLanguageModelV2({
+const guardModel = new MockLanguageModelV4({
   doGenerate: async () => {
     guardCalls++;
     if (script.guard === "throw") throw new Error("classifier down");
-    return { content: [{ type: "text", text: JSON.stringify(script.guard) }], finishReason: "stop", usage: { inputTokens: 500, outputTokens: 10, totalTokens: 510 }, warnings: [] };
+    return { content: [{ type: "text", text: JSON.stringify(script.guard) }], finishReason: { unified: "stop", raw: undefined }, usage: tokens(500, 10), warnings: [] };
   },
 });
-const answerModel = new MockLanguageModelV2({
+const answerModel = new MockLanguageModelV4({
   doStream: async (call) => {
     calls.push(call);
     const parts = script.turns[Math.min(calls.length - 1, script.turns.length - 1)](call);
     const delay = script.delay;
     return {
-      stream: new ReadableStream<LanguageModelV2StreamPart>({
+      stream: new ReadableStream<LanguageModelV4StreamPart>({
         async start(c) {
           for (const p of parts) {
             if (call.abortSignal?.aborted) return c.error(Object.assign(new Error("aborted"), { name: "AbortError" }));
@@ -114,7 +115,7 @@ const event = (userId: string, type: string) => eventually(async () => (await db
 const traceOf = (id: string) => eventually(async () => (await db.select().from(schema.askTraces).where(eq(schema.askTraces.chatId, id)))[0], "trace");
 const usageOf = (userId: string) => db.select().from(schema.usage).where(eq(schema.usage.userId, userId));
 /** Everything the answering model was sent on one call, as text. */
-const sent = (call: LanguageModelV2CallOptions) => JSON.stringify(call.prompt);
+const sent = (call: LanguageModelV4CallOptions) => JSON.stringify(call.prompt);
 
 beforeAll(async () => {
   db = await memoryDb();
@@ -361,7 +362,7 @@ describe("a run always ends in an answer", () => {
 
 describe("a stopped answer", () => {
   it("keeps what was written, and is still billed, counted and traced", async () => {
-    script.turns = [() => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, ...Array.from({ length: 40 }, (_, i): LanguageModelV2StreamPart => ({ type: "text-delta", id: "t", delta: `word${i}. ` })), { type: "text-end", id: "t" }, { type: "finish", finishReason: "stop", usage }]];
+    script.turns = [() => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, ...Array.from({ length: 40 }, (_, i): LanguageModelV4StreamPart => ({ type: "text-delta", id: "t", delta: `word${i}. ` })), { type: "text-end", id: "t" }, { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage }]];
     script.delay = 25;
     const u = await makeUser(db);
     const id = chatId();
@@ -413,12 +414,12 @@ describe("without a key", () => {
 describe("the no-advice rule, on what the model writes", () => {
   const slip = "Infosys fell 3% this month. You should sell it before the results. The Nifty was flat.";
   /** Sends the answer the way a model does: in small fragments, mid-word. */
-  const inFragments = (text: string): LanguageModelV2StreamPart[] => [
+  const inFragments = (text: string): LanguageModelV4StreamPart[] => [
     { type: "stream-start", warnings: [] },
     { type: "text-start", id: "t" },
-    ...(text.match(/.{1,9}/gs) ?? []).map((delta): LanguageModelV2StreamPart => ({ type: "text-delta", id: "t", delta })),
+    ...(text.match(/.{1,9}/gs) ?? []).map((delta): LanguageModelV4StreamPart => ({ type: "text-delta", id: "t", delta })),
     { type: "text-end", id: "t" },
-    { type: "finish", finishReason: "stop", usage },
+    { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage },
   ];
   const mode = process.env.ASK_ADVICE_GUARD;
   const restore = () => {
@@ -480,7 +481,7 @@ describe("the no-advice rule, on what the model writes", () => {
   it("an answer written around a tool call is filtered on both sides of it", async () => {
     delete process.env.ASK_ADVICE_GUARD;
     script.turns = [
-      () => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "a" }, { type: "text-delta", id: "a", delta: "Let me look. I would recommend holding it meanwhile." }, { type: "text-end", id: "a" }, { type: "tool-call", toolCallId: "call_w", toolName: "getWatchlist", input: "{}" }, { type: "finish", finishReason: "tool-calls", usage }],
+      () => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "a" }, { type: "text-delta", id: "a", delta: "Let me look. I would recommend holding it meanwhile." }, { type: "text-end", id: "a" }, { type: "tool-call", toolCallId: "call_w", toolName: "getWatchlist", input: "{}" }, { type: "finish", finishReason: { unified: "tool-calls", raw: undefined }, usage }],
       () => inFragments("Your list is empty. It is a good time to buy more. That is all there is."),
     ];
     const u = await makeUser(db);
@@ -604,7 +605,7 @@ describe("a run that has gone on too long, or cost too much", () => {
 });
 
 describe("changing the Watching list", () => {
-  const offered = (call: LanguageModelV2CallOptions) => (call.tools ?? []).map((t) => t.name);
+  const offered = (call: LanguageModelV4CallOptions) => (call.tools ?? []).map((t) => t.name);
   const watched = async (userId: string) => (await db.select().from(schema.watching).where(eq(schema.watching.userId, userId))).map((w) => w.symbol);
 
   it("is not on offer for a question that did not ask for it, and a model that tries anyway changes nothing", async () => {

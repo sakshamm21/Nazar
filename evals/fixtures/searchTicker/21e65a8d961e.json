@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ITC Limited NSE"
+ },
+ "output": {
+  "query": "ITC Limited NSE",
+  "results": []
+ }
+}

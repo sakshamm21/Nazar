@@ -1,5 +1,5 @@
 import "server-only";
-import { generateObject } from "ai";
+import { Output, generateText } from "ai";
 import { z } from "zod";
 import { languageModel } from "./provider";
 
@@ -64,10 +64,10 @@ export async function classify(latest: string, context: { previousUser?: string;
     .filter(Boolean)
     .join("\n");
   try {
-    const { object, usage } = await generateObject({
+    const { output: object, usage } = await generateText({
       model: languageModel(GUARD_MODEL),
-      schema: Verdict,
-      system: GUARD_PROMPT,
+      output: Output.object({ schema: Verdict }),
+      instructions: GUARD_PROMPT,
       prompt: `${ctx ? `${ctx}\n\n` : ""}Latest user message to classify:\n"""${latest.slice(0, 2000)}"""`,
       temperature: 0,
       maxRetries: 0,
