@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "HDFC Bank results deposits loan growth asset quality net interest margin October 2026",
+  "count": 8
+ },
+ "output": {
+  "query": "HDFC Bank results deposits loan growth asset quality net interest margin October 2026",
+  "articles": []
+ }
+}

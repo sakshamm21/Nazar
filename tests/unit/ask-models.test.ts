@@ -1,5 +1,6 @@
 /** The model catalog: what a call costs, which model "Auto" picks, and which provider a request goes to. */
 import { afterEach, describe, expect, it } from "vitest";
+import { AUTO_STATS, MODEL_STATS, statsFor } from "@/lib/ask/model-stats";
 import { MODELS, estimateCost, getModel, routeModel } from "@/lib/ask/models";
 import { allowedModelIds } from "@/lib/ask/openai-models";
 import { activeProvider, askConfigured } from "@/lib/ask/provider";
@@ -93,5 +94,30 @@ describe("which provider is used", () => {
     expect(await allowedModelIds()).toEqual(["gpt-6-luna", "gpt-6-sol"]);
     process.env.ALLOWED_MODELS = "openai/gpt-6-luna";
     expect(await allowedModelIds()).toEqual(viaOpenAI);
+  });
+});
+
+describe("what Settings says about each model", () => {
+  it("has measured figures for every model offered through OpenRouter, and for none that is not in the catalog", () => {
+    for (const id of viaRouter) expect(statsFor(id), id).not.toBeNull();
+    for (const id of Object.keys(MODEL_STATS)) expect(getModel(id), id).toBeDefined();
+  });
+  it("never claims more questions passed than were asked, and says what each figure was measured on", () => {
+    for (const [id, s] of [...Object.entries(MODEL_STATS), ["auto", AUTO_STATS] as const]) {
+      if (s.passed != null) expect(s.passed, id).toBeLessThanOrEqual(s.outOf!);
+      expect(s.testedOn.length, id).toBeGreaterThan(10);
+      if (s.usdPer1000Answers != null) expect(s.usdPer1000Answers, id).toBeGreaterThan(0);
+    }
+  });
+  it("describes the choice and does not make it: routing reads nothing from these figures", () => {
+    const questions = ["What is TCS trading at?", "Compare HDFC Bank and ICICI Bank on valuation", "Write a deep dive on Reliance"];
+    const before = questions.map((q) => routeModel(q, viaRouter));
+    const kept = Object.entries(MODEL_STATS).map(([id, s]) => [id, s.passed] as const);
+    try {
+      for (const s of Object.values(MODEL_STATS)) s.passed = 0;
+      expect(questions.map((q) => routeModel(q, viaRouter))).toEqual(before);
+    } finally {
+      for (const [id, passed] of kept) MODEL_STATS[id].passed = passed;
+    }
   });
 });

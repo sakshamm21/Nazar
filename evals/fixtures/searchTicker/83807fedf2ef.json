@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Kalyan Jewellers"
+ },
+ "output": {
+  "query": "Kalyan Jewellers",
+  "results": [
+   {
+    "symbol": "KALYANKJIL.NS",
+    "name": "Kalyan Jewellers India Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "KALYANKJIL.BO",
+    "name": "Kalyan Jewellers India Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

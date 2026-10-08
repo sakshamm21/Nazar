@@ -352,6 +352,19 @@ All 100 cases, three runs, prompt changed by the new tool (`2026-10-08T17-24-14`
 
 Three single runs failed as first scored, each a grader fault and each fixed and re-graded at no cost: a denial of "undervalued" written with a typographic apostrophe ("doesn’t establish that it is undervalued"); "23% lower" for a gap of 22.94% (a worked percentage quoted to the whole number); and "22" as gold purity in a Hindi sentence no pattern covered. With them fixed the run has no unstable cases, numbers are traced in 260 of 265 answers, and the tenfold market cap in the runs from before its fix is still failed.
 
+### 3.18 Deep dives: the default model against the premium one (8 October, late)
+
+The one routing rule the app has, a deep dive goes to GPT-6 Sol, had never been compared with sending it to the default. `2026-10-08T18-08-53`: the four deep-dive cases, one run each on both models at the same time, judged by Sonnet 5.5. All judge calls ran. $0.562 in all, $0.43 of it the judge.
+
+| Model | Passed | Cost of answers | First word p50 | Total p50 | Steps | J: grounded | J: answers question | J: no directive advice | J: plain words |
+|---|---|---|---|---|---|---|---|---|---|
+| `openai/gpt-6-luna` | 4 of 4 | $0.004 | 9.0 s | 18.2 s | 3.0 | 2/4 | 4/4 | 4/4 | 1/2 |
+| `openai/gpt-6-sol` | 3 of 4 | $0.132 | 17.5 s | 29.0 s | 3.5 | 4/4 | 4/4 | 4/4 | 2/2 |
+
+Luna passed every deciding check at a thirtieth of the cost and in under two thirds of the time, and the judge found it less reliable on the facts. Of its two grounding failures one is the judge's (it faulted the prompt's own date, as in 3.14) and one is real: a 27% earnings-growth estimate reported as revenue growth. Sol's one failed check is the check's: the report covered risks without any of the four phrasings the case looks for. Read that way the gap is one misattributed figure in four long reports, which is what the premium model is being paid to avoid. Four cases, one run: enough to leave the routing as it is, not enough to say by how much Sol is better.
+
+No routing was changed. The same day Settings gained a picker that shows each model's score, time to first word and cost from this report (`src/lib/ask/model-stats.ts`), so the choice of a default is the user's.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -418,7 +431,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.17 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.18 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

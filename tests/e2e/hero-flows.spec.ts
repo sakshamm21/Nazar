@@ -284,6 +284,28 @@ test.describe("Ask and You", () => {
     await expect(page.getByRole("button", { name: "New conversation" })).toBeVisible();
   });
 
+  test("Settings: choose the default model for Ask from what each one scored, costs and takes", async ({ page }) => {
+    await startDemo(page);
+    await page.goto("/settings");
+    const group = page.getByRole("radiogroup", { name: "Default model for Ask" });
+    const auto = group.getByRole("radio", { name: /^Auto/ });
+    await expect(auto).toHaveAttribute("aria-checked", "true");
+    // Every option says what it scored, how long it takes to start, and what it costs.
+    const luna = group.getByRole("radio", { name: /^GPT-6 Luna/ });
+    await expect(luna).toContainText("92 of 93");
+    await expect(luna).toContainText("4.4 s");
+    await expect(luna).toContainText("about $0.30");
+    await expect(group.getByRole("radio")).not.toHaveCount(1);
+    await luna.click();
+    await expect(luna).toHaveAttribute("aria-checked", "true");
+    await expect(auto).toHaveAttribute("aria-checked", "false");
+    // The choice is remembered on this device.
+    await page.reload();
+    await expect(page.getByRole("radiogroup", { name: "Default model for Ask" }).getByRole("radio", { name: /^GPT-6 Luna/ })).toHaveAttribute("aria-checked", "true");
+    await page.getByRole("radiogroup", { name: "Default model for Ask" }).getByRole("radio", { name: /^Auto/ }).click();
+    await expect(page.getByRole("radiogroup", { name: "Default model for Ask" }).getByRole("radio", { name: /^Auto/ })).toHaveAttribute("aria-checked", "true");
+  });
+
   test("the profile shows who you are, with sign out first", async ({ page }) => {
     await startDemo(page);
     await page.goto("/settings");

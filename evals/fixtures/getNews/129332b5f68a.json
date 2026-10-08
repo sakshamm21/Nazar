@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TITAN.NS Titan India",
+  "count": 6
+ },
+ "output": {
+  "query": "TITAN.NS Titan India",
+  "articles": []
+ }
+}

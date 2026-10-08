@@ -1,0 +1,84 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Infosys",
+  "count": 5
+ },
+ "output": {
+  "query": "Infosys",
+  "articles": [
+   {
+    "title": "Why Microsoft’s H-1B Issues Are Sending Infosys Stock to Near a Six-Year Low",
+    "publisher": "Barrons.com",
+    "link": "https://finance.yahoo.com/m/8d20648e-d704-3278-a5ac-d8a61c98598f/why-microsoft%E2%80%99s-h-1b-issues.html",
+    "published": "2026-10-08",
+    "tickers": [
+     "INFY",
+     "MSFT",
+     "CTSH",
+     "ADBE",
+     "INFY"
+    ]
+   },
+   {
+    "title": "Update: Labor Department Suspending Microsoft, Adobe, Other Tech Firms From Immigration Program",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/technology/articles/labor-department-suspending-microsoft-adobe-173733256.html",
+    "published": "2026-10-08",
+    "tickers": [
+     "MSFT",
+     "ADBE",
+     "INFY",
+     "WIT",
+     "CAP.PA",
+     "CTSH"
+    ]
+   },
+   {
+    "title": "US freezes Microsoft, Adobe, Infosys green-card applications over alleged fraud",
+    "publisher": "Reuters",
+    "link": "https://finance.yahoo.com/news/us-suspending-permanent-residency-program-143732814.html",
+    "published": "2026-10-08",
+    "tickers": [
+     "MSFT",
+     "ADBE",
+     "CTSH",
+     "INFY",
+     "WIT",
+     "CAP.PA"
+    ]
+   },
+   {
+    "title": "Top Midday Stories: Microsoft, Adobe Among Tech Firms Suspended From US Immigration Program; Starbucks Has Explored Chipotle Takeover",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/top-midday-stories-microsoft-adobe-154759685.html",
+    "published": "2026-10-08",
+    "tickers": [
+     "MSFT",
+     "ADBE",
+     "CTSH",
+     "INFY",
+     "WIT",
+     "SBUX",
+     "CMG",
+     "CL=F",
+     "CAP.PA"
+    ]
+   },
+   {
+    "title": "US suspends Microsoft, Adobe, others from green card program, cites abuse",
+    "publisher": "Investing.com",
+    "link": "https://finance.yahoo.com/economy/policy/articles/us-suspends-microsoft-adobe-others-152350983.html",
+    "published": "2026-10-08",
+    "tickers": [
+     "MSFT",
+     "ADBE",
+     "CTSH",
+     "INFY",
+     "WIT",
+     "CAP.PA"
+    ]
+   }
+  ]
+ }
+}
