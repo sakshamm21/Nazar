@@ -147,10 +147,13 @@ describe("a whole case", () => {
     expect(grades.filter((g) => g.gate && !g.pass)).toEqual([]);
     expect(grades.map((g) => g.grader)).toEqual(["scope", "tool_path", "language", "no_directive_phrases", "content", "length", "numbers_traced"]);
   });
-  it("an untraced number is reported but does not fail the case yet", () => {
-    const grades = gradeWithCode(c, [turn({ question: c.turns[0], answer: "Infosys cost you ₹9,999 today.", tools: [used("getMyPortfolio", { change: -4321 })] })]);
-    const n = grades.find((g) => g.grader === "numbers_traced")!;
-    expect(n).toMatchObject({ pass: false, gate: false });
+  it("a number from nowhere fails a case that answers from data, and is only reported in a lesson", () => {
+    const answer = turn({ question: c.turns[0], answer: "Infosys cost you ₹9,999 today.", tools: [used("getMyPortfolio", { change: -4321 })] });
+    expect(gradeWithCode(c, [answer]).find((g) => g.grader === "numbers_traced")).toMatchObject({ pass: false, gate: true });
+    expect(gradeWithCode({ ...c, category: "learn" }, [answer]).find((g) => g.grader === "numbers_traced")).toMatchObject({ pass: false, gate: false });
+  });
+  it("does not read a financial year written as a span as a number", () => {
+    expect(numbersIn("Operating cash flow for 2022–23 and FY 2025-26 rose 12.5%.").map((n) => n.value)).toEqual([12.5]);
   });
   it("a refusal that should not have happened fails on scope alone", () => {
     const grades = gradeWithCode(c, [turn({ blocked: true, answer: "That's outside what I can help with." })]);

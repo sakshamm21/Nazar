@@ -14,6 +14,7 @@ import { allowedModelIds } from "./openai-models";
 import { planPrefetch } from "./prefetch";
 import { systemPrompt, type AskMode } from "./prompt";
 import { promptVersion } from "./prompt-version";
+import { variantFor } from "./rollout";
 import { askConfigured, languageModel } from "./provider";
 import { classify, GUARD_MODEL, refusalText } from "./scope-guard";
 import { makeTools } from "./tools";
@@ -89,6 +90,8 @@ export type AskInput = {
     skipLimits?: boolean;
     /** How hard a reasoning model thinks before it answers: an experiment in trading depth for speed. */
     reasoningEffort?: string;
+    /** Which wording to answer with, whoever the user is: how a candidate prompt is evaluated before anyone gets it. */
+    variant?: "stable" | "candidate";
     /** Turns off reading the portfolio ahead of the model, to measure what it saves. */
     noReadAhead?: boolean;
     /** Receives each sentence the advice filter leaves out, so an eval can check the filter was right. */
@@ -163,7 +166,9 @@ export async function runAsk(input: AskInput): Promise<Response> {
 
   // The answer's id is fixed up front, so its trace can name the message it describes.
   const answerId = createIdGenerator({ prefix: "msg", size: 16 })();
-  const version = promptVersion();
+  // A wording on trial goes to a fixed tenth of users, under its own version; with none on trial this is always "stable".
+  const variant = input.harness?.variant ?? variantFor(userId);
+  const version = promptVersion(variant);
   const lang = detectLang(text);
   const available = await allowedModelIds();
 
@@ -311,7 +316,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const result = streamText({
     model: languageModel(modelId),
     // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
-    instructions: systemPrompt(mode, input.harness?.today ?? istToday()) + LANGUAGE_NOTE[lang],
+    instructions: systemPrompt(mode, input.harness?.today ?? istToday(), variant) + LANGUAGE_NOTE[lang],
     // Unfinished tool calls are dropped by convertToModelMessages.
     messages: modelMessages,
     tools,

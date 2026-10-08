@@ -22,6 +22,8 @@
     "eval:guard": "tsx --conditions=react-server evals/guard.ts",
     "eval:import": "tsx --conditions=react-server evals/import-help.ts",
     "eval:agent": "tsx --conditions=react-server evals/run.ts",
+    "eval:regrade": "tsx --conditions=react-server evals/regrade.ts",
+    "eval:calibrate": "tsx --conditions=react-server evals/calibrate.ts",
     "eval:archive": "node evals/archive-runs.mjs",
     "eval:harvest": "tsx --conditions=react-server evals/harvest.ts"
   },

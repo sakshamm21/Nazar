@@ -11,6 +11,7 @@
  *
  * Flags: --suite golden|adversarial|deep|all · --models a,b (or "auto") · --repeat N · --filter text
  *        --limit N · --no-judge · --frozen (never call Yahoo; replay recordings only)
+ *        --candidate (answer with the prompt on trial in prompt.ts, not the stable one)
  *        --no-read-ahead (do not read the portfolio before the model asks, to measure what that saves)
  *        --effort low|medium|high (reasoning effort for the answering model)
  *        --max-usd N (stop starting new cases past this spend; default 3) · --concurrency N
@@ -45,6 +46,7 @@ const JUDGE = !flag("no-judge");
 const FROZEN = flag("frozen");
 const EFFORT = opt("effort", "");
 const NO_READ_AHEAD = flag("no-read-ahead");
+const VARIANT = flag("candidate") ? ("candidate" as const) : ("stable" as const);
 
 const DIR = path.join(process.cwd(), "evals");
 const BASELINE = path.join(DIR, "baseline.json");
@@ -109,7 +111,7 @@ async function main() {
   const world = await buildWorld();
   const { db } = world;
   const views = makeTools("eval-views");
-  const version = promptVersion();
+  const version = promptVersion(VARIANT);
   console.log(`${cases.length} cases × ${MODELS.length} model(s) × ${REPEAT} run(s) · provider ${activeProvider()} · prompt ${version} · judges ${JUDGE ? judgeModel() : "off"} · market data ${FROZEN ? "replay only" : "replay, recording what is new"}\n`);
 
   // A model that is not in Nazar's catalog has no price there: take it from OpenRouter's public list.
@@ -148,7 +150,7 @@ async function main() {
           mode: c.mode ?? "simple",
           ip: "eval",
           signal: AbortSignal.timeout(120_000),
-          harness: { today: EVAL_TODAY, skipLimits: true, noReadAhead: NO_READ_AHEAD, onAdviceRemoved: (sentence, pattern) => removed.push(`[${pattern}] ${sentence.slice(0, 240)}`), reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
+          harness: { today: EVAL_TODAY, skipLimits: true, variant: VARIANT, noReadAhead: NO_READ_AHEAD, onAdviceRemoved: (sentence, pattern) => removed.push(`[${pattern}] ${sentence.slice(0, 240)}`), reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
         });
         const body = await res.text();
         if (res.status !== 200) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);

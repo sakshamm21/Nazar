@@ -10,7 +10,7 @@ import { suggestMatches } from "@/lib/importers/suggest";
 import { estimateCost } from "@/lib/ask/models";
 import { getCatalog, searchCatalog } from "@/lib/instruments/catalog";
 import { getMaster } from "@/lib/instruments/master";
-import { ipHash, rateLimit } from "@/lib/limits";
+import { ipHash, overBudget, rateLimit } from "@/lib/limits";
 import { NV, yahooCall, yf } from "@/lib/data/yahoo";
 import { requirePortfolio } from "@/lib/repo/portfolios";
 import { track } from "@/lib/events";
@@ -70,7 +70,8 @@ export const POST = api(async (req, ctx: Ctx) => {
   // left alone: its schemes are matched by ISIN and name, and have no ticker to propose.
   let suggested = 0;
   const unknown = parsed.broker === "cas" ? [] : rows.filter((r) => r.resolution.status === "unmatched");
-  if (unknown.length) {
+  // Not when today's model budget is spent: the rows simply stay flagged, as they were before this existed.
+  if (unknown.length && !(await overBudget(u.id))) {
     const help = await suggestMatches(index, unknown.map((r) => ({ line: r.line, rawName: r.rawName })));
     for (const r of unknown) {
       const candidates = help.byLine.get(r.line);

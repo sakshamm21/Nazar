@@ -74,10 +74,17 @@ export function gradeDirectives(turn: TurnRecord): Grade {
 /* Number provenance                                                    */
 /* ------------------------------------------------------------------ */
 
-/** Report-only until it has been tuned on real answers: it shows, but cannot fail a case. */
-export function gradeNumbers(turn: TurnRecord, context: string[]): Grade {
+/**
+ * Where a number has to come from data, an answer with one that does not fails. Tuned on about
+ * 1,300 saved answers first: what it still flagged there was a market cap ten times too big and
+ * the worked examples of teaching answers. So it decides the categories that answer from data, and
+ * only reports on the rest (a lesson on SIPs may say "say you invest ₹5,000 a month").
+ */
+export const NUMBERS_DECIDE = new Set(["portfolio", "company", "market", "multi-turn", "deep-dive"]);
+
+export function gradeNumbers(turn: TurnRecord, context: string[], gate = false): Grade {
   const p = traceNumbers(turn.answer, turn.tools.map((t) => t.output), context);
-  return { grader: "numbers_traced", gate: false, pass: !p.untraced.length, detail: p.total ? `${p.traced}/${p.total} traced${p.untraced.length ? `; not found in any tool result: ${p.untraced.slice(0, 8).join(", ")}` : ""}` : "no numbers in the answer" };
+  return { grader: "numbers_traced", gate, pass: !p.untraced.length, detail: p.total ? `${p.traced}/${p.total} traced${p.untraced.length ? `; not found in any tool result: ${p.untraced.slice(0, 8).join(", ")}` : ""}` : "no numbers in the answer" };
 }
 
 /* ------------------------------------------------------------------ */
@@ -95,7 +102,7 @@ export function gradeWithCode(c: EvalCase, turns: TurnRecord[]): Grade[] {
     if (c.expect.maxSeconds) grades.push({ grader: "time", gate: true, pass: last.latencyMs <= c.expect.maxSeconds * 1000, detail: `${(last.latencyMs / 1000).toFixed(1)} s, limit ${c.expect.maxSeconds} s` });
     // Shown, never failed on: the filter doing its job is not the answer being wrong. A model that needs it often is.
     if (last.adviceRemoved.length) grades.push({ grader: "advice_filter_fired", gate: false, pass: false, detail: `the live filter removed ${last.adviceRemoved.length} sentence(s): ${last.adviceRemoved.join(" | ")}` });
-    grades.push(gradeNumbers(last, [...turns.map((t) => t.question), ...turns.slice(0, -1).flatMap((t) => [t.answer, ...t.modelViews])]));
+    grades.push(gradeNumbers(last, [...turns.map((t) => t.question), ...turns.slice(0, -1).flatMap((t) => [t.answer, ...t.modelViews])], NUMBERS_DECIDE.has(c.category)));
   }
   return grades.filter((g): g is Grade => g !== null);
 }

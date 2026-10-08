@@ -3,6 +3,7 @@
  "promptVersion": "00593627",
  "suite": "all",
  "repeat": 3,
+ "regraded": "2026-10-08T15:48:32.057Z",
  "models": {
   "auto": {
    "model": "auto",
@@ -82,8 +83,8 @@
     },
     "numbers_traced": {
      "runs": 256,
-     "passed": 248,
-     "gate": false
+     "passed": 250,
+     "gate": true
     },
     "content": {
      "runs": 46,

@@ -9,8 +9,9 @@
 import type { LanguageModelV4CallOptions, LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { and, eq } from "drizzle-orm";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import * as Chat from "@/app/api/chat/route";
+import { setCandidateForTests } from "@/lib/ask/prompt";
 import { promptVersion } from "@/lib/ask/prompt-version";
 import { setModelsForTests } from "@/lib/ask/provider";
 import { MAX_STEPS } from "@/lib/ask/run";
@@ -670,5 +671,34 @@ describe("changing the Watching list", () => {
     await ask(u, id, "Yes please");
     expect(offered(calls[0])).toContain("addToWatchlist");
     expect(await watched(u.id)).toEqual(["TITAN.NS"]);
+  });
+});
+
+describe("a prompt on trial", () => {
+  afterEach(() => {
+    setCandidateForTests(null);
+    delete process.env.ASK_CANDIDATE_SHARE;
+  });
+
+  it("reaches the model for a user in its share, and the answer is stamped with its version", async () => {
+    setCandidateForTests({ name: "trial", rewrite: (stable) => `${stable}\n- Lead with the number.` });
+    process.env.ASK_CANDIDATE_SHARE = "100";
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "What is TCS trading at?");
+    expect(sent(calls[0])).toContain("Lead with the number.");
+    const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
+    expect(answer.metadata?.promptVersion).toBe(promptVersion("candidate"));
+    expect(promptVersion("candidate")).not.toBe(promptVersion());
+    expect((await traceOf(id)).promptVersion).toBe(promptVersion("candidate"));
+  });
+
+  it("does not reach a user outside it", async () => {
+    setCandidateForTests({ name: "trial", rewrite: (stable) => `${stable}\n- Lead with the number.` });
+    process.env.ASK_CANDIDATE_SHARE = "0";
+    const id = chatId();
+    await ask(await makeUser(db), id, "What is TCS trading at?");
+    expect(sent(calls[0])).not.toContain("Lead with the number.");
+    expect((await traceOf(id)).promptVersion).toBe(promptVersion());
   });
 });

@@ -64,6 +64,19 @@ export async function rateLimit(key: string, max: number, windowMs: number, mess
 type Verdict = { ok: true; remainingToday: number | null } | { ok: false; status: number; error: string };
 
 /** Ask tab: checks every limit and, if allowed, records the request. */
+/**
+ * Whether model spend has reached today's budget, for this user or for the whole app. For model
+ * calls outside Ask (import help), which have no question to count but spend from the same purse.
+ */
+export async function overBudget(userId: string): Promise<boolean> {
+  const db = await getDb();
+  const dayAgo = new Date(Date.now() - 24 * HOUR);
+  const spent = async (userOnly: boolean) =>
+    Number((await db.select({ c: sql<number>`coalesce(sum(${schema.usage.costUsd}), 0)` }).from(schema.usage).where(userOnly ? and(eq(schema.usage.userId, userId), gte(schema.usage.createdAt, dayAgo)) : gte(schema.usage.createdAt, dayAgo)))[0]?.c ?? 0);
+  const [mine, all] = await Promise.all([LIMITS.userDailyUsd ? spent(true) : 0, LIMITS.globalDailyUsd ? spent(false) : 0]);
+  return Boolean((LIMITS.userDailyUsd && mine >= LIMITS.userDailyUsd) || (LIMITS.globalDailyUsd && all >= LIMITS.globalDailyUsd));
+}
+
 export async function checkAndRecord(userId: string, ip: string, isDemo: boolean): Promise<Verdict> {
   // A shared test account is used by many people: its daily allowance is per network.
   const who = isDemo ? `${userId}:${ip}` : userId;
