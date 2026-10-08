@@ -20,7 +20,8 @@
     "catalog:refresh": "tsx --conditions=react-server scripts/refresh-catalog.ts",
     "pipeline:run": "tsx --conditions=react-server scripts/run-pipeline.ts",
     "eval:guard": "tsx --conditions=react-server evals/guard.ts",
-    "eval:agent": "tsx --conditions=react-server evals/run.ts"
+    "eval:agent": "tsx --conditions=react-server evals/run.ts",
+    "eval:archive": "node evals/archive-runs.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.133",
