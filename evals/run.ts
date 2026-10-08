@@ -3,12 +3,13 @@
  *
  *   npm run eval:agent                               golden + adversarial, the app's own model routing
  *   npm run eval:agent -- --suite golden --repeat 3
+ *   npm run eval:agent -- --suite deep               the deep-dive cases: the premium model, cents a case, never part of "all"
  *   npm run eval:agent -- --models openai/gpt-6-luna,google/gemini-3.8-flash
  *   npm run eval:agent -- --filter pf- --no-judge    a quick, cheap pass over some cases
  *   npm run eval:agent -- --compare                  show what changed against evals/baseline.json
  *   npm run eval:agent -- --save-baseline            make this run the baseline
  *
- * Flags: --suite golden|adversarial|all · --models a,b (or "auto") · --repeat N · --filter text
+ * Flags: --suite golden|adversarial|deep|all · --models a,b (or "auto") · --repeat N · --filter text
  *        --limit N · --no-judge · --frozen (never call Yahoo; replay recordings only)
  *        --no-read-ahead (do not read the portfolio before the model asks, to measure what that saves)
  *        --effort low|medium|high (reasoning effort for the answering model)
@@ -124,6 +125,9 @@ async function main() {
 
   let spent = 0;
   let judgeSpend = 0;
+  /** Judge calls that failed (no credit, a timeout). They say nothing about the answer, so they are kept out of the tallies and reported. */
+  let judgesNotRun = 0;
+  let judgeFailure = "";
   let recorded = 0;
   const missed = new Set<string>();
 
@@ -194,7 +198,11 @@ async function main() {
           const j = await judge(name, final, turns.slice(0, -1));
           spent += j.costUsd;
           judgeSpend += j.costUsd;
-          grades.push(j.grade);
+          if (j.ran) grades.push(j.grade);
+          else {
+            judgesNotRun++;
+            judgeFailure ||= j.grade.detail;
+          }
         }
       spent += turns.reduce((a, t) => a + t.costUsd, 0);
       return { caseId: c.id, model, repeat, turns, grades, pass: grades.every((g) => !g.gate || g.pass) };
@@ -277,6 +285,7 @@ async function main() {
   out();
   out(`Suite \`${SUITE}\`${FILTER ? ` (filter \`${FILTER}\`)` : ""} · ${cases.length} cases · ${REPEAT} run(s) each · prompt \`${version}\` · provider ${activeProvider()} · judges ${JUDGE ? `\`${judgeModel()}\` (reported, not yet gating)` : "off"}`);
   out(`Spent **$${spent.toFixed(3)}** (answers $${(spent - judgeSpend).toFixed(3)}, judges $${judgeSpend.toFixed(3)})${stoppedForBudget ? ` · **stopped early at the $${MAX_USD} cap: ${jobs.length - next} runs not started**` : ""}${recorded ? ` · recorded ${recorded} new market-data results` : ""}`);
+  if (judgesNotRun) out(`\n**${judgesNotRun} judge call(s) did not run** and are left out of the judge rows below. First reason: ${judgeFailure}`);
   if (missed.size) out(`\n**${missed.size} market-data calls had no recording** and came back as "not found": ${[...missed].slice(0, 6).join("; ")}`);
   for (const s of summaries) {
     out();
@@ -325,6 +334,7 @@ async function main() {
 
   console.log(`\n${"─".repeat(72)}`);
   for (const s of summaries) console.log(`${(s.model === "auto" ? "auto" : s.model).padEnd(30)} ${String(s.passed).padStart(3)}/${s.cases} pass · $${s.costUsd.toFixed(3)} · first word p50 ${s.p50TtftMs ?? "n/a"} ms`);
+  if (judgesNotRun) console.log(`${judgesNotRun} judge call(s) DID NOT RUN and are not in the scores. ${judgeFailure}`);
   console.log(`Spent $${spent.toFixed(3)}. Report: ${path.relative(process.cwd(), path.join(runDir, "report.md"))}`);
 
   if (flag("save-baseline")) {

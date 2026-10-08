@@ -97,7 +97,7 @@ const fail = (status: number, error: string) => Response.json({ error }, { statu
 
 function friendlyError(msg: string, modelId: string) {
   if (/model/i.test(msg) && /(not found|does not exist|access)/i.test(msg)) return `Model "${modelId}" isn't available with the current API key. Pick another model.`;
-  if (/quota|billing|insufficient/i.test(msg)) return "The AI account behind this app is out of credit. Please try again later.";
+  if (/quota|billing|insufficient|requires more credits|payment required/i.test(msg)) return "The AI account behind this app is out of credit. Please try again later.";
   if (/rate limit|429/i.test(msg)) return "The AI provider is busy right now. Please retry in a few seconds.";
   if (/context|too long|maximum.*tokens/i.test(msg)) return "This conversation has grown too long. Start a new research chat.";
   return "Something went wrong while generating the answer. Please try again.";

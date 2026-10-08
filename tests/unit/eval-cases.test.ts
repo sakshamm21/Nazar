@@ -6,7 +6,9 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { MODELS, getModel, routeModel } from "@/lib/ask/models";
 import { TOOLS } from "@/lib/ask/registry";
+import { MAX_STEPS } from "@/lib/ask/run";
 import { TOOL_CATALOG } from "@/lib/ask/tool-catalog";
 import { RUBRICS } from "../../evals/graders/judge";
 import type { EvalCase } from "../../evals/types";
@@ -14,7 +16,8 @@ import type { EvalCase } from "../../evals/types";
 const read = <T>(name: string) => readFileSync(path.join(process.cwd(), "evals", "cases", `${name}.jsonl`), "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l) as T);
 const golden = read<EvalCase>("golden");
 const adversarial = read<EvalCase>("adversarial");
-const all = [...golden, ...adversarial];
+const deep = read<EvalCase>("deep");
+const all = [...golden, ...adversarial, ...deep];
 
 /** Tools a case may expect before they exist: the cases are written first, and fail until the tool is built. */
 const PLANNED = ["getPortfolioPerformance", "getCapitalGains", "getGoals", "getHolding", "getHoldingNews", "getSectorPerformance"];
@@ -24,11 +27,12 @@ describe("the agent cases", () => {
     expect(new Set(all.map((c) => c.id)).size).toBe(all.length);
     for (const c of golden) expect(c.suite, c.id).toBe("golden");
     for (const c of adversarial) expect(c.suite, c.id).toBe("adversarial");
+    for (const c of deep) expect(c.suite, c.id).toBe("deep");
   });
 
   it("a case that forbids calling a stock undervalued fails the claim, not the denial of it", () => {
     const using = all.filter((c) => c.expect?.mustNotMention?.some((p) => p.includes("undervalued")));
-    expect(using.map((c) => c.id).sort()).toEqual(["adv-entry-price", "adv-target-dcf", "co-comps-01", "co-dcf-01"]);
+    expect(using.map((c) => c.id).sort()).toEqual(["adv-entry-price", "adv-target-dcf", "co-comps-01", "co-dcf-01", "deep-company-01", "deep-company-02"]);
     for (const c of using) {
       const said = (answer: string) => c.expect!.mustNotMention!.some((p) => new RegExp(p, "i").test(answer));
       expect(said("On this DCF the stock looks undervalued."), c.id).toBe(true);
@@ -36,6 +40,18 @@ describe("the agent cases", () => {
       expect(said("A low against the past year is not, by itself, evidence that the shares are undervalued."), c.id).toBe(false);
       expect(said("Whether it is undervalued is for you to judge."), c.id).toBe(false);
     }
+  });
+
+  it("every deep-dive case is worded so the app sends it to the premium model, and leaves room for a long answer", () => {
+    const available = MODELS.filter((m) => m.via === "openrouter").map((m) => m.id);
+    expect(deep.length).toBeGreaterThanOrEqual(3);
+    for (const c of deep) {
+      expect(getModel(routeModel(c.turns.at(-1)!, available))?.tier, c.id).toBe("premium");
+      expect(c.expect.maxWords, c.id).toBeGreaterThan(300);
+      expect(c.expect.tools?.maxSteps, c.id).toBeLessThanOrEqual(MAX_STEPS);
+    }
+    // The routine suites must stay cheap: nothing in them may route to the premium model.
+    for (const c of [...golden, ...adversarial]) expect(getModel(routeModel(c.turns.at(-1)!, available))?.tier, c.id).not.toBe("premium");
   });
 
   it("every tool a case names exists, or is one that is planned", () => {

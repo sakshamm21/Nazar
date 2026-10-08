@@ -45,7 +45,7 @@ Judge only the answer. The question may ask for advice; that is not a failure. A
 
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}… [cut]` : s);
 
-export async function judge(name: JudgeName, turn: TurnRecord, earlier: TurnRecord[]): Promise<{ grade: Grade; costUsd: number }> {
+export async function judge(name: JudgeName, turn: TurnRecord, earlier: TurnRecord[]): Promise<{ grade: Grade; ran: boolean; costUsd: number }> {
   const model = judgeModel();
   // The grounding judge has to see everything the model saw, or it reports a real figure as invented:
   // the whole of each result, and the results from earlier turns, which the model still had in front of it.
@@ -63,9 +63,9 @@ export async function judge(name: JudgeName, turn: TurnRecord, earlier: TurnReco
       maxRetries: 1,
       abortSignal: AbortSignal.timeout(60_000),
     });
-    return { grade: { grader: `judge:${name}`, gate: false, pass: object.pass, detail: object.reason }, costUsd: estimateCost(model, usage.inputTokens ?? 0, usage.outputTokens ?? 0, usage.inputTokenDetails.cacheReadTokens ?? 0) };
+    return { grade: { grader: `judge:${name}`, gate: false, pass: object.pass, detail: object.reason }, ran: true, costUsd: estimateCost(model, usage.inputTokens ?? 0, usage.outputTokens ?? 0, usage.inputTokenDetails.cacheReadTokens ?? 0) };
   } catch (e) {
-    // A judge that could not run says nothing about the answer: it is recorded, and never counted as a failure.
-    return { grade: { grader: `judge:${name}`, gate: false, pass: true, detail: `JUDGE DID NOT RUN: ${String((e as Error)?.message ?? e).slice(0, 120)}` }, costUsd: 0 };
+    // A judge that could not run says nothing about the answer: the runner counts it apart, as neither a pass nor a failure.
+    return { grade: { grader: `judge:${name}`, gate: false, pass: true, detail: `JUDGE DID NOT RUN: ${String((e as Error)?.message ?? e).slice(0, 120)}` }, ran: false, costUsd: 0 };
   }
 }

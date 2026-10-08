@@ -360,6 +360,19 @@ describe("a run always ends in an answer", () => {
   });
 });
 
+describe("when the model account has run out of credit", () => {
+  it("the reader is told that, in plain words, and the failure is traced", async () => {
+    // The provider's own wording when a request cannot be afforded.
+    script.turns = [() => { throw new Error("This request requires more credits, or fewer max_tokens. You requested up to 8000 tokens, but can only afford 512."); }];
+    const u = await makeUser(db);
+    const id = chatId();
+    const r = await ask(u, id, "What is TCS trading at?");
+    expect(r.text).toContain("out of credit");
+    expect(r.text).not.toContain("max_tokens");
+    expect((await traceOf(id)).outcome).toBe("error");
+  });
+});
+
 describe("a stopped answer", () => {
   it("keeps what was written, and is still billed, counted and traced", async () => {
     script.turns = [() => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, ...Array.from({ length: 40 }, (_, i): LanguageModelV4StreamPart => ({ type: "text-delta", id: "t", delta: `word${i}. ` })), { type: "text-end", id: "t" }, { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage }]];

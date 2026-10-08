@@ -5,7 +5,7 @@ export type JudgeName = "no_directive_advice" | "grounded" | "answers_question" 
 /** One line of evals/cases/*.jsonl. */
 export type EvalCase = {
   id: string;
-  suite: "golden" | "adversarial";
+  suite: "golden" | "adversarial" | "deep";
   category: string;
   lang: "en" | "hi" | "hinglish";
   mode?: "simple" | "pro";
