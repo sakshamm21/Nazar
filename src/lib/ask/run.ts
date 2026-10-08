@@ -6,6 +6,7 @@ import { getDb, schema } from "@/lib/db";
 import { marketOf, track } from "@/lib/events";
 import { today as istToday } from "@/lib/goals/draft";
 import { LIMITS, checkAndRecord } from "@/lib/limits";
+import { answerLang, traceNumbers } from "./checks";
 import { compactHistory, detectLang, modelViewOf } from "./context";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "./models";
 import { SentenceFilter, findDirectives } from "./output-guard";
@@ -260,7 +261,24 @@ export async function runAsk(input: AskInput): Promise<Response> {
 
   /** Writes the trace once. The first of finish, stop and error to arrive decides the outcome. */
   let traced = false;
-  const trace = (outcome: TraceOutcome, totals: { inputTokens: number; outputTokens: number; cachedInputTokens?: number; reasoningTokens?: number }, error?: string) => {
+  /**
+   * The checks that cost nothing, run on the finished answer: was it in the language of the
+   * question, and does every number in it come from something the model was given. They are the
+   * same functions the evals grade with. Counts only are kept, never the words or the numbers.
+   */
+  const checks = (answer: string, outputs: unknown[]): NonNullable<Trace["flags"]> => {
+    const said = answer.trim();
+    if (!said) return {};
+    // What the model had in front of it from earlier turns counts as a source too.
+    const earlier = history.flatMap((m) => m.parts.flatMap((p: any) => (p.type === "text" ? [p.text as string] : typeof p.type === "string" && p.type.startsWith("tool-") && p.output ? [JSON.stringify(p.output).slice(0, 20_000)] : [])));
+    const numbers = traceNumbers(said, outputs, [text, ...earlier]);
+    const words = said.split(/\s+/).length;
+    const answered = answerLang(said);
+    // A few words say little about language ("Thanks!", a ticker and a price).
+    return { words, numbers: { total: numbers.total, untraced: numbers.untraced.length }, lang: { asked: lang, answered, match: words < 12 || answered === lang } };
+  };
+
+  const trace = (outcome: TraceOutcome, totals: { inputTokens: number; outputTokens: number; cachedInputTokens?: number; reasoningTokens?: number }, error?: string, checked: NonNullable<Trace["flags"]> = {}) => {
     if (traced) return;
     traced = true;
     void writeTrace({
@@ -277,7 +295,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       ttftMs: firstTokenAt ? firstTokenAt - startedAt : null,
       latencyMs: Date.now() - startedAt,
       error: error?.slice(0, 200) ?? null,
-      flags: { adviceGuard: guardMode, advicePatterns: advice },
+      flags: { ...checked, adviceGuard: guardMode, advicePatterns: advice },
     });
   };
 
@@ -408,7 +426,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
         },
         id,
       );
-      trace("finished", { inputTokens, outputTokens, cachedInputTokens, reasoningTokens: totalUsage.reasoningTokens });
+      trace("finished", { inputTokens, outputTokens, cachedInputTokens, reasoningTokens: totalUsage.reasoningTokens }, undefined, checks(done.map((s) => s.text).join("\n"), [...(ahead ? [ahead.output] : []), ...results.map((r) => r.output)]));
     },
     onError: ({ error }) => {
       const message = String(error instanceof Error ? error.message : error);

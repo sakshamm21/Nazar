@@ -379,7 +379,19 @@ export const askTraces = pgTable(
     /** A short provider error, when outcome is "error". */
     error: text("error"),
     /** What the checks on the answer found. Pattern names only, never the words. */
-    flags: jsonb("flags").$type<{ adviceGuard?: "enforce" | "shadow" | "off"; advicePatterns?: string[] }>().notNull().default({}),
+    flags: jsonb("flags")
+      .$type<{
+        adviceGuard?: "enforce" | "shadow" | "off";
+        advicePatterns?: string[];
+        /** Words in the answer. */
+        words?: number;
+        /** Numbers in the answer, and how many could not be traced to anything the model was given. */
+        numbers?: { total: number; untraced: number };
+        /** The language of the question and of the answer, and whether they agree. */
+        lang?: { asked: string; answered: string; match: boolean };
+      }>()
+      .notNull()
+      .default({}),
     createdAt: created(),
   },
   (t) => [index("ask_traces_created_idx").on(t.createdAt), index("ask_traces_chat_idx").on(t.chatId), index("ask_traces_version_idx").on(t.promptVersion, t.createdAt)],

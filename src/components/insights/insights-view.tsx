@@ -14,6 +14,7 @@ export function InsightsView({ data }: { data: Insights }) {
   const top = Math.max(1, ...data.funnel.map((f) => f.users));
   const viewTop = Math.max(1, ...data.areas.map((a) => a.views));
   const assetTop = Math.max(1, ...data.assets.map((a) => a.holdings));
+  const q = data.quality;
   const noViews = data.areas.every((a) => a.views === 0);
   return (
     <div className="mx-auto max-w-[1120px] space-y-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -165,6 +166,68 @@ export function InsightsView({ data }: { data: Insights }) {
         <Kpi label="Answers rated helpful" value={pct(data.ask.helpfulRate7)} sub={`${data.ask.ratings7} ratings · ${pct(data.ask.blockRate7)} off-topic, declined`} />
         <Kpi label="Answer time" value={data.ask.p50Latency ? `${(data.ask.p50Latency / 1000).toFixed(1)}s` : "—"} sub={`p95 ${data.ask.p95Latency ? `${(data.ask.p95Latency / 1000).toFixed(1)}s` : "—"} · ${data.ask.errors7} errors`} />
         <Kpi label="AI spend (7d)" value={usd(data.ask.spend7)} sub={`${usd(data.ask.costPerAnswer7, 4)} per answer · ${usd(data.ask.spend30)} in 30 days`} />
+      </div>
+
+      {/* Ask quality: from one trace per answer */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="p-5">
+          <CardHeader overline="Ask quality (last 7 days)" title="What the checks on each answer found" />
+          {q.traces === 0 ? (
+            <p className="mt-4 text-sm text-muted">No answers traced yet. One row is written per answer from this release on.</p>
+          ) : (
+            <dl className="mt-4 space-y-2 text-sm">
+              {[
+                ["Answers", `${q.finished} finished · ${q.stopped} stopped · ${q.blocked} declined · ${q.errors} failed`],
+                ["First word", q.p50TtftMs == null ? "—" : `${(q.p50TtftMs / 1000).toFixed(1)}s typical · ${q.p95TtftMs == null ? "—" : `${(q.p95TtftMs / 1000).toFixed(1)}s`} slowest 5%`],
+                ["Cost per answer", `${usd(q.avgCostUsd, 4)} · ${q.avgSteps == null ? "—" : q.avgSteps.toFixed(1)} steps`],
+                ["Portfolio read ahead", pct(q.readAheadShare)],
+                ["A sentence removed as advice", `${q.adviceAnswers} of ${q.finished}`],
+                ["Answered in another language", `${q.langMismatch} of ${q.finished}`],
+                ["A number with no source", `${q.untracedAnswers} of ${q.finished} answers · ${pct(q.untracedShare)} of all numbers`],
+                ["Topic filter", `${q.p50GuardMs == null ? "—" : `${(q.p50GuardMs / 1000).toFixed(1)}s`} typical · did not run ${q.guardSkipped} times`],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4">
+                  <dt className="text-muted">{k}</dt>
+                  <dd className="num text-right text-text">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </Card>
+        <Card className="p-5">
+          <CardHeader overline="Tools (last 7 days)" title="What Ask looked up, and what failed" />
+          {q.tools.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">No tool calls traced yet.</p>
+          ) : (
+            <ul className="mt-4 space-y-2 text-sm">
+              {q.tools.map((t) => (
+                <li key={t.name} className="flex justify-between gap-4">
+                  <span className="truncate text-text">{t.name}</span>
+                  <span className="num shrink-0 text-muted">
+                    {t.calls} · {t.failed > 0 ? <span className="text-warn">{t.failed} failed</span> : "0 failed"} · {t.ms == null ? "—" : `${t.ms} ms`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        <Card className="p-5">
+          <CardHeader overline="By prompt version (last 7 days)" title="Did a change of wording help?" />
+          {q.versions.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">No finished answers traced yet.</p>
+          ) : (
+            <ul className="mt-4 space-y-2 text-sm">
+              {q.versions.map((v) => (
+                <li key={v.version} className="flex justify-between gap-4">
+                  <span className="num text-text">{v.version}</span>
+                  <span className="num shrink-0 text-muted">
+                    {v.answers} answers · {v.ttftMs == null ? "—" : `${(v.ttftMs / 1000).toFixed(1)}s`} · {usd(v.costUsd, 4)} · {v.rated ? `${pct(v.helpful)} helpful of ${v.rated}` : "no ratings"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
 
       {/* Data and demo */}

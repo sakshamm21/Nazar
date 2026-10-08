@@ -258,6 +258,8 @@ export async function getInsights() {
     errors7: Number(a7?.errors7 ?? 0),
   };
 
+  const quality = await askQuality(db, d7);
+
   const sharedAccounts = asRows<{ sign_ins: number; views: number; analysis_views: number; questions: number }>(demoQ)[0];
   const demo = { signIns: Number(sharedAccounts?.sign_ins ?? 0), views: Number(sharedAccounts?.views ?? 0), analysisViews: Number(sharedAccounts?.analysis_views ?? 0), questions: Number(sharedAccounts?.questions ?? 0) };
 
@@ -292,10 +294,83 @@ export async function getInsights() {
     mix,
     retention,
     ask,
+    quality,
     demo,
     data,
     runs: runs.map((r) => ({ kind: r.kind, runDate: r.runDate, stage: r.stage, status: r.status, stats: r.stats, errors: r.errors.length })),
     daily,
+  };
+}
+
+/**
+ * How Ask's answers are doing, from one row per answer in ask_traces (demo accounts included: this
+ * measures the feature, not the funnel). Everything here is a count or a time; a trace holds no words.
+ */
+async function askQuality(db: Awaited<ReturnType<typeof getDb>>, since: Date) {
+  const n = (x: unknown) => Number(x ?? 0);
+  const [t] = asRows<Record<string, number | null>>(
+    await db.execute(sql`
+      select count(*)                                                                         as traces,
+             count(*) filter (where outcome = 'finished')                                     as finished,
+             count(*) filter (where outcome = 'stopped')                                      as stopped,
+             count(*) filter (where outcome = 'blocked')                                      as blocked,
+             count(*) filter (where outcome = 'error')                                        as errors,
+             percentile_cont(0.5) within group (order by ttft_ms) filter (where outcome = 'finished')  as p50_ttft,
+             percentile_cont(0.95) within group (order by ttft_ms) filter (where outcome = 'finished') as p95_ttft,
+             avg(cost_usd) filter (where outcome = 'finished')                                as avg_cost,
+             avg(jsonb_array_length(steps)) filter (where outcome = 'finished')               as avg_steps,
+             count(*) filter (where outcome = 'finished' and steps->0->>'finishReason' = 'read-ahead') as read_ahead,
+             count(*) filter (where jsonb_array_length(coalesce(flags->'advicePatterns', '[]'::jsonb)) > 0) as advice,
+             count(*) filter (where flags->'lang'->>'match' = 'false')                        as lang_mismatch,
+             count(*) filter (where (flags->'numbers'->>'untraced')::int > 0)                 as untraced_answers,
+             coalesce(sum((flags->'numbers'->>'total')::int), 0)                              as numbers,
+             coalesce(sum((flags->'numbers'->>'untraced')::int), 0)                           as untraced,
+             count(*) filter (where guard->>'skipped' in ('error', 'unavailable'))            as guard_skipped,
+             percentile_cont(0.5) within group (order by (guard->>'ms')::double precision)    as p50_guard
+      from ask_traces where created_at >= ${since}
+    `),
+  );
+  const tools = asRows<{ name: string; calls: number; failed: number; ms: number | null }>(
+    await db.execute(sql`
+      select tool->>'name' as name, count(*) as calls, count(*) filter (where tool->>'ok' = 'false') as failed, avg((tool->>'ms')::double precision) as ms
+      from ask_traces, jsonb_array_elements(steps) step, jsonb_array_elements(step->'tools') tool
+      where created_at >= ${since}
+      group by 1 order by 2 desc limit 12
+    `),
+  ).map((r) => ({ name: r.name, calls: n(r.calls), failed: n(r.failed), ms: r.ms == null ? null : Math.round(Number(r.ms)) }));
+  // The same answers, split by the wording that produced them, with how each was rated.
+  const versions = asRows<{ version: string; model: string | null; answers: number; ttft: number | null; cost: number | null; up: number; rated: number }>(
+    await db.execute(sql`
+      select t.prompt_version as version, max(t.model) as model, count(*) as answers,
+             percentile_cont(0.5) within group (order by t.ttft_ms) as ttft, avg(t.cost_usd) as cost,
+             (select count(*) from feedback f where f.prompt_version = t.prompt_version and f.rating = 'up' and f.created_at >= ${since}) as up,
+             (select count(*) from feedback f where f.prompt_version = t.prompt_version and f.created_at >= ${since}) as rated
+      from ask_traces t where t.created_at >= ${since} and t.outcome = 'finished'
+      group by t.prompt_version order by max(t.created_at) desc limit 6
+    `),
+  ).map((r) => ({ version: r.version, model: r.model, answers: n(r.answers), ttftMs: r.ttft == null ? null : Math.round(Number(r.ttft)), costUsd: r.cost == null ? null : Number(r.cost), helpful: ratio(n(r.up), n(r.rated)), rated: n(r.rated) }));
+  const finished = n(t?.finished);
+  return {
+    traces: n(t?.traces),
+    finished,
+    stopped: n(t?.stopped),
+    blocked: n(t?.blocked),
+    errors: n(t?.errors),
+    p50TtftMs: t?.p50_ttft == null ? null : Math.round(Number(t.p50_ttft)),
+    p95TtftMs: t?.p95_ttft == null ? null : Math.round(Number(t.p95_ttft)),
+    avgCostUsd: t?.avg_cost == null ? null : Number(t.avg_cost),
+    avgSteps: t?.avg_steps == null ? null : Number(t.avg_steps),
+    readAheadShare: ratio(n(t?.read_ahead), finished),
+    /** Answers the advice filter took a sentence out of. */
+    adviceAnswers: n(t?.advice),
+    langMismatch: n(t?.lang_mismatch),
+    /** Answers containing a number that could not be traced to a tool result, and the share of all numbers. */
+    untracedAnswers: n(t?.untraced_answers),
+    untracedShare: ratio(n(t?.untraced), n(t?.numbers)),
+    guardSkipped: n(t?.guard_skipped),
+    p50GuardMs: t?.p50_guard == null ? null : Math.round(Number(t.p50_guard)),
+    tools,
+    versions,
   };
 }
 

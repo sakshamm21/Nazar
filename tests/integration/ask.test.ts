@@ -445,7 +445,7 @@ describe("the no-advice rule, on what the model writes", () => {
 
     // Recorded by the name of the pattern, never by the words.
     expect((await event(u.id, "advice_filtered")).props).toEqual({ mode: "enforce", model: answer.metadata!.model, promptVersion: promptVersion(), lang: "en", sentences: 1, patterns: ["you should"] });
-    expect((await traceOf(id)).flags).toEqual({ adviceGuard: "enforce", advicePatterns: ["you should"] });
+    expect((await traceOf(id)).flags).toMatchObject({ adviceGuard: "enforce", advicePatterns: ["you should"] });
     expect((await event(u.id, "question")).props).toMatchObject({ adviceRemoved: 1 });
   });
 
@@ -458,7 +458,7 @@ describe("the no-advice rule, on what the model writes", () => {
     await ask(u, id, "How is Infosys doing?");
     const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
     expect(answerText(answer)).toBe(clean);
-    expect((await traceOf(id)).flags).toEqual({ adviceGuard: "enforce", advicePatterns: [] });
+    expect((await traceOf(id)).flags).toMatchObject({ adviceGuard: "enforce", advicePatterns: [] });
   });
 
   it("in shadow mode the sentence is let through and only recorded", async () => {
@@ -470,7 +470,7 @@ describe("the no-advice rule, on what the model writes", () => {
       await ask(u, id, "Should I sell Infosys?");
       const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
       expect(answerText(answer)).toBe(slip);
-      expect((await traceOf(id)).flags).toEqual({ adviceGuard: "shadow", advicePatterns: ["you should"] });
+      expect((await traceOf(id)).flags).toMatchObject({ adviceGuard: "shadow", advicePatterns: ["you should"] });
       expect((await event(u.id, "advice_filtered")).props).toMatchObject({ mode: "shadow", sentences: 1 });
     } finally {
       restore();

@@ -34,3 +34,6 @@ skills-lock.json
 .DS_Store
 *.pem
 npm-debug.log*
+
+# Candidate eval cases harvested from real answers: read and edited by hand, never committed as they are
+/evals/cases/candidates.jsonl

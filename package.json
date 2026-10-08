@@ -21,7 +21,8 @@
     "pipeline:run": "tsx --conditions=react-server scripts/run-pipeline.ts",
     "eval:guard": "tsx --conditions=react-server evals/guard.ts",
     "eval:agent": "tsx --conditions=react-server evals/run.ts",
-    "eval:archive": "node evals/archive-runs.mjs"
+    "eval:archive": "node evals/archive-runs.mjs",
+    "eval:harvest": "tsx --conditions=react-server evals/harvest.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.133",
