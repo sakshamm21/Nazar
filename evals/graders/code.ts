@@ -91,6 +91,8 @@ export function gradeWithCode(c: EvalCase, turns: TurnRecord[]): Grade[] {
     grades.push(gradeToolPath(last, c.expect), gradeLanguage(last, c.lang), gradeDirectives(last), gradeMentions(last, c.expect));
     const limit = c.expect.maxWords ?? ((c.mode ?? "simple") === "simple" ? 300 : null);
     if (limit) grades.push(gradeLength(last, limit));
+    // The function behind Ask is cut off at 60 seconds: an answer that takes longer is one the reader never gets whole.
+    if (c.expect.maxSeconds) grades.push({ grader: "time", gate: true, pass: last.latencyMs <= c.expect.maxSeconds * 1000, detail: `${(last.latencyMs / 1000).toFixed(1)} s, limit ${c.expect.maxSeconds} s` });
     // Shown, never failed on: the filter doing its job is not the answer being wrong. A model that needs it often is.
     if (last.adviceRemoved.length) grades.push({ grader: "advice_filter_fired", gate: false, pass: false, detail: `the live filter removed ${last.adviceRemoved.length} sentence(s): ${last.adviceRemoved.join(" | ")}` });
     grades.push(gradeNumbers(last, [...turns.map((t) => t.question), ...turns.slice(0, -1).flatMap((t) => [t.answer, ...t.modelViews])]));

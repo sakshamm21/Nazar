@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ICICI Bank NSE"
+ },
+ "output": {
+  "query": "ICICI Bank NSE",
+  "results": []
+ }
+}

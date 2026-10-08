@@ -36,3 +36,13 @@ export async function safe<T>(fn: () => Promise<T>, what: "data" | "analysis" = 
  * does a result that history compaction has already cut down: it no longer has the tool's shape.
  */
 export const forModel = (fn: (o: any) => unknown) => ({ output: o }: { output: any }) => ({ type: "json" as const, value: (o && typeof o === "object" && ("error" in o || o.truncated === true) ? o : fn(o)) as any });
+
+/** A large rupee amount as people in India say it: "₹3.53 lakh crore", "₹41,764 crore", "₹12.5 lakh". */
+export function rupeesInWords(n: number): string {
+  const a = Math.abs(n);
+  const sign = n < 0 ? "−" : "";
+  if (a >= 1e12) return `${sign}₹${(a / 1e12).toFixed(2)} lakh crore`;
+  if (a >= 1e7) return `${sign}₹${Math.round(a / 1e7).toLocaleString("en-IN")} crore`;
+  if (a >= 1e5) return `${sign}₹${(a / 1e5).toFixed(2)} lakh`;
+  return `${sign}₹${Math.round(a).toLocaleString("en-IN")}`;
+}

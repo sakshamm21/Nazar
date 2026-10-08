@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Kotak Mahindra Bank NSE"
+ },
+ "output": {
+  "query": "Kotak Mahindra Bank NSE",
+  "results": []
+ }
+}

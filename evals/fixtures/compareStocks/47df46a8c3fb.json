@@ -1,0 +1,162 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "HDFCBANK.NS",
+   "ICICIBANK.NS",
+   "AXISBANK.NS",
+   "KOTAKBANK.NS"
+  ],
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "returnOnEquity",
+   "returnOnAssets",
+   "revenueGrowth",
+   "earningsGrowth",
+   "dividendYield"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited"
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited"
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited"
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "format": "currency",
+    "values": [
+     692.25,
+     1349,
+     1245,
+     435
+    ]
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "format": "large",
+    "values": [
+     10673442521088,
+     9683948535808,
+     3876647337984,
+     4327328448512
+    ]
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.131147,
+     17.437952,
+     13.999775,
+     21.32353
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     11.052473,
+     14.465494,
+     10.313905,
+     18.518147
+    ]
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "format": "ratio",
+    "values": [
+     1.757814,
+     2.5434737,
+     1.735078,
+     2.387473
+    ]
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "format": "percent",
+    "values": [
+     0.13838,
+     0.16073999,
+     0.13352999,
+     null
+    ]
+   },
+   {
+    "key": "returnOnAssets",
+    "label": "Return on assets",
+    "format": "percent",
+    "values": [
+     0.0175,
+     0.021070002,
+     0.01535,
+     null
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.166,
+     0.114,
+     0.14,
+     0.21
+    ]
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.181,
+     0.138,
+     0.218,
+     0.225
+    ]
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "format": "percent",
+    "values": [
+     0.0185,
+     0.0088,
+     0.0008,
+     0.0015
+    ]
+   }
+  ]
+ }
+}

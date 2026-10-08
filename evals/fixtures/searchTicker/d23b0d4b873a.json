@@ -1,0 +1,53 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "SBIN"
+ },
+ "output": {
+  "query": "SBIN",
+  "results": [
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBIN.BO",
+    "name": "State Bank of India",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBINEQWETF.NS",
+    "name": "SBI Nifty50 Equal Weight ETF",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBINMID150.NS",
+    "name": "SBI Nifty Midcap 150 ETF",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBINEQINAV.NS",
+    "name": "SBIAMC - SBINEQINAV",
+    "exchange": "NSE",
+    "type": "INDEX"
+   },
+   {
+    "symbol": "SBINEQWETF.BO",
+    "name": "SBI Mutual Fund",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SBIN.DE",
+    "name": "Amundi MSCI Emerging Markets ESG Broad Transition - UCITS ETF DR (C)",
+    "exchange": "XETRA",
+    "type": "ETF"
+   }
+  ]
+ }
+}

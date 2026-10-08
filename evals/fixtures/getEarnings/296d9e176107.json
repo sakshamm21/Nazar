@@ -1,0 +1,90 @@
+{
+ "tool": "getEarnings",
+ "input": {
+  "symbol": "HDFCBANK.NS"
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "currency": "INR",
+  "currencyUncertain": false,
+  "nextEarningsDate": "2026-10-17",
+  "history": [
+   {
+    "quarter": "2025-09-30",
+    "actual": 12.09,
+    "estimate": 11.29,
+    "surprisePct": 0.0709
+   },
+   {
+    "quarter": "2025-12-31",
+    "actual": 12.08,
+    "estimate": 10.485,
+    "surprisePct": 0.1521
+   },
+   {
+    "quarter": "2026-03-31",
+    "actual": 12.45,
+    "estimate": 12.35,
+    "surprisePct": 0.0081
+   },
+   {
+    "quarter": "2026-06-30",
+    "actual": 12.35,
+    "estimate": 12.515,
+    "surprisePct": -0.013200001
+   }
+  ],
+  "quarterly": [
+   {
+    "period": "3Q2025",
+    "revenue": 459015200000,
+    "earnings": 186412800000
+   },
+   {
+    "period": "4Q2025",
+    "revenue": 458688400000,
+    "earnings": 186537500000
+   },
+   {
+    "period": "1Q2026",
+    "revenue": 462804500000,
+    "earnings": 192210500000
+   },
+   {
+    "period": "2Q2026",
+    "revenue": 463555500000,
+    "earnings": 190597200000
+   }
+  ],
+  "estimates": [
+   {
+    "period": "0q",
+    "endDate": "2026-09-30",
+    "epsAvg": 12.545,
+    "revenueAvg": 477375732750,
+    "growth": 0.0376
+   },
+   {
+    "period": "+1q",
+    "endDate": "2026-12-31",
+    "epsAvg": null,
+    "revenueAvg": 491950911500,
+    "growth": 0.0691
+   },
+   {
+    "period": "0y",
+    "endDate": "2027-03-31",
+    "epsAvg": 53.26575,
+    "revenueAvg": 2005621753830,
+    "growth": 0.0809
+   },
+   {
+    "period": "+1y",
+    "endDate": "2028-03-31",
+    "epsAvg": 62.63304,
+    "revenueAvg": 3001849116020,
+    "growth": 0.1759
+   }
+  ]
+ }
+}

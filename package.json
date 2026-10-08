@@ -20,6 +20,7 @@
     "catalog:refresh": "tsx --conditions=react-server scripts/refresh-catalog.ts",
     "pipeline:run": "tsx --conditions=react-server scripts/run-pipeline.ts",
     "eval:guard": "tsx --conditions=react-server evals/guard.ts",
+    "eval:import": "tsx --conditions=react-server evals/import-help.ts",
     "eval:agent": "tsx --conditions=react-server evals/run.ts",
     "eval:archive": "node evals/archive-runs.mjs",
     "eval:harvest": "tsx --conditions=react-server evals/harvest.ts"

@@ -1,5 +1,5 @@
 {
- "createdAt": "2026-10-08T13:54:51.755Z",
+ "createdAt": "2026-10-08T15:12:54.328Z",
  "promptVersion": "00593627",
  "suite": "all",
  "repeat": 3,
@@ -82,7 +82,7 @@
     },
     "numbers_traced": {
      "runs": 256,
-     "passed": 241,
+     "passed": 248,
      "gate": false
     },
     "content": {
@@ -191,12 +191,12 @@
     "off-cover-letter": true
    },
    "unstable": [],
-   "costUsd": 0.08014373999999995,
+   "costUsd": 0.08057366999999997,
    "judgeCostUsd": 0,
-   "p50TtftMs": 6532,
-   "p50LatencyMs": 7918,
-   "avgInputTokens": 12215,
-   "avgSteps": 2.23
+   "p50TtftMs": 5171,
+   "p50LatencyMs": 6681,
+   "avgInputTokens": 12311,
+   "avgSteps": 2.25
   }
  }
 }

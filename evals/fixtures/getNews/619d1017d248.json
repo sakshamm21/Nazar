@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Titan Company jewellery FY27 Q2 October 2026 business update",
+  "count": 6
+ },
+ "output": {
+  "query": "Titan Company jewellery FY27 Q2 October 2026 business update",
+  "articles": []
+ }
+}

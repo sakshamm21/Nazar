@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Titan Company India jewellery results Q2 FY27 gold 2026",
+  "count": 6
+ },
+ "output": {
+  "query": "Titan Company India jewellery results Q2 FY27 gold 2026",
+  "articles": []
+ }
+}

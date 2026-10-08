@@ -1,0 +1,160 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "returnOnEquity",
+   "returnOnAssets",
+   "revenue",
+   "revenueGrowth",
+   "earningsGrowth",
+   "profitMargin",
+   "totalCash",
+   "totalDebt",
+   "bookValue",
+   "trailingEps",
+   "forwardEps",
+   "dividendYield",
+   "payoutRatio"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 692.25
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 10673442521088
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.131147
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 11.052473
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 1.757814
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.26787
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.13838
+   },
+   {
+    "key": "returnOnAssets",
+    "label": "Return on assets",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.0175
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "category": "Growth",
+    "format": "large",
+    "value": 2949644288000
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.166
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.181
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 2377666265088
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 5658713784320
+   },
+   {
+    "key": "trailingEps",
+    "label": "EPS (TTM)",
+    "category": "Per share",
+    "format": "currency",
+    "value": 45.75
+   },
+   {
+    "key": "forwardEps",
+    "label": "EPS (forward)",
+    "category": "Per share",
+    "format": "currency",
+    "value": 62.63304
+   },
+   {
+    "key": "bookValue",
+    "label": "Book value / share",
+    "category": "Per share",
+    "format": "currency",
+    "value": 393.813
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0185
+   },
+   {
+    "key": "payoutRatio",
+    "label": "Payout ratio",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.24040002
+   }
+  ]
+ }
+}

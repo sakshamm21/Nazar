@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "HDFC Bank India latest results deposits loans asset quality merger October 2026",
+  "count": 6
+ },
+ "output": {
+  "query": "HDFC Bank India latest results deposits loans asset quality merger October 2026",
+  "articles": []
+ }
+}

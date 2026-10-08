@@ -1,0 +1,86 @@
+{
+ "tool": "runComparableValuation",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "peers": [
+   "ICICIBANK.NS",
+   "AXISBANK.NS",
+   "KOTAKBANK.NS"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "price": 692.25,
+  "shares": 15418479370,
+  "netDebt": 3281047519232,
+  "inputs": {
+   "trailingEps": 45.75,
+   "forwardEps": 62.63304,
+   "ebitda": null,
+   "bookValue": 393.813,
+   "revenue": 2949644288000
+  },
+  "target": {
+   "symbol": "HDFCBANK.NS",
+   "name": "HDFC Bank Limited",
+   "currency": "INR",
+   "trailingPE": 15.13,
+   "forwardPE": 11.05,
+   "evToEbitda": null,
+   "priceToBook": 1.76,
+   "priceToSales": 3.62
+  },
+  "peers": [
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "currency": "INR",
+    "trailingPE": 17.44,
+    "forwardPE": 14.47,
+    "evToEbitda": null,
+    "priceToBook": 2.54,
+    "priceToSales": 4.75
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "currency": "INR",
+    "trailingPE": 14,
+    "forwardPE": 10.31,
+    "evToEbitda": null,
+    "priceToBook": 1.74,
+    "priceToSales": 5.03
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited",
+    "currency": "INR",
+    "trailingPE": 21.32,
+    "forwardPE": 18.52,
+    "evToEbitda": null,
+    "priceToBook": 2.39,
+    "priceToSales": 6.07
+   }
+  ],
+  "missingPeers": [],
+  "medians": {
+   "trailingPE": 17.44,
+   "forwardPE": 14.47,
+   "evToEbitda": null,
+   "priceToBook": 2.39,
+   "priceToSales": 5.03
+  },
+  "implied": {
+   "trailingPE": 797.79,
+   "forwardPE": 906.02,
+   "evToEbitda": null,
+   "priceToBook": 940.22,
+   "priceToSales": 962.13
+  },
+  "blended": 901.54,
+  "upside": 0.3023,
+  "fxNote": null
+ }
+}

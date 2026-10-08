@@ -101,6 +101,25 @@ describe("number provenance", () => {
   it("accepts numbers the user supplied", () => {
     expect(traceNumbers("A ₹10,000 monthly SIP over 5 years comes to 60 instalments.", [{ installments: 60 }], ["If I had done a ₹10,000 monthly SIP for 5 years?"]).untraced).toEqual([]);
   });
+  it("reads a table's bare figures in the unit the table states", () => {
+    const statement = { rows: [{ operatingCashFlow: 1150320000000, capex: -1409880000000 }] };
+    const table = "Cash flow (₹ crore):\n| Year | Operating cash flow | Capital expenditure |\n|---|---:|---:|\n| Mar 2023 | 1,15,032 | −1,40,988 |";
+    expect(traceNumbers(table, [statement]).untraced).toEqual([]);
+    // Without the stated unit the same figures have no source, and a wrong one still has none with it.
+    expect(traceNumbers(table.replace(" (₹ crore)", ""), [statement]).untraced).toHaveLength(2);
+    expect(traceNumbers(table.replace("1,15,032", "1,25,032"), [statement]).untraced).toEqual(["1,25,032"]);
+  });
+  it("accepts a share of an amount, and what is left of a whole, but not a figure ten times too big", () => {
+    const portfolio = { value: 4741532, clusters: [{ weight: 0.5103579 }] };
+    expect(traceNumbers("The largest cluster is about 51% of your portfolio, roughly ₹24.2 lakh.", [portfolio]).untraced).toEqual([]);
+    expect(traceNumbers("Promoters hold 60.2%, institutions 21.5%, and the remaining 18.3% is with the public.", [{ promoters: 0.602, institutions: 0.215 }]).untraced).toEqual([]);
+    // The error this check exists for: a market cap of ₹3.53 lakh crore written as ₹35.30 lakh crore.
+    expect(traceNumbers("Its market cap is ₹35.30 lakh crore.", [{ marketCap: 3530111844352 }]).untraced).toEqual(["₹35.30 lakh crore"]);
+    expect(traceNumbers("Its market cap is ₹3.53 lakh crore.", [{ marketCap: 3530111844352, largeFiguresInWords: { marketCap: "₹3.53 lakh crore" } }]).untraced).toEqual([]);
+  });
+  it("does not read gold purity as a number", () => {
+    expect(numbersIn("24K gold is at ₹7,450 a gram; 22 karat is lower.").map((n) => n.value)).toEqual([7450]);
+  });
   it("flags a number that came from nowhere", () => {
     const p = traceNumbers("Infosys is down 7.1% and trades at a P/E of 27.3, with revenue of ₹41,764 crore.", [source]);
     expect(p.untraced).toEqual(["27.3", "₹41,764 crore"]);

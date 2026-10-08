@@ -1,0 +1,41 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "TITAN.NS",
+  "statement": "cashflow",
+  "period": "quarterly"
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "currency": "INR",
+  "statement": "cashflow",
+  "period": "quarterly",
+  "fields": [
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow"
+   },
+   {
+    "key": "capitalExpenditure",
+    "label": "Capex"
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow"
+   },
+   {
+    "key": "repurchaseOfCapitalStock",
+    "label": "Buybacks"
+   },
+   {
+    "key": "cashDividendsPaid",
+    "label": "Dividends paid"
+   },
+   {
+    "key": "stockBasedCompensation",
+    "label": "Stock-based comp"
+   }
+  ],
+  "periods": []
+ }
+}

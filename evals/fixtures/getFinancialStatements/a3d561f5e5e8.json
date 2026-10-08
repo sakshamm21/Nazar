@@ -1,0 +1,86 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "TITAN.NS",
+  "statement": "balance",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "currency": "INR",
+  "statement": "balance",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "totalAssets",
+    "label": "Total assets"
+   },
+   {
+    "key": "totalLiabilitiesNetMinorityInterest",
+    "label": "Total liabilities"
+   },
+   {
+    "key": "stockholdersEquity",
+    "label": "Shareholders' equity"
+   },
+   {
+    "key": "cashAndCashEquivalents",
+    "label": "Cash & equivalents"
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt"
+   },
+   {
+    "key": "netDebt",
+    "label": "Net debt"
+   },
+   {
+    "key": "workingCapital",
+    "label": "Working capital"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "totalAssets": 270230000000,
+    "totalLiabilitiesNetMinorityInterest": 151190000000,
+    "stockholdersEquity": 118510000000,
+    "cashAndCashEquivalents": 2320000000,
+    "totalDebt": 93670000000,
+    "netDebt": 72620000000,
+    "workingCapital": 91430000000
+   },
+   {
+    "period": "2024-03-31",
+    "totalAssets": 315500000000,
+    "totalLiabilitiesNetMinorityInterest": 221570000000,
+    "stockholdersEquity": 93930000000,
+    "cashAndCashEquivalents": 4090000000,
+    "totalDebt": 155280000000,
+    "netDebt": 127700000000,
+    "workingCapital": 90790000000
+   },
+   {
+    "period": "2025-03-31",
+    "totalAssets": 406470000000,
+    "totalLiabilitiesNetMinorityInterest": 290230000000,
+    "stockholdersEquity": 116240000000,
+    "cashAndCashEquivalents": 4070000000,
+    "totalDebt": 207770000000,
+    "netDebt": 176890000000,
+    "workingCapital": 86410000000
+   },
+   {
+    "period": "2026-03-31",
+    "totalAssets": 605610000000,
+    "totalLiabilitiesNetMinorityInterest": 448580000000,
+    "stockholdersEquity": 157030000000,
+    "cashAndCashEquivalents": 10870000000,
+    "totalDebt": 306210000000,
+    "netDebt": 263610000000,
+    "workingCapital": 109880000000
+   }
+  ]
+ }
+}

@@ -12,7 +12,7 @@ import { inr } from "@/lib/format";
 import { ApiError, apiCall } from "@/lib/api-client";
 import { shortCode } from "@/lib/instruments/asset-classes";
 
-type Resolution = { status: "matched"; symbol: string; name: string; isin: string | null; via: string } | { status: "ambiguous"; candidates: { symbol: string; name: string }[] } | { status: "unmatched"; reason: string };
+type Resolution = { status: "matched"; symbol: string; name: string; isin: string | null; via: string } | { status: "ambiguous"; candidates: { symbol: string; name: string }[]; suggested?: boolean } | { status: "unmatched"; reason: string };
 type Row = { line: number; rawName: string; symbol: string | null; isin: string | null; quantity: number; avgPrice: number; buyDate: string | null; resolution: Resolution };
 
 const VIA: Record<string, string> = { isin: "ISIN", symbol: "Symbol", alias: "Renamed ticker", name: "Name", partial: "Name", search: "Search" };
@@ -42,7 +42,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
       const j = await apiCall(`/api/portfolios/${target}/import`, "POST", fd, "Couldn't read that file.");
       setPreview(j);
       const init: Record<number, string> = {};
-      for (const r of j.rows as Row[]) init[r.line] = r.resolution.status === "matched" ? r.resolution.symbol : r.resolution.status === "ambiguous" ? r.resolution.candidates[0].symbol : "";
+      for (const r of j.rows as Row[]) init[r.line] = r.resolution.status === "matched" ? r.resolution.symbol : r.resolution.status === "ambiguous" && !r.resolution.suggested ? r.resolution.candidates[0].symbol : "";
       setChoice(init);
       setLocked(null);
       setPassword("");
@@ -186,6 +186,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
                       {r.quantity} × {inr(r.avgPrice, { decimals: 2 })}
                       {r.buyDate ? ` · ${r.buyDate}` : ""}
                     </div>
+                    {res.status === "ambiguous" && res.suggested && <div className="text-[12px] text-warn">Nazar couldn&apos;t match this name. The choices are an AI&apos;s best guesses: pick one only if it is right.</div>}
                   </div>
                   {res.status === "matched" ? (
                     <span className="flex items-center gap-2">
@@ -195,7 +196,7 @@ export function Importer({ portfolios, defaultId }: { portfolios: { id: string; 
                   ) : (
                     <Select aria-label={`Match for ${r.rawName}`} className="h-9 w-56 text-sm" value={choice[r.line] ?? ""} onChange={(e) => setChoice({ ...choice, [r.line]: e.target.value })}>
                       {res.status === "ambiguous" && res.candidates.map((c) => <option key={c.symbol} value={c.symbol}>{c.symbol.startsWith("MF:") ? c.name : `${shortCode(c.symbol)} · ${c.name}`}</option>)}
-                      <option value="">{res.status === "unmatched" ? "Not found: skip this row" : "Skip this row"}</option>
+                      <option value="">{res.status === "unmatched" ? "Not found: skip this row" : res.suggested ? "Not sure: skip this row" : "Skip this row"}</option>
                     </Select>
                   )}
                 </li>

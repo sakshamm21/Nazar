@@ -1,0 +1,78 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "TITAN.NS",
+  "statement": "cashflow",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "currency": "INR",
+  "statement": "cashflow",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow"
+   },
+   {
+    "key": "capitalExpenditure",
+    "label": "Capex"
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow"
+   },
+   {
+    "key": "repurchaseOfCapitalStock",
+    "label": "Buybacks"
+   },
+   {
+    "key": "cashDividendsPaid",
+    "label": "Dividends paid"
+   },
+   {
+    "key": "stockBasedCompensation",
+    "label": "Stock-based comp"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "operatingCashFlow": 13700000000,
+    "capitalExpenditure": -4320000000,
+    "freeCashFlow": 9380000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -6660000000,
+    "stockBasedCompensation": 10000000
+   },
+   {
+    "period": "2024-03-31",
+    "operatingCashFlow": 16950000000,
+    "capitalExpenditure": -6910000000,
+    "freeCashFlow": 10040000000,
+    "repurchaseOfCapitalStock": -2360000000,
+    "cashDividendsPaid": -8880000000,
+    "stockBasedCompensation": 480000000
+   },
+   {
+    "period": "2025-03-31",
+    "operatingCashFlow": -5410000000,
+    "capitalExpenditure": -4940000000,
+    "freeCashFlow": -10350000000,
+    "repurchaseOfCapitalStock": -60000000,
+    "cashDividendsPaid": -9760000000,
+    "stockBasedCompensation": 130000000
+   },
+   {
+    "period": "2026-03-31",
+    "operatingCashFlow": 55900000000,
+    "capitalExpenditure": -9020000000,
+    "freeCashFlow": 46880000000,
+    "repurchaseOfCapitalStock": null,
+    "cashDividendsPaid": -9760000000,
+    "stockBasedCompensation": 780000000
+   }
+  ]
+ }
+}

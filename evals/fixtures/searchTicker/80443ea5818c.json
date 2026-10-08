@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HDFC Bank NSE"
+ },
+ "output": {
+  "query": "HDFC Bank NSE",
+  "results": []
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "TBZ.NS"
+ },
+ "output": {
+  "query": "TBZ.NS",
+  "results": [
+   {
+    "symbol": "TBZ.NS",
+    "name": "Tribhovandas Bhimji Zaveri Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

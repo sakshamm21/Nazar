@@ -1,0 +1,78 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "statement": "income",
+  "period": "quarterly"
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "currency": "INR",
+  "statement": "income",
+  "period": "quarterly",
+  "fields": [
+   {
+    "key": "totalRevenue",
+    "label": "Revenue"
+   },
+   {
+    "key": "costOfRevenue",
+    "label": "Cost of revenue"
+   },
+   {
+    "key": "grossProfit",
+    "label": "Gross profit"
+   },
+   {
+    "key": "researchAndDevelopment",
+    "label": "R&D"
+   },
+   {
+    "key": "sellingGeneralAndAdministration",
+    "label": "SG&A"
+   },
+   {
+    "key": "operatingIncome",
+    "label": "Operating income"
+   },
+   {
+    "key": "EBITDA",
+    "label": "EBITDA"
+   },
+   {
+    "key": "netIncome",
+    "label": "Net income"
+   },
+   {
+    "key": "dilutedEPS",
+    "label": "Diluted EPS"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2025-03-31",
+    "totalRevenue": 953058900000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 871615800000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 153934600000,
+    "dilutedEPS": null
+   },
+   {
+    "period": "2025-06-30",
+    "totalRevenue": 853464600000,
+    "costOfRevenue": null,
+    "grossProfit": null,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 369703800000,
+    "operatingIncome": null,
+    "EBITDA": null,
+    "netIncome": 162579100000,
+    "dilutedEPS": 10.56
+   }
+  ]
+ }
+}

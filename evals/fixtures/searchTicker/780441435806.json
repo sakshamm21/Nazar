@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Kalyan Jewellers India NSE"
+ },
+ "output": {
+  "query": "Kalyan Jewellers India NSE",
+  "results": []
+ }
+}

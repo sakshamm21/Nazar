@@ -43,6 +43,8 @@ export function numbersIn(text: string): Num[] {
     .replace(/\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(\s+\d{4})?\b/gi, " ")
     .replace(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(,\s*\d{4})?\b/gi, " ")
     .replace(/\b(fy|q[1-4]|cy|h[12])\s?'?\d{2,4}\b/gi, " ")
+    // Gold purity, not twenty-four thousand.
+    .replace(/\b(14|18|22|24)\s?(k|kt|karat|carat)\b/gi, " ")
     .replace(/^\s*\d+[.)]\s/gm, " ");
   const re = /(?<![A-Za-z\d.])([-−–+]?)\s?(₹|rs\.?\s?|inr\s?|\$|usd\s?)?(\d{1,3}(?:,\d{2,3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s?(%|percent|x\b|×|k\b|thousand|lakh crores?|lakhs?|lacs?|l\b|crores?|cr\b|million|mn\b|m\b|billion|bn\b|b\b|trillion|tn\b)?/gi;
   for (const m of cleaned.matchAll(re)) {
@@ -110,16 +112,27 @@ export function traceNumbers(answer: string, sources: unknown[], context: string
       given.add(Math.abs(n.value));
       raw.add(Math.abs(n.value));
     }
+  // A table that states its unit once, "(₹ crore)", then lists bare figures: 1,15,032 there is 1,15,032 crore.
+  const stated = answer.match(/\(\s*(?:in\s+)?(?:₹|rs\.?|inr|\$|usd)?\s*(lakh crores?|crores?|cr|lakhs?|millions?|mn|billions?|bn)\s*\)|\bin\s+\*{0,2}(?:₹|rs\.?|inr|\$|usd)\s*(lakh crores?|crores?|cr|lakhs?|millions?|mn|billions?|bn)\b/i);
+  const scale = stated ? UNIT[(stated[1] ?? stated[2]).toLowerCase().replace(/millions$/, "million").replace(/billions$/, "billion")] : 0;
+  if (scale) for (const n of raw) if (n >= scale) for (const d of [0, 1, 2]) given.add(Number((n / scale).toFixed(d)));
   const base = [...new Set([...given].filter((n) => n > 0))];
   // Pairs grow with the square of the count, and so do coincidences: only the first few hundred are combined.
   const small = [...raw].filter((n) => n > 0).slice(0, 300);
   const exact = (a: number, b: number) => Math.abs(a - b) <= Math.max(Math.abs(b) * 0.002, 0.05);
-  const derived = (v: number) => {
+  /** A product is quoted rounded ("about ₹24.2 lakh"): within half a percent. */
+  const near = (a: number, b: number) => Math.abs(a - b) <= Math.abs(b) * 0.005;
+  const derived = (v: number, percent: boolean) => {
     for (let i = 0; i < small.length; i++)
       for (let j = i + 1; j < small.length; j++) {
         const a = small[i], b = small[j];
         // Only numbers on the same scale are added or subtracted: a price minus a ratio means nothing.
         const hi = Math.max(a, b), lo = Math.min(a, b);
+        // A share of an amount: "the cluster is 51% of the portfolio, about ₹24.2 lakh".
+        if (!percent && lo < 1 && hi >= 1000 && near(v, hi * lo)) return true;
+        if (!percent && lo > 1 && lo <= 100 && hi >= 1000 && near(v, (hi * lo) / 100)) return true;
+        // What is left of a whole: "promoters hold 60.2% and institutions 21.5%; the other 18.3%…".
+        if (percent && lo > 1 && hi <= 100 && exact(v, 100 - (a + b))) return true;
         if (hi / lo > 50) continue;
         if (exact(v, hi - lo) || exact(v, a + b) || exact(v, (hi / lo - 1) * 100) || exact(v, (1 - lo / hi) * 100)) return true;
       }
@@ -129,7 +142,7 @@ export function traceNumbers(answer: string, sources: unknown[], context: string
   const untraced: string[] = [];
   for (const n of nums) {
     const v = Math.abs(n.value);
-    if (base.some((g) => close(v, g)) || derived(v)) continue;
+    if (base.some((g) => close(v, g)) || derived(v, n.percent)) continue;
     untraced.push(n.raw);
   }
   return { total: nums.length, traced: nums.length - untraced.length, untraced };

@@ -28,6 +28,8 @@ export type EvalCase = {
       maxSteps?: number;
     };
     maxWords?: number;
+    /** The whole answer, from the question to its last word, must take no longer than this. */
+    maxSeconds?: number;
     /** Regular expressions (case-insensitive) the answer must, or must not, match. */
     mustMention?: string[];
     mustNotMention?: string[];

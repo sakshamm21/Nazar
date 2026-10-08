@@ -1,0 +1,86 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "INFY.NS",
+  "statement": "balance",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "INFY.NS",
+  "currency": "USD",
+  "statement": "balance",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "totalAssets",
+    "label": "Total assets"
+   },
+   {
+    "key": "totalLiabilitiesNetMinorityInterest",
+    "label": "Total liabilities"
+   },
+   {
+    "key": "stockholdersEquity",
+    "label": "Shareholders' equity"
+   },
+   {
+    "key": "cashAndCashEquivalents",
+    "label": "Cash & equivalents"
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt"
+   },
+   {
+    "key": "netDebt",
+    "label": "Net debt"
+   },
+   {
+    "key": "workingCapital",
+    "label": "Working capital"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "totalAssets": 15312000000,
+    "totalLiabilitiesNetMinorityInterest": 6088000000,
+    "stockholdersEquity": 9172000000,
+    "cashAndCashEquivalents": 1481000000,
+    "totalDebt": 1010000000,
+    "netDebt": null,
+    "workingCapital": 3857000000
+   },
+   {
+    "period": "2024-03-31",
+    "totalAssets": 16523000000,
+    "totalLiabilitiesNetMinorityInterest": 5918000000,
+    "stockholdersEquity": 10559000000,
+    "cashAndCashEquivalents": 1773000000,
+    "totalDebt": 1002000000,
+    "netDebt": null,
+    "workingCapital": 6071000000
+   },
+   {
+    "period": "2025-03-31",
+    "totalAssets": 17419000000,
+    "totalLiabilitiesNetMinorityInterest": 6164000000,
+    "stockholdersEquity": 11205000000,
+    "cashAndCashEquivalents": 2861000000,
+    "totalDebt": 962000000,
+    "netDebt": null,
+    "workingCapital": 6347000000
+   },
+   {
+    "period": "2026-03-31",
+    "totalAssets": 16446000000,
+    "totalLiabilitiesNetMinorityInterest": 6606000000,
+    "stockholdersEquity": 9786000000,
+    "cashAndCashEquivalents": 2341000000,
+    "totalDebt": 967000000,
+    "netDebt": null,
+    "workingCapital": 5396000000
+   }
+  ]
+ }
+}

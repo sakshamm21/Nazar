@@ -43,7 +43,11 @@ const envNumber = (name: string, fallback: number) => {
  * function is cut off at 60 seconds, and an answer cut off is no answer), or it has cost too much
  * for one question. Like the step cap, they withdraw the tools; they never cut the answer short.
  */
-const maxSeconds = () => envNumber("ASK_MAX_SECONDS", 40);
+/**
+ * 30 seconds, not more: a deep dive on the premium model was measured at 15 seconds to write its
+ * answer and up to 8 for a round of lookups already under way, and all of it has to fit in 60.
+ */
+const maxSeconds = () => envNumber("ASK_MAX_SECONDS", 30);
 const maxUsdPerAnswer = () => envNumber("ASK_MAX_USD_PER_ANSWER", 0.1);
 
 export type AskMeta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string; promptVersion?: string; adviceRemoved?: number };

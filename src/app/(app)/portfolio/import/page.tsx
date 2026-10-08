@@ -45,7 +45,7 @@ export default async function ImportPage() {
             </li>
           ))}
         </ul>
-        <p className="t-caption mt-4">Your file is read once to build the preview and isn&apos;t stored. Only the holdings you confirm are saved.</p>
+        <p className="t-caption mt-4">Your file is read once to build the preview and isn&apos;t stored. Only the holdings you confirm are saved. If a name can&apos;t be matched, that name alone (never the quantity or price) is sent to an AI model, which suggests a match for you to check.</p>
       </Card>
     </div>
   );

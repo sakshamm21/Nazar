@@ -55,3 +55,8 @@ run,prompt_version,repeats,model,cases,passed,run_errors,cost_usd,p50_first_word
 2026-10-08T13-54-51,00593627,3,auto,97,97,0,0.0801,6532,7918,12215,11646,221,2.23,scope=291/291 tool_path=217/217 language=256/256 no_directive_phrases=256/256 length=232/232 numbers_traced=241/256 content=46/46
 2026-10-08T13-56-53,00593627,3,auto,1,1,0,0.0013,8842,10670,17732,16899,365,3,scope=3/3 language=3/3 no_directive_phrases=3/3 content=3/3 numbers_traced=3/3
 2026-10-08T13-57-19,00593627,3,auto,1,1,0,0.0017,15213,17536,31711,31345,431,5.33,scope=3/3 tool_path=3/3 language=3/3 no_directive_phrases=3/3 content=3/3 numbers_traced=3/3
+2026-10-08T14-52-35,00593627,1,auto,4,3,0,0.1628,29827,44440,38516,30000,1767,5.25,scope=4/4 tool_path=4/4 language=4/4 no_directive_phrases=4/4 content=3/4 length=4/4 numbers_traced=4/4
+2026-10-08T14-56-28,00593627,2,auto,4,4,0,0.1975,18755,33059,26476,23776,1454,3.88,scope=8/8 tool_path=8/8 language=8/8 no_directive_phrases=8/8 content=8/8 length=8/8 time=8/8 numbers_traced=8/8
+2026-10-08T15-12-54,00593627,3,auto,97,97,0,0.0806,5171,6681,12311,11739,220,2.25,scope=291/291 tool_path=217/217 language=256/256 no_directive_phrases=256/256 length=232/232 numbers_traced=248/256 content=46/46
+2026-10-08T15-15-31,00593627,3,auto,23,23,0,0.0172,3567,5775,9403,8897,219,2.01,scope=69/69 tool_path=69/69 language=69/69 no_directive_phrases=69/69 length=66/66 numbers_traced=69/69 content=6/6
+2026-10-08T15-16-45,00593627,3,auto,4,4,0,0.0099,5164,6519,12774,11306,172,1.83,scope=12/12 tool_path=12/12 language=12/12 no_directive_phrases=12/12 content=3/3 length=12/12 numbers_traced=12/12

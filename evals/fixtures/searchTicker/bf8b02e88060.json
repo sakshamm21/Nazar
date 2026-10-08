@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Senco Gold"
+ },
+ "output": {
+  "query": "Senco Gold",
+  "results": [
+   {
+    "symbol": "SENCO.NS",
+    "name": "Senco Gold Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "SENCO.BO",
+    "name": "Senco Gold Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

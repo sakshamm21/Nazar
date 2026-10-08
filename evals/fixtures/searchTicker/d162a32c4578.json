@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Senco Gold NSE"
+ },
+ "output": {
+  "query": "Senco Gold NSE",
+  "results": []
+ }
+}

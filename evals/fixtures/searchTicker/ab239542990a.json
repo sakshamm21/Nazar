@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Senco Gold India"
+ },
+ "output": {
+  "query": "Senco Gold India",
+  "results": []
+ }
+}

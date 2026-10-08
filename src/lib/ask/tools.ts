@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { INDEX_SETS, METRICS, METRIC_KEYS, NIFTY50, clean, fetchFinancials, fetchHistory, fetchMetrics, fetchQuotes, fxRate, num, quoteSummary, toDate, yahooCall, yf } from "../data/yahoo";
 import type { ToolName } from "./registry";
-import { forModel, safe, symbol } from "./tool-utils";
+import { forModel, rupeesInWords, safe, symbol } from "./tool-utils";
 import { analysisTools } from "./analysis-tools";
 import { sample } from "../analytics/stats";
 import { getDb, schema } from "../db";
@@ -100,7 +100,16 @@ const marketTools = {
     description: "Fundamental & valuation metrics for a ticker: price, valuation multiples, margins, growth, balance sheet, dividends, ownership. Omit 'metrics' to get all 42. Renders a metrics table.",
     inputSchema: z.object({ symbol, metrics: z.array(z.enum(METRIC_KEYS)).optional() }),
     execute: async ({ symbol, metrics }) => safe(() => fetchMetrics(symbol, metrics)),
-    toModelOutput: forModel((o) => ({ symbol: o.symbol, name: o.name, currency: o.currency, fxNote: o.fxNote, metrics: Object.fromEntries(o.metrics.map((m: any) => [m.key, m.value])) })),
+    toModelOutput: forModel((o) => ({
+      symbol: o.symbol,
+      name: o.name,
+      currency: o.currency,
+      fxNote: o.fxNote,
+      metrics: Object.fromEntries(o.metrics.map((m: any) => [m.key, m.value])),
+      // A thirteen-digit rupee figure read by a model comes out a factor of ten off often enough to
+      // matter (a ₹3.53 lakh crore market cap was written as ₹35.30 lakh crore). So Nazar says it in words.
+      ...(o.currency === "INR" ? { largeFiguresInWords: Object.fromEntries(o.metrics.filter((m: any) => m.format === "large" && m.key !== "averageVolume" && typeof m.value === "number" && Math.abs(m.value) >= 1e7).map((m: any) => [m.key, rupeesInWords(m.value)])), note: "For market cap, revenue and other large rupee amounts, quote largeFiguresInWords as written. Do not convert the raw figures yourself." } : {}),
+    })),
   }),
 
   getFinancialStatements: tool({
@@ -514,6 +523,8 @@ function userTools(userId: string) {
             portfolioBeta: s.portfolioBeta,
             holdingsThatWouldMove: moved.length,
             holdingsThatWouldNot: s.perHolding.length - moved.length,
+            // Named, so the answer need not guess what they are.
+            notMoving: s.perHolding.filter((h) => Math.abs(h.loss) < 1).map((h) => h.name).slice(0, 12),
             biggestEffects: biggest.map((h) => ({ name: h.name, value: r0(h.value), beta: Math.round(h.beta * 100) / 100, change: r0(h.loss) })),
             holdingsWithAssumedBeta: s.perHolding.filter((h) => !h.betaKnown).length,
             note: "An estimate: each holding's value times its beta times the Nifty's move. Real falls are uneven, betas shift, and funds or foreign holdings without enough history are assumed to move with the market.",
@@ -604,7 +615,8 @@ function userTools(userId: string) {
               portfolioBeta: v.risk.portfolioBeta,
               lossIfNiftyFalls10Pct: Math.round(v.risk.stress10.loss),
               effectiveIndependentBets: v.risk.diversification?.effectiveBets ?? null,
-              clusters: v.risk.diversification?.clusters.map((c) => ({ symbols: c.symbols, weight: c.weight, avgCorrelation: c.avgCorrelation })) ?? [],
+              // By name: a cluster of bare fund codes ("MF:125497") leaves the model guessing which fund is which.
+              clusters: v.risk.diversification?.clusters.map((c) => ({ holdings: c.symbols.map((s) => v.cards.find((k) => k.symbol === s)?.name ?? s), weight: c.weight, avgCorrelation: c.avgCorrelation })) ?? [],
               concentrationFlags: v.risk.concentration.flags.map((f) => `${f.label}: ${(f.weight * 100).toFixed(0)}%`),
             },
             // What the money is in, by asset type (stocks, mutual funds, gold, deposits…).

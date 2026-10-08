@@ -1,0 +1,23 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "AXISBANK"
+ },
+ "output": {
+  "query": "AXISBANK",
+  "results": [
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "AXISBANK.BO",
+    "name": "Axis Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

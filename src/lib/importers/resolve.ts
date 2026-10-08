@@ -7,7 +7,7 @@ import { SYMBOL_ALIASES, normalizeName, yahooOf, type MasterIndex, type MasterRo
  */
 export type Resolution =
   | { status: "matched"; symbol: string; name: string; isin: string | null; via: "isin" | "symbol" | "alias" | "name" | "partial" | "search" }
-  | { status: "ambiguous"; candidates: { symbol: string; name: string }[] }
+  | { status: "ambiguous"; candidates: { symbol: string; name: string }[]; /** The candidates are a model's guesses, checked against the NSE list: nothing is chosen for the user. */ suggested?: boolean }
   | { status: "unmatched"; reason: string };
 
 export type SearchFn = (query: string) => Promise<{ symbol: string; name: string; type?: string }[]>;

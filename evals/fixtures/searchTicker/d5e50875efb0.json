@@ -1,0 +1,29 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HDFCBANK"
+ },
+ "output": {
+  "query": "HDFCBANK",
+  "results": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDFCBANK.BO",
+    "name": "HDFC Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "HDBK-V2629.BO",
+    "name": "HDFCBANK26OCTFUT",
+    "exchange": "Bombay",
+    "type": "FUTURE"
+   }
+  ]
+ }
+}

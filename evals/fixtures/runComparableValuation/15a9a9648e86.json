@@ -1,0 +1,86 @@
+{
+ "tool": "runComparableValuation",
+ "input": {
+  "symbol": "TITAN.NS",
+  "peers": [
+   "KALYANKJIL.NS",
+   "SENCO.NS",
+   "TBZ.NS"
+  ]
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "name": "Titan Company Limited",
+  "currency": "INR",
+  "price": 4359.5,
+  "shares": 887312335,
+  "netDebt": 267600011264,
+  "inputs": {
+   "trailingEps": 64.88,
+   "forwardEps": 88.84812,
+   "ebitda": 88902500352,
+   "bookValue": 176.878,
+   "revenue": 924169994240
+  },
+  "target": {
+   "symbol": "TITAN.NS",
+   "name": "Titan Company Limited",
+   "currency": "INR",
+   "trailingPE": 67.19,
+   "forwardPE": 49.07,
+   "evToEbitda": 46.72,
+   "priceToBook": 24.65,
+   "priceToSales": 4.19
+  },
+  "peers": [
+   {
+    "symbol": "KALYANKJIL.NS",
+    "name": "Kalyan Jewellers India Limited",
+    "currency": "INR",
+    "trailingPE": 39.91,
+    "forwardPE": 28.59,
+    "evToEbitda": 26.94,
+    "priceToBook": 9.05,
+    "priceToSales": 1.46
+   },
+   {
+    "symbol": "SENCO.NS",
+    "name": "Senco Gold Limited",
+    "currency": "INR",
+    "trailingPE": 9.68,
+    "forwardPE": 12.42,
+    "evToEbitda": 8.25,
+    "priceToBook": 2.2,
+    "priceToSales": 0.57
+   },
+   {
+    "symbol": "TBZ.NS",
+    "name": "Tribhovandas Bhimji Zaveri Limited",
+    "currency": "INR",
+    "trailingPE": 17.69,
+    "forwardPE": 190.79,
+    "evToEbitda": 12.36,
+    "priceToBook": 4.51,
+    "priceToSales": 1.11
+   }
+  ],
+  "missingPeers": [],
+  "medians": {
+   "trailingPE": 17.69,
+   "forwardPE": 28.59,
+   "evToEbitda": 12.36,
+   "priceToBook": 4.51,
+   "priceToSales": 1.11
+  },
+  "implied": {
+   "trailingPE": 1147.81,
+   "forwardPE": 2540.17,
+   "evToEbitda": 936.6,
+   "priceToBook": 797.73,
+   "priceToSales": 1151.59
+  },
+  "blended": 1314.78,
+  "upside": -0.6984,
+  "fxNote": null
+ }
+}

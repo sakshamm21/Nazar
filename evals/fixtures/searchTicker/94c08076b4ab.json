@@ -1,0 +1,47 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "ICICIBANK"
+ },
+ "output": {
+  "query": "ICICIBANK",
+  "results": [
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICICIBANK.BO",
+    "name": "ICICI Bank Limited",
+    "exchange": "Bombay",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICICIBINAV.NS",
+    "name": "ICICIBANKP INAV",
+    "exchange": "NSE",
+    "type": "INDEX"
+   },
+   {
+    "symbol": "PVTBANIETF.NS",
+    "name": "ICICIPRAMC - ICICIBANKP",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   },
+   {
+    "symbol": "ICICIKINAV.NS",
+    "name": "ICICIBANKN INAV",
+    "exchange": "NSE",
+    "type": "INDEX"
+   },
+   {
+    "symbol": "ICICIBANK-BL.NS",
+    "name": "ICICIBANK-BL.NS",
+    "exchange": "NSE",
+    "type": "EQUITY"
+   }
+  ]
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Axis Bank NSE"
+ },
+ "output": {
+  "query": "Axis Bank NSE",
+  "results": []
+ }
+}
