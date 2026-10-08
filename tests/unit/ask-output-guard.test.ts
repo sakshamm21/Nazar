@@ -64,6 +64,8 @@ describe("what it deliberately lets through", () => {
     "Add your investments first, then ask again.",
     "Your snapshot flags a few losses and meaningful overlap, but it doesn’t show which holding you ought to sell.",
     "Nothing in this data settles what you should buy next.",
+    "The Nifty is below its recent high, but a lower price alone doesn’t establish that it’s a good time to invest.",
+    "But diversification doesn’t guarantee gains or prevent losses.",
     "Whether it is a good time to invest depends on your time horizon.",
     "Holding these four stocks provides healthy diversification across sectors.",
     "For the exact steps, I'd recommend checking the app's Portfolio section.",

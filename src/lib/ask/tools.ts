@@ -96,7 +96,7 @@ const marketTools = {
   }),
 
   getKeyMetrics: tool({
-    description: `Fundamental & valuation metrics for a ticker. Available metric keys: ${METRICS.map((m) => m.key).join(", ")}. Omit 'metrics' to get all. Renders a metrics table.`,
+    description: "Fundamental & valuation metrics for a ticker: price, valuation multiples, margins, growth, balance sheet, dividends, ownership. Omit 'metrics' to get all 42. Renders a metrics table.",
     inputSchema: z.object({ symbol, metrics: z.array(z.enum(METRIC_KEYS)).optional() }),
     execute: async ({ symbol, metrics }) => safe(() => fetchMetrics(symbol, metrics)),
     toModelOutput: forModel((o) => ({ symbol: o.symbol, name: o.name, currency: o.currency, fxNote: o.fxNote, metrics: Object.fromEntries(o.metrics.map((m: any) => [m.key, m.value])) })),
@@ -113,7 +113,7 @@ const marketTools = {
   }),
 
   compareStocks: tool({
-    description: `Side-by-side comparison of 2–6 tickers on chosen metrics (keys: ${METRIC_KEYS.join(", ")}). Pick the 6–15 metrics most relevant to the question. Renders a comparison table with best values highlighted.`,
+    description: "Side-by-side comparison of 2–6 tickers on chosen metrics. Pick the 6–15 metrics most relevant to the question. Renders a comparison table with best values highlighted.",
     inputSchema: z.object({
       symbols: z.array(symbol).min(2).max(6),
       metrics: z.array(z.enum(METRIC_KEYS)).min(1).max(METRIC_KEYS.length).default(["price", "marketCap", "trailingPE", "forwardPE", "revenueGrowth", "grossMargin", "operatingMargin", "returnOnEquity", "debtToEquity", "dividendYield"]),

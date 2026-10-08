@@ -216,8 +216,11 @@ test.describe("Analysis", () => {
     await page.goto("/risk");
     await expect(page.getByText("If the Nifty 50 fell")).toBeVisible();
     const slider = page.getByRole("slider", { name: /Nifty fall/ });
-    await slider.fill("20");
-    await expect(page.getByText("20%", { exact: true })).toBeVisible();
+    // On a cold page the slider can be moved before it is wired up, and the move is lost: try until it takes.
+    await expect(async () => {
+      await slider.fill("20");
+      await expect(page.getByText("20%", { exact: true })).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 30_000 });
     await expect(page.getByText(/You own \d+ market-priced holdings, but/)).toBeVisible();
     await expect(page.getByText("Moves together").first()).toBeVisible();
   });

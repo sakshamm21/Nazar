@@ -56,7 +56,7 @@ export type Directive = {
  */
 function isAboutAdvice(s: string): boolean {
   // "it can't determine which holding you should sell", "I won't tell you to buy".
-  if (/\b(can(’|')?t|cannot|won(’|')?t|don(’|')?t|doesn(’|')?t|not|never|no one can|nobody can)\b[^.!?]{0,60}\b(tell|say|advise|recommend|suggest|determine|decide|answer|know|show|mean|indicate|identify|reveal|settle|imply|prove)\b/i.test(s)) return true;
+  if (/\b(can(’|')?t|cannot|won(’|')?t|don(’|')?t|doesn(’|')?t|not|never|no one can|nobody can)\b[^.!?]{0,60}\b(tell|say|advise|recommend|suggest|determine|decide|answer|know|show|mean|indicate|identify|reveal|settle|imply|prove|establish|guarantee)\b/i.test(s)) return true;
   // "…but it doesn't show which holding you ought to sell": a denial followed by an open question.
   if (/\b(not|n(’|')t|cannot|never|nothing|no way)\b[^.!?]{0,80}\b(which|what|when|how much|how many)\b[^.!?]{0,60}\b(you|to)\s+(should|ought|must|need|buy|sell|hold|exit|add|trim)/i.test(s)) return true;
   if (/\bwhether\b/i.test(s) || /\?\s*$/.test(s)) return true;
@@ -80,7 +80,7 @@ export function findDirectives(text: string): Directive[] {
       // "Add your holdings on the Portfolio page" is how to use the app, not what to do with money.
       if (d.name === "imperative" && /\b(portfolio page|you page|settings|import|upload|broker file|statement|watching list|watchlist|in nazar|to nazar)\b/i.test(s)) continue;
       // "There are no guaranteed returns" is the opposite of a promise.
-      if (d.name === "guaranteed" && /\b(no|not|never|nothing|without|isn(’|')?t|aren(’|')?t|can(’|')?t|cannot)\b/i.test(s)) continue;
+      if (d.name === "guaranteed" && /\b(no|not|never|nothing|without|isn(’|')?t|aren(’|')?t|can(’|')?t|cannot|doesn(’|')?t|don(’|')?t|won(’|')?t)\b/i.test(s)) continue;
       out.push({ pattern: d.name, sentence: s.slice(0, 200), blocks: d.name !== "guaranteed" });
     }
   }

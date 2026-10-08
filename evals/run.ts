@@ -10,6 +10,7 @@
  *
  * Flags: --suite golden|adversarial|all · --models a,b (or "auto") · --repeat N · --filter text
  *        --limit N · --no-judge · --frozen (never call Yahoo; replay recordings only)
+ *        --no-read-ahead (do not read the portfolio before the model asks, to measure what that saves)
  *        --effort low|medium|high (reasoning effort for the answering model)
  *        --max-usd N (stop starting new cases past this spend; default 3) · --concurrency N
  *
@@ -42,6 +43,7 @@ const CONCURRENCY = Math.max(1, Number(opt("concurrency", "3")));
 const JUDGE = !flag("no-judge");
 const FROZEN = flag("frozen");
 const EFFORT = opt("effort", "");
+const NO_READ_AHEAD = flag("no-read-ahead");
 
 const DIR = path.join(process.cwd(), "evals");
 const BASELINE = path.join(DIR, "baseline.json");
@@ -142,7 +144,7 @@ async function main() {
           mode: c.mode ?? "simple",
           ip: "eval",
           signal: AbortSignal.timeout(120_000),
-          harness: { today: EVAL_TODAY, skipLimits: true, onAdviceRemoved: (sentence, pattern) => removed.push(`[${pattern}] ${sentence.slice(0, 240)}`), reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
+          harness: { today: EVAL_TODAY, skipLimits: true, noReadAhead: NO_READ_AHEAD, onAdviceRemoved: (sentence, pattern) => removed.push(`[${pattern}] ${sentence.slice(0, 240)}`), reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
         });
         const body = await res.text();
         if (res.status !== 200) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);

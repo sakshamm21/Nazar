@@ -1,0 +1,103 @@
+{
+ "tool": "getIndianMarketMovers",
+ "input": {
+  "screen": "gainers",
+  "count": 10
+ },
+ "output": {
+  "screen": "gainers",
+  "title": "Nifty 50 · top gainers",
+  "rows": [
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited",
+    "currency": "INR",
+    "price": 997,
+    "changePercent": 0.50443906,
+    "volume": 13933828,
+    "marketCap": 4038192529408
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited",
+    "currency": "INR",
+    "price": 1246.6,
+    "changePercent": 0.33085662,
+    "volume": 7013406,
+    "marketCap": 3881629384704
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited",
+    "currency": "INR",
+    "price": 1186.2,
+    "changePercent": 0.10155307,
+    "volume": 2263702,
+    "marketCap": 3209580249088
+   },
+   {
+    "symbol": "TECHM.NS",
+    "name": "Tech Mahindra Limited",
+    "currency": "INR",
+    "price": 1490.6,
+    "changePercent": -0.033406828,
+    "volume": 1530763,
+    "marketCap": 1320557477888
+   },
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "currency": "INR",
+    "price": 2077,
+    "changePercent": -0.1586333,
+    "volume": 4142758,
+    "marketCap": 7514767753216
+   },
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "currency": "INR",
+    "price": 4370,
+    "changePercent": -0.15985385,
+    "volume": 1440560,
+    "marketCap": 3877554880512
+   },
+   {
+    "symbol": "HDFCLIFE.NS",
+    "name": "HDFC Life Insurance Company Limited",
+    "currency": "INR",
+    "price": 545.15,
+    "changePercent": -0.16517636,
+    "volume": 2026278,
+    "marketCap": 1184092651520
+   },
+   {
+    "symbol": "TRENT.NS",
+    "name": "Trent Limited",
+    "currency": "INR",
+    "price": 2885,
+    "changePercent": -0.18351969,
+    "volume": 1305986,
+    "marketCap": 1538375155712
+   },
+   {
+    "symbol": "WIPRO.NS",
+    "name": "Wipro Limited",
+    "currency": "INR",
+    "price": 159.14,
+    "changePercent": -0.28822476,
+    "volume": 18743262,
+    "marketCap": 1574441582592
+   },
+   {
+    "symbol": "NESTLEIND.NS",
+    "name": "Nestlé India Limited",
+    "currency": "INR",
+    "price": 1316,
+    "changePercent": -0.6046863,
+    "volume": 1248810,
+    "marketCap": 2537661661184
+   }
+  ]
+ }
+}

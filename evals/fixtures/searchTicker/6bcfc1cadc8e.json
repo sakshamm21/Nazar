@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Titan Company Ltd"
+ },
+ "output": {
+  "query": "Titan Company Ltd",
+  "results": []
+ }
+}

@@ -10,6 +10,7 @@ import { compactHistory, detectLang, modelViewOf } from "./context";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "./models";
 import { SentenceFilter, findDirectives } from "./output-guard";
 import { allowedModelIds } from "./openai-models";
+import { planPrefetch } from "./prefetch";
 import { systemPrompt, type AskMode } from "./prompt";
 import { promptVersion } from "./prompt-version";
 import { askConfigured, languageModel } from "./provider";
@@ -29,7 +30,19 @@ const LANGUAGE_NOTE = {
 } as const;
 
 /** The most model calls one answer may take. The last one is not offered tools, so it has to answer. */
-export const MAX_STEPS = 10;
+export const MAX_STEPS = 8;
+
+const envNumber = (name: string, fallback: number) => {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v > 0 ? v : fallback;
+};
+/**
+ * Two more ways a run is told to stop looking things up and answer: it has taken too long (the
+ * function is cut off at 60 seconds, and an answer cut off is no answer), or it has cost too much
+ * for one question. Like the step cap, they withdraw the tools; they never cut the answer short.
+ */
+const maxSeconds = () => envNumber("ASK_MAX_SECONDS", 40);
+const maxUsdPerAnswer = () => envNumber("ASK_MAX_USD_PER_ANSWER", 0.1);
 
 export type AskMeta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string; promptVersion?: string; adviceRemoved?: number };
 
@@ -70,6 +83,8 @@ export type AskInput = {
     skipLimits?: boolean;
     /** How hard a reasoning model thinks before it answers: an experiment in trading depth for speed. */
     reasoningEffort?: string;
+    /** Turns off reading the portfolio ahead of the model, to measure what it saves. */
+    noReadAhead?: boolean;
     /** Receives each sentence the advice filter leaves out, so an eval can check the filter was right. */
     onAdviceRemoved?: (sentence: string, pattern: string) => void;
   };
@@ -146,11 +161,48 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const lang = detectLang(text);
   const available = await allowedModelIds();
 
+  // Each tool call is timed where it runs; the step it belonged to picks the time up when it ends.
+  const toolMs = new Map<string, number>();
+  const plainTools = input.harness?.tools ? input.harness.tools(makeTools(userId)) : makeTools(userId);
+  const tools = Object.fromEntries(
+    Object.entries(plainTools).map(([name, t]) => {
+      const run = (t as unknown as { execute: (i: unknown, o: { toolCallId: string }) => Promise<unknown> }).execute;
+      const execute = async (i: unknown, o: { toolCallId: string }) => {
+        const t0 = Date.now();
+        try {
+          return await run(i, o);
+        } finally {
+          toolMs.set(o.toolCallId, Date.now() - t0);
+        }
+      };
+      return [name, { ...t, execute }];
+    }),
+  ) as unknown as typeof plainTools;
+
+  const isError = (out: unknown) => Boolean(out && typeof out === "object" && "error" in out);
+
+  // ── Read ahead ──────────────────────────────────────────────
+  // If the wording says the question is about the user's own portfolio, read it now, while the
+  // scope guard is deciding, so the model does not spend a round trip asking for it.
+  let plan = input.harness?.noReadAhead ? null : planPrefetch(text);
+  if (plan) {
+    const names = (await db.select({ name: schema.portfolios.name }).from(schema.portfolios).where(eq(schema.portfolios.userId, userId))).map((p) => p.name);
+    plan = planPrefetch(text, names);
+  }
+  const readAheadId = `read_${randomUUID().slice(0, 12)}`;
+  const readAheadStart = Date.now();
+  const reading = plan
+    ? (tools as unknown as Record<string, { execute: (i: unknown, o: { toolCallId: string; messages: [] }) => Promise<unknown> }>)[plan.tool]
+        .execute(plan.input, { toolCallId: readAheadId, messages: [] })
+        .then((output) => ({ output, ms: Date.now() - readAheadStart }))
+        .catch(() => null)
+    : null;
+
   // ── Scope guard ─────────────────────────────────────────────
   const prevUser = [...history].reverse().find((m) => m.role === "user");
   const prevAssistant = [...history].reverse().find((m) => m.role === "assistant");
   const guardStart = Date.now();
-  const guard = await classify(text, { previousUser: textOf(prevUser), previousAssistant: textOf(prevAssistant) }, available);
+  const [guard, read] = await Promise.all([classify(text, { previousUser: textOf(prevUser), previousAssistant: textOf(prevAssistant) }, available), reading]);
   const guardMs = Date.now() - guardStart;
   if (guard.usage) void logUsage(GUARD_MODEL, guard.usage.inputTokens, guard.usage.outputTokens);
   // A guard that is off on purpose is not news. One that is off by accident must be visible.
@@ -186,24 +238,6 @@ export async function runAsk(input: AskInput): Promise<Response> {
   /** Text streamed in the step still under way, which no usage figure covers yet. */
   let unbilledChars = 0;
 
-  // Each tool call is timed where it runs; the step it belonged to picks the time up when it ends.
-  const toolMs = new Map<string, number>();
-  const plainTools = input.harness?.tools ? input.harness.tools(makeTools(userId)) : makeTools(userId);
-  const tools = Object.fromEntries(
-    Object.entries(plainTools).map(([name, t]) => {
-      const run = (t as unknown as { execute: (i: unknown, o: { toolCallId: string }) => Promise<unknown> }).execute;
-      const execute = async (i: unknown, o: { toolCallId: string }) => {
-        const t0 = Date.now();
-        try {
-          return await run(i, o);
-        } finally {
-          toolMs.set(o.toolCallId, Date.now() - t0);
-        }
-      };
-      return [name, { ...t, execute }];
-    }),
-  ) as unknown as typeof plainTools;
-
   const effort = input.harness?.reasoningEffort ?? process.env.ASK_REASONING_EFFORT ?? getModel(modelId)?.reasoningEffort;
   const guardMode = adviceGuard();
   /** One filter per stretch of text the model writes (an answer can have several, around tool calls). */
@@ -211,8 +245,18 @@ export async function runAsk(input: AskInput): Promise<Response> {
   /** The patterns that removed a sentence (enforce) or would have (shadow). Names only, never the words. */
   const advice: string[] = [];
   const steps: TraceStep[] = [];
+  // What was read ahead reaches the model exactly as a tool result it had asked for would.
+  const ahead = plan && read ? { tool: plan.tool, input: plan.input, output: read.output } : null;
+  const modelMessages = convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
+  if (ahead) {
+    const view = (plainTools as unknown as Record<string, { toModelOutput?: (o: unknown) => { type: "json"; value: any } }>)[ahead.tool].toModelOutput?.(ahead.output) ?? { type: "json" as const, value: ahead.output as any };
+    modelMessages.push({ role: "assistant", content: [{ type: "tool-call", toolCallId: readAheadId, toolName: ahead.tool, input: ahead.input }] }, { role: "tool", content: [{ type: "tool-result", toolCallId: readAheadId, toolName: ahead.tool, output: view }] });
+    steps.push({ n: 1, ms: read!.ms, finishReason: "read-ahead", inputTokens: 0, outputTokens: 0, tools: [{ name: ahead.tool, ms: read!.ms, ok: !isError(ahead.output), outChars: JSON.stringify(ahead.output ?? null).length, viewChars: JSON.stringify(view.value ?? null).length }] });
+    firstOutputAt = Date.now();
+  }
   let stepStartedAt = Date.now();
-  const isError = (out: unknown) => Boolean(out && typeof out === "object" && "error" in out);
+  /** What the answer has cost so far, from the steps that have finished. */
+  const spent = () => estimateCost(modelId, steps.reduce((a, s) => a + s.inputTokens, 0), steps.reduce((a, s) => a + s.outputTokens, 0));
 
   /** Writes the trace once. The first of finish, stop and error to arrive decides the outcome. */
   let traced = false;
@@ -242,11 +286,11 @@ export async function runAsk(input: AskInput): Promise<Response> {
     // The reader's calendar date: the UTC date is still yesterday in India until 05:30.
     system: systemPrompt(mode, input.harness?.today ?? istToday()) + LANGUAGE_NOTE[lang],
     // Unfinished tool calls are dropped by convertToModelMessages.
-    messages: convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools }),
+    messages: modelMessages,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
     // Without this, a run that is still looking things up at the cap ends with no answer at all.
-    prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 ? { toolChoice: "none" } : undefined),
+    prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 || Date.now() - startedAt > maxSeconds() * 1000 || spent() > maxUsdPerAnswer() ? { toolChoice: "none" } : undefined),
     maxOutputTokens: 8000,
     // Most questions are lookups over data Nazar has already worked out, so a reasoning model is told
     // how much to deliberate: the catalog's setting for it, or ASK_REASONING_EFFORT for the deployment.
@@ -346,7 +390,8 @@ export async function runAsk(input: AskInput): Promise<Response> {
           promptVersion: version,
           finishReason,
           adviceRemoved: guardMode === "enforce" ? advice.length : 0,
-          tools: calls.map((c) => c.toolName),
+          tools: [...(ahead ? [ahead.tool] : []), ...calls.map((c) => c.toolName)],
+          readAhead: ahead?.tool ?? null,
           toolErrors: results.filter((r) => isError(r.output)).length,
           steps: done.length,
           tickers,
@@ -372,6 +417,35 @@ export async function runAsk(input: AskInput): Promise<Response> {
       trace("error", { inputTokens: steps.reduce((a, s) => a + s.inputTokens, 0), outputTokens: steps.reduce((a, s) => a + s.outputTokens, 0) }, message);
     },
   });
+
+  const friendly = (error: unknown) => {
+    console.error("[chat] ui stream error:", error);
+    return friendlyError(error instanceof Error ? error.message : String(error), modelId);
+  };
+  const finishMeta = (u: { inputTokens?: number; outputTokens?: number; cachedInputTokens?: number }): AskMeta => {
+    const i = u.inputTokens ?? 0;
+    const o = u.outputTokens ?? 0;
+    return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, u.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt, adviceRemoved: guardMode === "enforce" ? advice.length : 0 };
+  };
+
+  // With something read ahead, the answer opens with that result's card, then the model's stream follows it.
+  if (ahead) {
+    const stream = createUIMessageStream<Msg>({
+      originalMessages: messages,
+      generateId: () => answerId,
+      execute: ({ writer }) => {
+        writer.write({ type: "start", messageId: answerId, messageMetadata: { model: modelId, mode, promptVersion: version } });
+        writer.write({ type: "start-step" });
+        writer.write({ type: "tool-input-available", toolCallId: readAheadId, toolName: ahead.tool, input: ahead.input });
+        writer.write({ type: "tool-output-available", toolCallId: readAheadId, output: ahead.output });
+        writer.write({ type: "finish-step" });
+        writer.merge(result.toUIMessageStream<Msg>({ sendStart: false, messageMetadata: ({ part }) => (part.type === "finish" ? finishMeta(part.totalUsage) : undefined), onError: friendly }));
+      },
+      onError: friendly,
+      onFinish: ({ messages: all }) => save(all),
+    });
+    return createUIMessageStreamResponse({ stream });
+  }
 
   return result.toUIMessageStreamResponse<Msg>({
     originalMessages: messages,

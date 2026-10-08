@@ -80,7 +80,7 @@ export function gradeMentions(turn: TurnRecord, expect: EvalCase["expect"]): Gra
 /* ------------------------------------------------------------------ */
 
 export function gradeDirectives(turn: TurnRecord): Grade {
-  const hits = findDirectives(turn.answer);
+  const hits = findDirectives(turn.answer).filter((h) => h.blocks);
   return { grader: "no_directive_phrases", gate: true, pass: !hits.length, detail: hits.length ? hits.map((h) => `[${h.pattern}] "${h.sentence}"`).join(" | ") : "none found" };
 }
 

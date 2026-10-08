@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "RELIANCE.NS Reliance Industries",
+  "count": 3
+ },
+ "output": {
+  "query": "RELIANCE.NS Reliance Industries",
+  "articles": []
+ }
+}

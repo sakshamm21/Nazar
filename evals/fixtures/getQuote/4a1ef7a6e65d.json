@@ -1,0 +1,55 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "GC=F",
+   "GLD"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "GC=F",
+    "name": "Gold Dec 26",
+    "currency": "USD",
+    "exchange": "COMEX",
+    "price": 4146.4,
+    "change": 5.699707,
+    "changePercent": 0.1376508,
+    "previousClose": 4140.7,
+    "open": 4139.9,
+    "dayHigh": 4166.8,
+    "dayLow": 4128.1,
+    "volume": 51233,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 5586.2,
+    "fiftyTwoWeekLow": 3901.3,
+    "trailingPE": null,
+    "marketState": "REGULAR",
+    "asOf": "2026-10-08T09:38:34.000Z",
+    "timeZone": "America/New_York"
+   },
+   {
+    "symbol": "GLD",
+    "name": "SPDR Gold Shares",
+    "currency": "USD",
+    "exchange": "NYSEArca",
+    "price": 375.88,
+    "change": -6.38998,
+    "changePercent": -1.67159,
+    "previousClose": 382.27,
+    "open": 374.97,
+    "dayHigh": 378.25,
+    "dayLow": 374.24,
+    "volume": 7008541,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 509.7,
+    "fiftyTwoWeekLow": 360.12,
+    "trailingPE": null,
+    "marketState": "PRE",
+    "asOf": "2026-10-07T20:00:00.000Z",
+    "timeZone": "America/New_York"
+   }
+  ]
+ }
+}

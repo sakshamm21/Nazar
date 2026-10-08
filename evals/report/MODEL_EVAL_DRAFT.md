@@ -199,6 +199,32 @@ With the filter on and the prompt strengthened (prompt `085a2e10`), app routing,
 
 What this does not show: recall. The default model rarely advises, so there are almost no true positives to measure the filter on. TODO: a labelled set of advice sentences written or collected for the purpose.
 
+### 3.8 Reading the portfolio ahead of the model (8 October)
+
+When the wording of a question says it is about the user's own portfolio, the harness now reads that data while the scope guard runs and hands it to the model as a tool result it had asked for. The model answers in one call instead of two. Which questions qualify is decided by fixed rules in code (`src/lib/ask/prefetch.ts`), not by a model.
+
+The 20 portfolio cases, default model, three runs each, same prompt and tools:
+
+| | Passed | First word | Total | Avg input tokens | Cost |
+|---|---|---|---|---|---|
+| Model asks for the data (`--no-read-ahead`) | 20 | 5,361 | 7,532 | 13,443 | $0.021 |
+| Data read ahead | 20 | 3,593 | 5,490 | 9,107 | $0.013 |
+
+Without read-ahead one case (`pf-xirr-01`) failed `tool_path` on one of its three runs; with it, none did.
+
+All 93 cases, three runs, with read-ahead, the leaner tool descriptions and the 8-step cap (prompt `dc72c416`): 93 of 93, first word 4,391 ms, total 5,936 ms, 12,037 input tokens on average, $0.067. This is the current baseline. A run a few minutes earlier scored 92: the one failure and one filter firing were both false positives in the advice patterns (a negated "guarantee", and "doesn't establish that it's a good time to invest"), fixed before the baseline was saved.
+
+Progression of the default configuration on all 93 cases, three runs each:
+
+| Configuration | Passed | First word | Total | Cost |
+|---|---|---|---|---|
+| Default reasoning effort (3.2) | 92 | 7,009 | 8,182 | $0.100 |
+| Minimal effort, language stated (3.3) | 93 | 4,979 | 6,625 | $0.076 |
+| Plus the advice filter and stronger prompt (3.7) | 93 | 5,026 | 6,995 | $0.082 |
+| Plus read-ahead and leaner tool descriptions | 93 | 4,391 | 5,936 | $0.067 |
+
+Not done: starting the model before the scope guard has answered. The guard's median is about 1.0 s (3.6), which is what that would save.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
