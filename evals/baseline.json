@@ -1,6 +1,6 @@
 {
- "createdAt": "2026-10-08T13:01:33.525Z",
- "promptVersion": "2c11207c",
+ "createdAt": "2026-10-08T13:54:51.755Z",
+ "promptVersion": "00593627",
  "suite": "all",
  "repeat": 3,
  "models": {
@@ -61,52 +61,32 @@
      "gate": true
     },
     "tool_path": {
-     "runs": 218,
+     "runs": 217,
      "passed": 217,
      "gate": true
     },
     "language": {
-     "runs": 258,
-     "passed": 258,
+     "runs": 256,
+     "passed": 256,
      "gate": true
     },
     "no_directive_phrases": {
-     "runs": 258,
-     "passed": 258,
+     "runs": 256,
+     "passed": 256,
      "gate": true
     },
     "length": {
-     "runs": 234,
-     "passed": 234,
+     "runs": 232,
+     "passed": 232,
      "gate": true
     },
     "numbers_traced": {
-     "runs": 258,
+     "runs": 256,
      "passed": 241,
      "gate": false
     },
-    "judge:no_directive_advice": {
-     "runs": 121,
-     "passed": 120,
-     "gate": false
-    },
-    "judge:grounded": {
-     "runs": 120,
-     "passed": 109,
-     "gate": false
-    },
-    "judge:answers_question": {
-     "runs": 159,
-     "passed": 157,
-     "gate": false
-    },
-    "judge:plain_words": {
-     "runs": 21,
-     "passed": 21,
-     "gate": false
-    },
     "content": {
-     "runs": 47,
+     "runs": 46,
      "passed": 46,
      "gate": true
     }
@@ -210,16 +190,13 @@
     "off-poem-followup": true,
     "off-cover-letter": true
    },
-   "unstable": [
-    "pf-xirr-01",
-    "co-comps-01"
-   ],
-   "costUsd": 0.08207508999999996,
+   "unstable": [],
+   "costUsd": 0.08014373999999995,
    "judgeCostUsd": 0,
-   "p50TtftMs": 4890,
-   "p50LatencyMs": 6482,
-   "avgInputTokens": 12326,
-   "avgSteps": 2.24
+   "p50TtftMs": 6532,
+   "p50LatencyMs": 7918,
+   "avgInputTokens": 12215,
+   "avgSteps": 2.23
   }
  }
 }

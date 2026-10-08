@@ -19,7 +19,13 @@ const MINE = /\b(my|mine|mera|mere|meri|apna|apne|apni|humara|hamara)\b|मे�
 /** What the "my" has to be about: the portfolio as a whole, not one company or one feature. */
 const PORTFOLIO = /\b(portfolio|holdings?|investments?|stocks|shares|money|paisa|paise|nivesh)\b|पोर्टफोलियो|निवेश|शेयर|पैसा|पैसे/i;
 /** "Why am I down", "how am I doing": about the portfolio without naming it. */
-const AM_I = /\b(am i|i am|i'm|i’m)\s+(up|down|doing|diversified|concentrated|exposed)\b|\bhow (diversified|concentrated|exposed) am i\b/i;
+const AM_I = /\b(am i|i am|i'm|i’m)\s+(up|down|doing|diversified|concentrated|exposed)\b|\bhow (diversified|concentrated|exposed) am i\b|\b(have i|i have|i've|i’ve)\s+(done|performed)\b/i;
+/**
+ * "Since I invested", "all-time": the whole life of the portfolio, which no period covers. The
+ * snapshot has that figure (the return since the first purchase, against the Nifty's over the same
+ * days), so these read the snapshot even when a word like "year" is also in the question.
+ */
+const SINCE_START = /\bsince (i|we) (first )?(invested|started|began|bought)\b|\ball[- ]time\b|\b(shuru|shuruaat) se\b|\bjab se\b|शुरू से|शुरुआत से|जब से/i;
 /** Questions another tool answers, or that are about the app and not the money. */
 const ELSEWHERE = /\b(goals?|watch(ing|list)?|long[- ]term|short[- ]term|capital gains?|tax|ltcg|stcg|import|upload|add|remove|delete|alert|share link|excel|download|what if|if the (nifty|market|sensex)|crash(es|ed)?|fell|falls|agar (nifty|market))\b|लक्ष्य|टैक्स|अगर (निफ्टी|बाज़ार|बाजार)/i;
 
@@ -38,6 +44,6 @@ export function planPrefetch(text: string, portfolioNames: string[] = []): Prefe
   const lower = text.toLowerCase();
   const named = portfolioNames.length > 1 ? portfolioNames.find((n) => n.trim().length >= 3 && lower.includes(n.trim().toLowerCase())) : undefined;
   const portfolio = named ? { portfolio: named } : {};
-  const period = PERIODS.find(([, re]) => re.test(text))?.[0];
+  const period = SINCE_START.test(text) ? undefined : PERIODS.find(([, re]) => re.test(text))?.[0];
   return period ? { tool: "getPortfolioPerformance", input: { period, ...portfolio } } : { tool: "getMyPortfolio", input: portfolio };
 }

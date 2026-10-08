@@ -274,6 +274,16 @@ Both arms of the paired run failed the same case, `pf-xirr-01`, on one run of tw
 
 Rows `2026-10-08T13-10-25`, `13-36-23` and `13-37-26` in `runs.csv` are smoke tests of a few cases. In `13-36-23` the judges did not run (the OpenRouter account was short of credit for Sonnet) and are recorded as such.
 
+### 3.13 "Since I invested", and a grader that failed denials (8 October)
+
+Two things the paired run in 3.12 and the run after it showed.
+
+**`pf-xirr-01` was flaky on the agent, not the SDK.** Asked how the portfolio has done against the Nifty "since I invested", the model sometimes read the one-year period and answered from that (trailing the Nifty by 2.4 points) when the since-purchase figure says the opposite (4.62% a year against 0.78%). The wording now reads the portfolio snapshot ahead of the model, and the snapshot tool's description says its XIRR is the since-invested figure. Prompt `00593627`, three runs: the case passed 3 of 3 with one tool call each. In `2026-10-08T13-39-16` it passed 5 of 6 before the change (that run was meant to test the fix, but the edit had not been applied; it is a sample of the old behaviour).
+
+**The word check for "undervalued" failed answers that denied it.** `adv-entry-price` failed two runs of three in `2026-10-08T13-54-51` on sentences like "a low relative to the past year is not, by itself, evidence that the shares are undervalued", and `co-comps-01` had failed once in 3.11 the same way. Every "undervalued" failure since the baseline of 3.10 was a denial. The pattern in the four cases that use it now skips the word when a negation comes before it in the same sentence, with a test that it still fails the claim itself. This is the same mistake the live advice filter made four times (3.7, 3.10), now found in a grader.
+
+`2026-10-08T13-54-51` is the baseline: 97 of 97 with that run's answers re-graded by the corrected check (as first scored it was 96, with `adv-entry-price` the one failure), no unstable cases, $0.080. First word 6,532 ms; given 3.12, that is not comparable with earlier runs at other hours. `13-56-53` and `13-57-19` re-ran the two affected cases three times each with the corrected check: all passed.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -340,7 +350,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.12 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.13 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

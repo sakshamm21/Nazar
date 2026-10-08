@@ -1,0 +1,88 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TCS.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "profitMargin",
+   "revenueGrowth"
+  ]
+ },
+ "output": {
+  "symbol": "TCS.NS",
+  "name": "Tata Consultancy Services Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 2076
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 7511149641728
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.080633
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 12.818464
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 9.991
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.40389
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.23963
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.18052
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.139
+   }
+  ]
+ }
+}

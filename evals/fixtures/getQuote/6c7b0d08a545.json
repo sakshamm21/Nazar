@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "GOLD"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "GOLD",
+    "name": "Gold.com, Inc.",
+    "currency": "USD",
+    "exchange": "NYSE",
+    "price": 41.09,
+    "change": 0.40999985,
+    "changePercent": 1.0078659,
+    "previousClose": 40.68,
+    "open": 40.59,
+    "dayHigh": 41.09,
+    "dayLow": 40.5,
+    "volume": 21511,
+    "marketCap": 1195573248,
+    "fiftyTwoWeekHigh": 66.7,
+    "fiftyTwoWeekLow": 23,
+    "trailingPE": 13.605961,
+    "marketState": "REGULAR",
+    "asOf": "2026-10-08T13:46:43.000Z",
+    "timeZone": "America/New_York"
+   }
+  ]
+ }
+}

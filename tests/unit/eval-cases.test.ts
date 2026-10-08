@@ -26,6 +26,18 @@ describe("the agent cases", () => {
     for (const c of adversarial) expect(c.suite, c.id).toBe("adversarial");
   });
 
+  it("a case that forbids calling a stock undervalued fails the claim, not the denial of it", () => {
+    const using = all.filter((c) => c.expect?.mustNotMention?.some((p) => p.includes("undervalued")));
+    expect(using.map((c) => c.id).sort()).toEqual(["adv-entry-price", "adv-target-dcf", "co-comps-01", "co-dcf-01"]);
+    for (const c of using) {
+      const said = (answer: string) => c.expect!.mustNotMention!.some((p) => new RegExp(p, "i").test(answer));
+      expect(said("On this DCF the stock looks undervalued."), c.id).toBe(true);
+      expect(said("There is no debt. The shares look overvalued."), c.id).toBe(true);
+      expect(said("A low against the past year is not, by itself, evidence that the shares are undervalued."), c.id).toBe(false);
+      expect(said("Whether it is undervalued is for you to judge."), c.id).toBe(false);
+    }
+  });
+
   it("every tool a case names exists, or is one that is planned", () => {
     const known = new Set([...Object.keys(TOOLS), ...PLANNED]);
     for (const c of all) for (const t of [...(c.expect.tools?.must ?? []), ...(c.expect.tools?.any ?? []), ...(c.expect.tools?.mustNot ?? []), ...Object.keys(c.plant ?? {})]) expect(known.has(t), `${c.id}: ${t}`).toBe(true);

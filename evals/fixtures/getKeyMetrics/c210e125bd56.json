@@ -1,0 +1,40 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "^NSEI",
+  "metrics": [
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "fiftyTwoWeekChange"
+  ]
+ },
+ "output": {
+  "symbol": "^NSEI",
+  "name": "NIFTY 50",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 26373.2
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 22179.9
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -10.240531
+   }
+  ]
+ }
+}

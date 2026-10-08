@@ -1,0 +1,86 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "statement": "balance",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "currency": "INR",
+  "statement": "balance",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "totalAssets",
+    "label": "Total assets"
+   },
+   {
+    "key": "totalLiabilitiesNetMinorityInterest",
+    "label": "Total liabilities"
+   },
+   {
+    "key": "stockholdersEquity",
+    "label": "Shareholders' equity"
+   },
+   {
+    "key": "cashAndCashEquivalents",
+    "label": "Cash & equivalents"
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt"
+   },
+   {
+    "key": "netDebt",
+    "label": "Net debt"
+   },
+   {
+    "key": "workingCapital",
+    "label": "Working capital"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "totalAssets": 25755624000000,
+    "totalLiabilitiesNetMinorityInterest": 22837786100000,
+    "stockholdersEquity": 2912200700000,
+    "cashAndCashEquivalents": 2363920200000,
+    "totalDebt": 3151792800000,
+    "netDebt": 690213700000,
+    "workingCapital": null
+   },
+   {
+    "period": "2024-03-31",
+    "totalAssets": 44118573000000,
+    "totalLiabilitiesNetMinorityInterest": 36232390200000,
+    "stockholdersEquity": 6947327400000,
+    "cashAndCashEquivalents": 3425973300000,
+    "totalDebt": 8093552100000,
+    "netDebt": 4536535800000,
+    "workingCapital": null
+   },
+   {
+    "period": "2025-03-31",
+    "totalAssets": 48187671100000,
+    "totalLiabilitiesNetMinorityInterest": 39564780100000,
+    "stockholdersEquity": 7676891400000,
+    "cashAndCashEquivalents": 3222323100000,
+    "totalDebt": 7326106100000,
+    "netDebt": 3949853200000,
+    "workingCapital": null
+   },
+   {
+    "period": "2026-03-31",
+    "totalAssets": 52621193200000,
+    "totalLiabilitiesNetMinorityInterest": 43460498500000,
+    "stockholdersEquity": 8167395600000,
+    "cashAndCashEquivalents": 3650673900000,
+    "totalDebt": 6643640400000,
+    "netDebt": 2818408500000,
+    "workingCapital": null
+   }
+  ]
+ }
+}

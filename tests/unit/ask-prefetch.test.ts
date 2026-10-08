@@ -21,6 +21,10 @@ describe("a question plainly about the user's portfolio", () => {
     ["How concentrated am I, and in what?", snapshot()],
     ["Explain what's going on with my holding Titan Company (TITAN.NS) in simple words", snapshot()],
     ["Explain what's going on with my holding Parag Parikh Flexi Cap Fund in simple words", snapshot()],
+    // The whole life of the portfolio is in the snapshot; no period covers it.
+    ["How have I done against the Nifty since I invested?", snapshot()],
+    ["What is my portfolio's all-time return? Not just this year", snapshot()],
+    ["Jab se maine invest kiya, mera portfolio kaisa raha?", snapshot()],
     ["Why is my portfolio down this month?", period("1M")],
     ["How did my portfolio do over the last week?", period("1W")],
     ["Over the last year, how much of my portfolio's move was just the market?", period("1Y")],
