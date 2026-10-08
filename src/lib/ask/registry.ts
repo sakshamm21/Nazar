@@ -47,6 +47,7 @@ export const TOOLS = {
   getPortfolioPerformance: { label: "Your portfolio over a period", busy: (i) => `Working out how your portfolio did (${i?.period ?? "period"})`, source: "nazar", excel: null, private: true },
   getStressTest: { label: "A market move, applied to your portfolio", busy: (i) => `Working out a ${Math.abs(Number(i?.niftyMovePct ?? 10))}% Nifty ${Number(i?.niftyMovePct ?? -10) < 0 ? "fall" : "rise"} on your portfolio`, source: "nazar", excel: null, private: true },
   getCapitalGains: { label: "Your unsold gains", busy: () => "Reading the gains in your portfolio", source: "nazar", excel: null, private: true },
+  getSips: { label: "Your SIPs", busy: () => "Reading your monthly SIPs", source: "nazar", excel: null, private: true },
   getGoals: { label: "Your savings goals", busy: () => "Reading your savings goals", source: "nazar", excel: null, private: true },
   getMyPortfolio: { label: "Your portfolio", busy: () => "Reading your portfolio from Nazar's latest checkup", source: "nazar", excel: null, private: true },
   getWatchlist: { label: "Your Watching list", busy: () => "Loading your Watching list", source: "nazar", excel: null, private: true },

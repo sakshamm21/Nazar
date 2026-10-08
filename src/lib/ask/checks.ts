@@ -71,7 +71,7 @@ export function numbersInJson(v: unknown, out: number[] = []): number[] {
 }
 
 /** Numbers that need no source: small counts, round percentages people use in speech, standard windows. */
-const FREE = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 20, 24, 25, 26, 30, 50, 52, 100, 200, 365, 1000]);
+const FREE = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 18, 20, 22, 24, 25, 26, 30, 50, 52, 100, 200, 365, 1000]);
 
 const close = (a: number, b: number) => {
   if (a === b) return true;
@@ -137,6 +137,8 @@ export function traceNumbers(answer: string, sources: unknown[], context: string
         if (percent && lo > 1 && hi <= 100 && exact(v, 100 - (a + b))) return true;
         if (hi / lo > 50) continue;
         if (exact(v, hi - lo) || exact(v, a + b) || exact(v, (hi / lo - 1) * 100) || exact(v, (1 - lo / hi) * 100)) return true;
+        // "23% lower" for a gap of 22.94%: a percentage worked out from two figures is quoted to the whole number.
+        if (percent && Number.isInteger(v) && (Math.round((hi / lo - 1) * 100) === v || Math.round((1 - lo / hi) * 100) === v)) return true;
       }
     return false;
   };

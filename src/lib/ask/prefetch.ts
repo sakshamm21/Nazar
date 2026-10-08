@@ -27,7 +27,7 @@ const AM_I = /\b(am i|i am|i'm|i’m)\s+(up|down|doing|diversified|concentrated|
  */
 const SINCE_START = /\bsince (i|we) (first )?(invested|started|began|bought)\b|\ball[- ]time\b|\b(shuru|shuruaat) se\b|\bjab se\b|शुरू से|शुरुआत से|जब से/i;
 /** Questions another tool answers, or that are about the app and not the money. */
-const ELSEWHERE = /\b(goals?|watch(ing|list)?|long[- ]term|short[- ]term|capital gains?|tax|ltcg|stcg|import|upload|add|remove|delete|alert|share link|excel|download|what if|if the (nifty|market|sensex)|crash(es|ed)?|fell|falls|agar (nifty|market))\b|लक्ष्य|टैक्स|अगर (निफ्टी|बाज़ार|बाजार)/i;
+const ELSEWHERE = /\b(sips?|goals?|watch(ing|list)?|long[- ]term|short[- ]term|capital gains?|tax|ltcg|stcg|import|upload|add|remove|delete|alert|share link|excel|download|what if|if the (nifty|market|sensex)|crash(es|ed)?|fell|falls|agar (nifty|market))\b|लक्ष्य|टैक्स|अगर (निफ्टी|बाज़ार|बाजार)/i;
 
 const PERIODS: [Prefetch & { tool: "getPortfolioPerformance" } extends { input: { period: infer P } } ? P : never, RegExp][] = [
   ["3M", /\b(3|three|teen)\s*(months?|mahine|mahino)\b|\bquarter\b|तीन महीने|तिमाही/i],

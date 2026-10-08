@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
+import { ordinal } from "@/lib/portfolio/sip";
 import { Delta } from "@/components/ui/delta";
 import { Input, Select } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
@@ -172,6 +173,11 @@ function HoldingItem({ r, onEdit, onRemove }: { r: Row; onEdit: () => void; onRe
           {manual ? `Invested ${inr(r.invested)}` : `${units(r.quantity)} ${meta.unit} × ${inr(r.avgPrice, { decimals: 2 })}`}
           {!manual && r.price != null && <span className="hidden sm:inline"> · now {inr(r.price, { decimals: 2 })}</span>}
         </div>
+        {r.sip && (
+          <div className="mt-1">
+            <Chip tone={r.sip.active ? "accent" : undefined}>{r.sip.active ? `SIP ${inr(r.sip.amount)} · ${ordinal(r.sip.dayOfMonth)}` : "SIP paused"}</Chip>
+          </div>
+        )}
       </div>
       <div className="shrink-0 text-right">
         <div className="num text-[15px] font-medium text-text">{inr(r.value)}</div>

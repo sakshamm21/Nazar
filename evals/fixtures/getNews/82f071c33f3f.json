@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Infosys results Q2 FY27",
+  "count": 6
+ },
+ "output": {
+  "query": "Infosys results Q2 FY27",
+  "articles": []
+ }
+}

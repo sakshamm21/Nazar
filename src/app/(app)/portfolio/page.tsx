@@ -14,9 +14,13 @@ import { displayName, loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
 import { valuation } from "@/lib/portfolio/math";
 import { MAX_PORTFOLIOS, listPortfolios, listWatching } from "@/lib/repo/portfolios";
+import { sipsForPortfolio, type Sip } from "@/lib/repo/sips";
 import { portfolioView } from "@/lib/views/portfolio";
 
 export const metadata: Metadata = { title: "Portfolio" };
+
+/** The plan as the screen needs it. */
+const sipOf = (s: Sip | undefined) => (s ? { amount: s.amount, dayOfMonth: s.dayOfMonth, endDate: s.endDate, active: s.active, nextDue: s.nextDue, instalments: s.instalments, invested: s.invested } : null);
 
 export default async function PortfolioPage() {
   const user = await requirePageUser();
@@ -37,6 +41,7 @@ export default async function PortfolioPage() {
   const day = active ? days.get(active.id)! : null;
   const total = day ? valuation(day.holdings).value : 0;
   const byId = new Map(holdings.map((h) => [h.symbol, h]));
+  const sips = active ? await sipsForPortfolio(active.id) : new Map<string, Sip>();
   const rows = (day?.holdings ?? []).map((h) => {
     const row = byId.get(h.symbol)!;
     const manual = isManualSymbol(h.symbol);
@@ -52,6 +57,7 @@ export default async function PortfolioPage() {
       avgPrice: row.avgPrice,
       buyDate: row.buyDate,
       details: row.details,
+      sip: sipOf(sips.get(row.id)),
       price: h.price,
       changePct: manual ? null : h.changePct,
       value,

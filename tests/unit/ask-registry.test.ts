@@ -32,7 +32,7 @@ describe("the tool registry", () => {
       if (m.private) expect(m.excel, n).toBeNull();
       if (m.writes) expect(m.private, n).toBe(true);
     }
-    expect(names.filter(isPrivateTool).sort()).toEqual(["addToWatchlist", "getCapitalGains", "getGoals", "getMyPortfolio", "getPortfolioPerformance", "getStressTest", "getWatchlist", "removeFromWatchlist"]);
+    expect(names.filter(isPrivateTool).sort()).toEqual(["addToWatchlist", "getCapitalGains", "getGoals", "getMyPortfolio", "getPortfolioPerformance", "getSips", "getStressTest", "getWatchlist", "removeFromWatchlist"]);
   });
 
   it("a name from an old conversation that no longer exists is handled, not thrown on", () => {

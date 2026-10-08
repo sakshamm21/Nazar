@@ -8,6 +8,7 @@ import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { latestTradeDate } from "@/lib/market/store";
 import { logger } from "@/lib/logger";
+import { applyDueSips } from "@/lib/repo/sips";
 import { collectBatch, collectQuotes, liveUniverse } from "./collect";
 
 /**
@@ -83,6 +84,8 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
         stats.stale = [...(stats.stale ?? []), ...r.stale].slice(0, 50);
         if (r.circuitOpen) errors.push(`circuit open at ${r.next}/${universe.length}`);
         if (r.done || r.circuitOpen) {
+          // The day's prices are in: add the SIP instalments that fell due, at those prices.
+          stats.sips = await applyDueSips(db, runDate).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
           await save(run, { stage: "done", status: "done", cursor: 0, stats, errors, finishedAt: new Date() });
           break;
         }
@@ -107,9 +110,11 @@ export async function runMaintenance(provider: MarketDataProvider = resilientPro
   // Ask traces are for tuning recent behaviour, not a permanent record.
   await db.delete(schema.askTraces).where(lt(schema.askTraces.createdAt, new Date(Date.now() - 90 * 86_400_000)));
   const backfilled = await repairMissingResults(db, provider);
+  // A due date that fell on a holiday, or a night the checkup did not finish: caught up here.
+  const sips = await applyDueSips(db, istDate(new Date())).catch(() => null);
   const { ensureTestAccounts } = await import("@/lib/demo/seed");
   const accounts = await ensureTestAccounts(db);
-  return { expiredDemoUsers: expired.length, resultsBackfilled: backfilled, testAccounts: accounts };
+  return { expiredDemoUsers: expired.length, resultsBackfilled: backfilled, testAccounts: accounts, sips };
 }
 
 /**

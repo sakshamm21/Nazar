@@ -14,6 +14,7 @@ import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "../m
 import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo/portfolios";
 import { buildPortfolioView } from "../views/portfolio";
 import { goalsView } from "../views/goals";
+import { sipsView } from "../views/sips";
 import { LONG_TERM_DAYS, LTCG_EXEMPTION } from "../portfolio/capital-gains";
 import { PERIODS, explain } from "../portfolio/performance";
 import { stressTest } from "../portfolio/math";
@@ -553,6 +554,42 @@ function userTools(userId: string) {
             holdings: [...g].sort((a, b) => Math.abs(b.gain) - Math.abs(a.gain)).slice(0, 20).map((x) => ({ name: x.name, kind: x.class === "equity" ? "shares or equity fund" : "other asset", gain: r0(x.gain), gainPct: x.gainPct, daysOwned: x.daysHeld, wouldBeLongTermToday: x.wouldBeLongTerm })),
             rules: { longTermAfterDays: LONG_TERM_DAYS, yearlyExemptionOnLongTermEquityGains: LTCG_EXEMPTION },
             note: "These gains are unrealised: nothing is taxed until units are sold, and the bucket depends on the date of that sale. Deposits, provident funds, property and cash are not included.",
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
+    getSips: tool({
+      description:
+        "The user's own monthly SIPs (systematic investment plans) as set up in Nazar: for each, the holding, the rupees a month, the day it is debited, the next due date, how many instalments Nazar has added since the plan was set up and what those are worth now, plus the total going in each month and, if the user has savings goals, what those goals need each month beside it. Use it for any question about 'my SIP', 'my SIPs', how much the user invests each month, or when the next instalment is. Not for what a SIP is, or for a what-if on a SIP the user does not have: explain the first, and use runSipBacktest for the second. Instalments are ones Nazar expected on the due date, not confirmed bank debits; say so if the user asks how sure the figures are. Describe only; never suggest starting, stopping, raising or lowering a SIP.",
+      inputSchema: z.object({}),
+      execute: async () =>
+        safe(async () => {
+          const v = await sipsView({ id: userId });
+          if (!v.rows.length) return { sips: [], note: "No SIPs are set up in Nazar. A SIP is added from the Portfolio page: open a holding and choose Monthly SIP." };
+          return {
+            asOf: v.asOf,
+            totalEachMonth: r0(v.monthly),
+            activeSips: v.active,
+            pausedSips: v.paused,
+            nextInstalmentOn: v.nextDue,
+            goals: v.goals ? { goalsNeedEachMonth: r0(v.goals.needEachMonth), sipsPutInEachMonth: r0(v.goals.sipsEachMonth), sipsMinusGoalsNeed: r0(v.goals.difference), note: "The user's goals are their own figures and are not tied to particular SIPs: these are two totals side by side." } : null,
+            sips: v.rows.map((s) => ({
+              holding: s.holding,
+              portfolio: s.portfolio,
+              amountEachMonth: r0(s.amount),
+              dayOfMonth: s.dayOfMonth,
+              status: s.active ? "active" : "paused",
+              nextDue: s.active ? s.nextDue : null,
+              endsOn: s.endDate,
+              instalmentsAddedByNazar: s.instalmentsAdded,
+              investedInThoseInstalments: r0(s.investedThroughNazar),
+              thoseUnitsWorthNow: s.valueNow == null ? null : r0(s.valueNow),
+              gainOnThoseInstalments: s.gain == null ? null : r0(s.gain),
+              gainPctOnThoseInstalments: s.gainPct,
+              firstAddedOn: s.firstAddedOn,
+              lastAddedOn: s.lastAddedOn,
+            })),
+            note: "Instalments from before a SIP was set up in Nazar are part of the holding and are not counted here. For the holding as a whole, see getMyPortfolio.",
           };
         }),
       toModelOutput: forModel((o) => o),

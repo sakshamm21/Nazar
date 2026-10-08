@@ -291,6 +291,44 @@ export function GainsToolView({ data }: { data: any }) {
 }
 
 /** Savings goals as the user entered them, with what each needs from here. */
+export function SipsToolView({ data }: { data: any }) {
+  const sips = data.sips ?? [];
+  if (!sips.length) return <Panel title="Your SIPs" subtitle="None yet">Open a holding on the Portfolio page and choose Monthly SIP.</Panel>;
+  return (
+    <Panel title="Your SIPs" subtitle={data.nextInstalmentOn ? `Next instalment ${data.nextInstalmentOn} · added by Nazar on each due date, not confirmed debits` : "All paused"} right={<div className="text-sm font-semibold tabular-nums text-text">{rupees(data.totalEachMonth)} a month</div>}>
+      <table className="w-full text-sm tabular-nums">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-subtle">
+            <th className="py-1 font-medium">SIP</th>
+            <th className="py-1 text-right font-medium">Each month</th>
+            <th className="py-1 text-right font-medium">Added so far</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {sips.map((s: any) => (
+            <tr key={`${s.portfolio}:${s.holding}`}>
+              <td className="py-1.5 text-text">
+                {s.holding}
+                <div className="text-[11px] text-subtle">{s.status === "active" ? `on the ${s.dayOfMonth}${s.nextDue ? ` · next ${s.nextDue}` : ""}` : "paused"}</div>
+              </td>
+              <td className="py-1.5 text-right text-text">{rupees(s.amountEachMonth)}</td>
+              <td className="py-1.5 text-right text-muted">
+                {s.instalmentsAddedByNazar ? `${rupees(s.investedInThoseInstalments)} in ${s.instalmentsAddedByNazar}` : "none yet"}
+                {s.thoseUnitsWorthNow != null && s.instalmentsAddedByNazar > 0 && <div className="text-[11px] text-subtle">worth {rupees(s.thoseUnitsWorthNow)} now</div>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {data.goals && (
+        <p className="mt-3 text-[12px] text-subtle">
+          Your goals need {rupees(data.goals.goalsNeedEachMonth)} a month from here by your own figures; your SIPs put in {rupees(data.goals.sipsPutInEachMonth)}.
+        </p>
+      )}
+    </Panel>
+  );
+}
+
 export function GoalsToolView({ data }: { data: any }) {
   const goals = data.goals ?? [];
   if (!goals.length) return <Panel title="Your savings goals" subtitle="None yet">A goal is an amount and a date. Add one from the You page.</Panel>;

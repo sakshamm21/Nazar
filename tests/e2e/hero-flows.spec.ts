@@ -141,6 +141,36 @@ test.describe("Portfolio", () => {
     await expect(page.getByText("Emergency fund removed")).toBeVisible();
   });
 
+  test("Manage: start a monthly SIP on a holding, see it on the row, then stop it", async ({ page }) => {
+    // On the second investor, so the main demo's holdings stay as everyone else expects them.
+    await startDemo(page, "tester1@nazar.dev");
+    await page.goto("/portfolio?tab=manage");
+    const change = page.getByRole("button", { name: /^Change Parag Parikh Flexi Cap/ }).first();
+    const dialog = page.getByRole("dialog");
+    // An earlier run that stopped half way may have left the plan on.
+    await change.click();
+    await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
+    if (await dialog.getByRole("button", { name: "Stop SIP" }).count()) {
+      await dialog.getByRole("button", { name: "Stop SIP" }).click();
+      await expect(page.getByText(/SIP into .* stopped/)).toBeVisible();
+      await change.click();
+      await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
+    }
+    await dialog.getByLabel("Amount each month (₹)").fill("5000");
+    await dialog.getByLabel("Day of the month").fill("5");
+    await expect(dialog.getByText(/First instalment Nazar will add/)).toBeVisible();
+    await dialog.getByRole("button", { name: "Start SIP" }).click();
+    await expect(page.getByText(/₹5,000 a month into .*, on the 5th/)).toBeVisible();
+    await expect(page.getByText("SIP ₹5,000 · 5th")).toBeVisible();
+
+    await change.click();
+    await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
+    await expect(dialog.getByText(/₹5,000 on the 5th of each month\. Next:/)).toBeVisible();
+    await dialog.getByRole("button", { name: "Stop SIP" }).click();
+    await expect(page.getByText(/SIP into .* stopped/)).toBeVisible();
+    await expect(page.getByText("SIP ₹5,000 · 5th")).toHaveCount(0);
+  });
+
   test("a brand-new account adds its first stock straight from Home", async ({ page }) => {
     await startDemo(page, "new@nazar.dev");
     // Start from nothing, as a new visitor would (the account is shared, so clear earlier runs).

@@ -91,9 +91,41 @@ export const holdingLots = pgTable(
     date: date("date", { mode: "string" }).notNull(),
     /** How many units of this lot are still held, after any sale. */
     remaining: doublePrecision("remaining").notNull(),
+    /** Set when Nazar added this lot for a SIP instalment it expected, rather than one the user or a broker file stated. */
+    sipId: text("sip_id"),
     createdAt: created(),
   },
   (t) => [index("lots_holding_idx").on(t.holdingId), index("lots_portfolio_date_idx").on(t.portfolioId, t.date)],
+);
+
+/**
+ * A monthly SIP on something already held: an amount and a day of the month. Nazar cannot see the
+ * bank debit, so on each due date it adds the instalment it expects, at that day's price, as one
+ * more lot marked with this plan's id. A broker or fund-statement import states the whole position
+ * and replaces those lots with what was actually bought, so an expected instalment that never
+ * happened is corrected by the next import, or by the user pausing the plan.
+ */
+export const sips = pgTable(
+  "sips",
+  {
+    id: text("id").primaryKey(),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    holdingId: text("holding_id").notNull().references(() => holdings.id, { onDelete: "cascade" }),
+    /** Rupees each month. */
+    amount: doublePrecision("amount").notNull(),
+    /** 1 to 28, so every month has the day. */
+    dayOfMonth: integer("day_of_month").notNull(),
+    endDate: date("end_date", { mode: "string" }),
+    active: boolean("active").notNull().default(true),
+    /** The next instalment Nazar has not yet added. Only ever moves forward. */
+    nextDue: date("next_due", { mode: "string" }).notNull(),
+    /** Instalments Nazar has added, and the rupees in them. */
+    instalments: integer("instalments").notNull().default(0),
+    invested: doublePrecision("invested").notNull().default(0),
+    createdAt: created(),
+    updatedAt: ts("updated_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("sips_holding_idx").on(t.holdingId), index("sips_due_idx").on(t.active, t.nextDue)],
 );
 
 /**

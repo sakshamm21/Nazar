@@ -344,6 +344,14 @@ Nazar has its own NSE list with renames and the names people use. A question tha
 
 **Deep dives, judged** (`2026-10-08T16-23-53`, four cases, one run, judge Sonnet 5.5): 4 of 4 pass; first word 21.1 s. Judges: grounded 4/4, answers the question 4/4, no directive advice 4/4, plain words 1/2. The plain-words failure is the in-depth portfolio review in Simple mode: "effectively independent bets", "cash-flow-adjusted return" and "first-order estimate" left unexplained. All judge calls ran. $0.368, of which $0.237 was the judge.
 
+### 3.17 A new tool for the user's SIPs (8 October, late)
+
+Not a model change: a product feature (monthly SIPs) that added one Ask tool, `getSips`, one line of prompt and three cases. The investor persona in the eval world now has one SIP with two instalments added; the saver has none.
+
+All 100 cases, three runs, prompt changed by the new tool (`2026-10-08T17-24-14`, the baseline): 100 of 100, no regressions against the 97-case baseline, first word 4,274 ms, total 5,500 ms, 11,228 input tokens on average, $0.078. The three new cases passed all nine runs, each in two steps: the plan and what its instalments are worth, the next due date asked in Hinglish, and an account with no SIP, where the answer said so and gave no amount. Two of three Hinglish answers volunteered that the instalment is expected, not a confirmed debit.
+
+Three single runs failed as first scored, each a grader fault and each fixed and re-graded at no cost: a denial of "undervalued" written with a typographic apostrophe ("doesn’t establish that it is undervalued"); "23% lower" for a gap of 22.94% (a worked percentage quoted to the whole number); and "22" as gold purity in a Hindi sentence no pattern covered. With them fixed the run has no unstable cases, numbers are traced in 260 of 265 answers, and the tenfold market cap in the runs from before its fix is still failed.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -410,7 +418,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.16 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.17 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

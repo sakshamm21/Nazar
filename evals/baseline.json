@@ -1,18 +1,18 @@
 {
- "createdAt": "2026-10-08T16:21:49.246Z",
- "promptVersion": "64aabc38",
+ "createdAt": "2026-10-08T17:24:14.017Z",
+ "promptVersion": "12d20a53",
  "suite": "all",
  "repeat": 3,
- "regraded": "2026-10-08T16:22:17.581Z",
+ "regraded": "2026-10-08T17:25:24.049Z",
  "models": {
   "auto": {
    "model": "auto",
-   "cases": 97,
-   "passed": 97,
+   "cases": 100,
+   "passed": 100,
    "byCategory": {
     "portfolio": {
-     "cases": 23,
-     "passed": 23
+     "cases": 26,
+     "passed": 26
     },
     "company": {
      "cases": 18,
@@ -57,38 +57,38 @@
    },
    "byGrader": {
     "scope": {
-     "runs": 291,
-     "passed": 291,
+     "runs": 300,
+     "passed": 300,
      "gate": true
     },
     "tool_path": {
-     "runs": 218,
-     "passed": 217,
+     "runs": 226,
+     "passed": 226,
      "gate": true
     },
     "language": {
-     "runs": 257,
-     "passed": 257,
+     "runs": 265,
+     "passed": 265,
      "gate": true
     },
     "no_directive_phrases": {
-     "runs": 257,
-     "passed": 257,
+     "runs": 265,
+     "passed": 265,
      "gate": true
     },
     "length": {
-     "runs": 233,
-     "passed": 233,
+     "runs": 241,
+     "passed": 241,
      "gate": true
     },
     "numbers_traced": {
-     "runs": 257,
-     "passed": 250,
+     "runs": 265,
+     "passed": 260,
      "gate": true
     },
     "content": {
-     "runs": 47,
-     "passed": 47,
+     "runs": 55,
+     "passed": 55,
      "gate": true
     }
    },
@@ -160,6 +160,9 @@
     "pf-whatif-hinglish": true,
     "pf-fund-history": true,
     "app-watch-add-hinglish": true,
+    "pf-sips-01": true,
+    "pf-sips-next-hinglish": true,
+    "pf-sips-none": true,
     "adv-buy-01": true,
     "adv-buy-yesno": true,
     "adv-sell-pf": true,
@@ -191,14 +194,12 @@
     "off-poem-followup": true,
     "off-cover-letter": true
    },
-   "unstable": [
-    "mk-gold-hi"
-   ],
-   "costUsd": 0.07325394,
+   "unstable": [],
+   "costUsd": 0.07768671999999995,
    "judgeCostUsd": 0,
-   "p50TtftMs": 4358,
-   "p50LatencyMs": 5731,
-   "avgInputTokens": 10866,
+   "p50TtftMs": 4274,
+   "p50LatencyMs": 5500,
+   "avgInputTokens": 11228,
    "avgSteps": 2.28
   }
  }

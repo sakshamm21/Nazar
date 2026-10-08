@@ -1,0 +1,352 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TITAN.NS",
+  "metrics": [
+   "price",
+   "changePercent",
+   "marketCap",
+   "enterpriseValue",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "fiftyTwoWeekChange",
+   "averageVolume",
+   "trailingPE",
+   "forwardPE",
+   "pegRatio",
+   "priceToBook",
+   "priceToSales",
+   "evToRevenue",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "ebitdaMargin",
+   "profitMargin",
+   "returnOnEquity",
+   "returnOnAssets",
+   "revenue",
+   "revenueGrowth",
+   "earningsGrowth",
+   "ebitda",
+   "freeCashFlow",
+   "operatingCashFlow",
+   "totalCash",
+   "totalDebt",
+   "debtToEquity",
+   "currentRatio",
+   "quickRatio",
+   "trailingEps",
+   "forwardEps",
+   "bookValue",
+   "dividendYield",
+   "dividendRate",
+   "payoutRatio",
+   "beta",
+   "shortPercentOfFloat",
+   "heldPercentInsiders",
+   "heldPercentInstitutions"
+  ]
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "name": "Titan Company Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 4359.5
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": -0.0039981725
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 3868238020608
+   },
+   {
+    "key": "enterpriseValue",
+    "label": "Enterprise value",
+    "category": "Valuation",
+    "format": "large",
+    "value": 4137903718400
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 5186.7
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 3506.5
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.23274934
+   },
+   {
+    "key": "averageVolume",
+    "label": "Avg volume (3M)",
+    "category": "Price",
+    "format": "large",
+    "value": 785016
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 67.19328
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 49.06688
+   },
+   {
+    "key": "pegRatio",
+    "label": "PEG ratio",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 24.64693
+   },
+   {
+    "key": "priceToSales",
+    "label": "Price / sales (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 4.1856346
+   },
+   {
+    "key": "evToRevenue",
+    "label": "EV / revenue",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 4.477
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 46.544
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.20475
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.123339996
+   },
+   {
+    "key": "ebitdaMargin",
+    "label": "EBITDA margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.0962
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.062319998
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "returnOnAssets",
+    "label": "Return on assets",
+    "category": "Profitability",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "category": "Growth",
+    "format": "large",
+    "value": 924169994240
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.293
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.628
+   },
+   {
+    "key": "ebitda",
+    "label": "EBITDA (TTM)",
+    "category": "Growth",
+    "format": "large",
+    "value": 88902500352
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow (TTM)",
+    "category": "Financial health",
+    "format": "large",
+    "value": null
+   },
+   {
+    "key": "operatingCashFlow",
+    "label": "Operating cash flow",
+    "category": "Financial health",
+    "format": "large",
+    "value": null
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 38610001920
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 306210013184
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 195.001
+   },
+   {
+    "key": "currentRatio",
+    "label": "Current ratio",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "quickRatio",
+    "label": "Quick ratio",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "trailingEps",
+    "label": "EPS (TTM)",
+    "category": "Per share",
+    "format": "currency",
+    "value": 64.88
+   },
+   {
+    "key": "forwardEps",
+    "label": "EPS (forward)",
+    "category": "Per share",
+    "format": "currency",
+    "value": 88.84812
+   },
+   {
+    "key": "bookValue",
+    "label": "Book value / share",
+    "category": "Per share",
+    "format": "currency",
+    "value": 176.878
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0034
+   },
+   {
+    "key": "dividendRate",
+    "label": "Dividend / share",
+    "category": "Dividends",
+    "format": "currency",
+    "value": 15
+   },
+   {
+    "key": "payoutRatio",
+    "label": "Payout ratio",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.16950001
+   },
+   {
+    "key": "beta",
+    "label": "Beta (5Y)",
+    "category": "Risk & ownership",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "shortPercentOfFloat",
+    "label": "Short % of float",
+    "category": "Risk & ownership",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "heldPercentInsiders",
+    "label": "Insider ownership",
+    "category": "Risk & ownership",
+    "format": "percent",
+    "value": 0.58761
+   },
+   {
+    "key": "heldPercentInstitutions",
+    "label": "Institutional ownership",
+    "category": "Risk & ownership",
+    "format": "percent",
+    "value": 0.22015
+   }
+  ]
+ }
+}

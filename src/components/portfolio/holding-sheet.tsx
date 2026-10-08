@@ -8,7 +8,8 @@ import { Field, FormAlert, Input } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { Segmented } from "@/components/ui/switch";
 import { apiCall } from "@/lib/api-client";
-import { inr } from "@/lib/format";
+import { dayLabel, inr } from "@/lib/format";
+import { SIP_MAX_DAY, SIP_MIN_AMOUNT, SIP_MIN_DAY, dueOnOrAfter, ordinal } from "@/lib/portfolio/sip";
 import { ASSET_META, isManualClass, type AssetClass, type ManualDetails } from "@/lib/instruments/asset-classes";
 import { ManualFields, manualPayload, today, type ManualDraft } from "./manual-form";
 
@@ -22,9 +23,13 @@ export type HoldingRow = {
   buyDate: string | null;
   price: number | null;
   details: ManualDetails | null;
+  /** The monthly SIP on this holding, if one is set. */
+  sip?: SipRow | null;
 };
 
-type Action = "more" | "less" | "edit";
+export type SipRow = { amount: number; dayOfMonth: number; endDate: string | null; active: boolean; nextDue: string; instalments: number; invested: number };
+
+type Action = "more" | "less" | "edit" | "sip";
 const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/,/g, "")));
 const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
@@ -36,6 +41,9 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
   const [price, setPrice] = useState("");
   const [date, setDate] = useState("");
   const [draft, setDraft] = useState<ManualDraft | null>(null);
+  const [sipAmount, setSipAmount] = useState("");
+  const [sipDay, setSipDay] = useState("");
+  const [sipEnd, setSipEnd] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -48,6 +56,9 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     setPrice("");
     setDate("");
     setError(null);
+    setSipAmount(row.sip ? String(row.sip.amount) : "");
+    setSipDay(row.sip ? String(row.sip.dayOfMonth) : "");
+    setSipEnd(row.sip?.endDate ?? "");
     setDraft(
       isManualClass(row.assetClass)
         ? { assetClass: row.assetClass, name: row.name, invested: String(row.avgPrice), value: String(row.details?.value ?? row.avgPrice), valueAsOf: row.details?.valueAsOf ?? today(), ratePct: row.details?.ratePct != null ? String(row.details.ratePct) : "", startDate: row.buyDate ?? "", maturityDate: row.details?.maturityDate ?? "" }
@@ -86,6 +97,16 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         if (!body.ok) return setError(body.error);
         setBusy(true);
         await apiCall(`/api/holdings/${r.id}`, "PATCH", { manual: body.body });
+      } else if (action === "sip") {
+        const amount = num(sipAmount), day = num(sipDay);
+        if (!(amount >= SIP_MIN_AMOUNT)) return setError(`Enter the monthly amount, at least ${inr(SIP_MIN_AMOUNT)}.`);
+        if (!Number.isInteger(day) || day < SIP_MIN_DAY || day > SIP_MAX_DAY) return setError(`Enter the day of the month it is debited, from ${SIP_MIN_DAY} to ${SIP_MAX_DAY}.`);
+        setBusy(true);
+        await apiCall(`/api/holdings/${r.id}/sip`, "PUT", { amount, dayOfMonth: day, endDate: sipEnd || null, active: true });
+        toast(`${inr(amount)} a month into ${r.name}, on the ${ordinal(day)}`);
+        onClose();
+        router.refresh();
+        return;
       } else if (action === "more") {
         if (!(q > 0) || !(p > 0)) return setError(`Enter the ${unit} you bought and the price.`);
         setBusy(true);
@@ -126,7 +147,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
             <Trash2 className="h-4 w-4" /> Remove
           </Button>
           <Button loading={busy} onClick={save}>
-            {manual ? "Save" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : "Save"}
+            {manual ? "Save" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : action === "sip" ? (r.sip ? (r.sip.active ? "Save SIP" : "Resume SIP") : "Start SIP") : "Save"}
           </Button>
         </div>
       }
@@ -135,8 +156,9 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         <ManualFields draft={draft} onChange={setDraft} idPrefix="edit" />
       ) : (
         <div className="space-y-4">
-          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }]} />
-          <div className="grid grid-cols-2 gap-3">
+          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }, { value: "sip", label: r.sip ? "Monthly SIP ✓" : "Monthly SIP" }]} />
+          {action === "sip" && <SipFields r={r} amount={sipAmount} day={sipDay} end={sipEnd} onAmount={setSipAmount} onDay={setSipDay} onEnd={setSipEnd} busy={busy} setBusy={setBusy} onError={setError} onDone={() => { onClose(); router.refresh(); }} />}
+          <div className={action === "sip" ? "hidden" : "grid grid-cols-2 gap-3"}>
             <Field label={action === "more" ? `${unit[0].toUpperCase()}${unit.slice(1)} bought` : action === "less" ? `${unit[0].toUpperCase()}${unit.slice(1)} sold` : `${unit[0].toUpperCase()}${unit.slice(1)} held`} htmlFor="hq">
               <Input id="hq" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder={action === "less" ? String(r.quantity) : "10"} />
             </Field>
@@ -164,5 +186,63 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         <FormAlert message={error} />
       </div>
     </Sheet>
+  );
+}
+
+/**
+ * The monthly SIP on a holding. Nazar cannot see the debit, so it says plainly what it will do:
+ * add the instalment it expects on each due date, and let an import put right whatever differs.
+ */
+function SipFields({ r, amount, day, end, onAmount, onDay, onEnd, busy, setBusy, onDone, onError }: { r: HoldingRow; amount: string; day: string; end: string; onAmount: (v: string) => void; onDay: (v: string) => void; onEnd: (v: string) => void; busy: boolean; setBusy: (b: boolean) => void; onDone: () => void; onError: (m: string | null) => void }) {
+  const sip = r.sip ?? null;
+  const d = num(day);
+  const first = Number.isInteger(d) && d >= SIP_MIN_DAY && d <= SIP_MAX_DAY ? (sip && sip.active && sip.dayOfMonth === d ? sip.nextDue : dueOnOrAfter(d, today())) : null;
+  const change = async (method: "PUT" | "DELETE", body?: unknown) => {
+    onError(null);
+    setBusy(true);
+    try {
+      await apiCall(`/api/holdings/${r.id}/sip`, method, body);
+      toast(method === "DELETE" ? `SIP into ${r.name} stopped` : `SIP into ${r.name} paused`);
+      onDone();
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="space-y-4">
+      {sip && (
+        <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">
+          {sip.active ? `${inr(sip.amount)} on the ${ordinal(sip.dayOfMonth)} of each month. Next: ${dayLabel(sip.nextDue, "en")}.` : `Paused: ${inr(sip.amount)} on the ${ordinal(sip.dayOfMonth)}. Nothing is being added.`}
+          {sip.instalments > 0 ? ` Nazar has added ${sip.instalments} instalment${sip.instalments === 1 ? "" : "s"}, ${inr(sip.invested)} in all.` : ""}
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Amount each month (₹)" htmlFor="sa">
+          <Input id="sa" inputMode="decimal" value={amount} onChange={(e) => onAmount(e.target.value)} placeholder="5000" />
+        </Field>
+        <Field label="Day of the month" htmlFor="sd" hint={`${SIP_MIN_DAY} to ${SIP_MAX_DAY}`}>
+          <Input id="sd" inputMode="numeric" value={day} onChange={(e) => onDay(e.target.value)} placeholder="5" />
+        </Field>
+      </div>
+      <Field label="Ends on (optional)" htmlFor="se">
+        <Input id="se" type="date" min={today()} value={end} onChange={(e) => onEnd(e.target.value)} />
+      </Field>
+      {first && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">First instalment Nazar will add: {dayLabel(first, "en")}. What you hold today is taken to include every instalment so far.</p>}
+      <p className="t-caption">Nazar cannot see your bank, so on each due date it adds the instalment at that day’s price. If one did not go through, pause the SIP or use “Correct it”. Importing a statement replaces these with what was actually bought.</p>
+      {sip && (
+        <div className="flex gap-2">
+          {sip.active && (
+            <Button variant="secondary" disabled={busy} onClick={() => change("PUT", { amount: sip.amount, dayOfMonth: sip.dayOfMonth, endDate: sip.endDate, active: false })}>
+              Pause
+            </Button>
+          )}
+          <Button variant="ghost" className="text-loss hover:bg-loss-soft hover:text-loss" disabled={busy} onClick={() => change("DELETE")}>
+            Stop SIP
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

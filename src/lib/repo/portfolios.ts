@@ -168,7 +168,7 @@ export async function deleteHolding(userId: string, holdingId: string) {
   await db.delete(schema.holdings).where(eq(schema.holdings.id, h.id));
 }
 
-async function requireHolding(userId: string, holdingId: string) {
+export async function requireHolding(userId: string, holdingId: string) {
   const db = await getDb();
   const [row] = await db
     .select({ h: schema.holdings })
