@@ -66,6 +66,7 @@ describe("what it deliberately lets through", () => {
     "Nothing in this data settles what you should buy next.",
     "The Nifty is below its recent high, but a lower price alone doesn’t establish that it’s a good time to invest.",
     "But diversification doesn’t guarantee gains or prevent losses.",
+    "The index is well below its recent high, but that alone isn’t a signal that it’s a good time to invest.",
     "Whether it is a good time to invest depends on your time horizon.",
     "Holding these four stocks provides healthy diversification across sectors.",
     "For the exact steps, I'd recommend checking the app's Portfolio section.",

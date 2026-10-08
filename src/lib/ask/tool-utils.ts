@@ -3,7 +3,14 @@ import { z } from "zod";
 import { isTransient } from "@/lib/data/resilience";
 
 /** One ticker. 20 characters: NSE symbols with their suffix run past 12 (BAJAJ-AUTO.NS, HINDUNILVR.NS). */
-export const symbol = z.string().min(1).max(20).describe("Ticker symbol, e.g. RELIANCE.NS, TCS.NS, AAPL, ^NSEI");
+export const symbol = z
+  .string()
+  .min(1)
+  .max(20)
+  .describe("Ticker symbol, e.g. RELIANCE.NS, TCS.NS, AAPL, ^NSEI")
+  // Mutual funds, gold and assets entered by hand are priced by Nazar from other sources. Asking
+  // Yahoo for them only fails, so say why here, before the lookup, in words the model can act on.
+  .refine((s) => !/^(MF|CMD|MANUAL):/i.test(s.trim()), { message: "This is a mutual fund, gold or manually entered asset. It has no market ticker, so the market-data tools cannot look it up. Its value, change and history are in getMyPortfolio and getPortfolioPerformance." });
 
 /**
  * Runs a tool's data fetch and turns provider failures into a short, user-safe error object

@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Tata Motors NSE"
+ },
+ "output": {
+  "query": "Tata Motors NSE",
+  "results": []
+ }
+}

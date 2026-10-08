@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal NSE ticker"
+ },
+ "output": {
+  "query": "Eternal NSE ticker",
+  "results": []
+ }
+}

@@ -16,6 +16,7 @@ import { buildPortfolioView } from "../views/portfolio";
 import { goalsView } from "../views/goals";
 import { LONG_TERM_DAYS, LTCG_EXEMPTION } from "../portfolio/capital-gains";
 import { PERIODS, explain } from "../portfolio/performance";
+import { stressTest } from "../portfolio/math";
 
 /** Market-data tools: stateless, safe to share between users. */
 const marketTools = {
@@ -399,6 +400,9 @@ const marketTools = {
   }),
 };
 
+/** The ticker the market-data tools can look a holding up by, or null when it has none (a fund, gold, a deposit). */
+const marketTicker = (s: string) => (/^(MF|CMD|MANUAL):/i.test(s) ? null : clean(s));
+
 const EMPTY_NOTE = "No holdings yet. On the Portfolio page the user can search and add stocks, funds, ETFs, gold, US stocks and crypto, add deposits and PF by hand, or import a broker file or mutual fund statement.";
 
 /** Tools that read the signed-in user's own data (portfolio, goals, Watching). */
@@ -426,9 +430,8 @@ function userTools(userId: string) {
   };
   /** The user's portfolio view, or what to tell the model when there is nothing in it. */
   const loadView = async (portfolio?: string) => {
-    const u = await loadUser();
     const db = await getDb();
-    const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId));
+    const [u, pfs] = await Promise.all([loadUser(), db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId))]);
     const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase())) : null;
     const v = await buildPortfolioView(u, match?.id ?? null);
     const names = pfs.map((p) => p.name);
@@ -481,6 +484,39 @@ function userTools(userId: string) {
             daysDown: a.downDays,
             summary: explain(a),
             note: "This prices what the user owns today on each past day. Purchases and sales made along the way are not replayed, so say so if the user asks about exact past values.",
+          };
+        }),
+      toModelOutput: forModel((o) => o),
+    }),
+    getStressTest: tool({
+      description:
+        "What would happen to the user's portfolio if the Nifty moved by a given percentage: the rupee change, the percentage, and which holdings account for most of it. It applies each holding's beta (how closely it has followed the Nifty) to the move; deposits, provident funds and cash do not move. Use it for any 'what if the market falls / rises X%' question. It is a first-order estimate, not a forecast: say so, and never turn it into a suggestion.",
+      inputSchema: z.object({
+        niftyMovePct: z.number().min(-60).max(60).describe("The Nifty's move in percent: -15 for a 15% fall, 10 for a 10% rise."),
+        portfolio: whichPortfolio,
+      }),
+      execute: async ({ niftyMovePct, portfolio }) =>
+        safe(async () => {
+          const r = await loadView(portfolio);
+          if (r.empty) return r.empty;
+          const s = stressTest(r.v.states, niftyMovePct / 100);
+          const moved = s.perHolding.filter((h) => Math.abs(h.loss) >= 1);
+          // Largest effect first, whichever way the market went.
+          const biggest = [...moved].sort((a, b) => Math.abs(b.loss) - Math.abs(a.loss)).slice(0, 8);
+          return {
+            portfolio: r.v.active!.name,
+            asOf: r.v.tradeDate,
+            niftyMovePct,
+            valueNow: r0(r.v.valuation.value),
+            change: r0(s.loss),
+            changePct: s.lossPct,
+            valueAfter: r0(s.valueAfter),
+            portfolioBeta: s.portfolioBeta,
+            holdingsThatWouldMove: moved.length,
+            holdingsThatWouldNot: s.perHolding.length - moved.length,
+            biggestEffects: biggest.map((h) => ({ name: h.name, value: r0(h.value), beta: Math.round(h.beta * 100) / 100, change: r0(h.loss) })),
+            holdingsWithAssumedBeta: s.perHolding.filter((h) => !h.betaKnown).length,
+            note: "An estimate: each holding's value times its beta times the Nifty's move. Real falls are uneven, betas shift, and funds or foreign holdings without enough history are assumed to move with the market.",
           };
         }),
       toModelOutput: forModel((o) => o),
@@ -575,7 +611,7 @@ function userTools(userId: string) {
             allocation: v.allocation.map((a) => ({ type: a.group, weight: a.weight, value: Math.round(a.value), holdings: a.count })),
             // Sector mix of the stock part only; funds, gold and deposits have no sector.
             sectors: v.sectors.map((s) => ({ sector: s.sector, weight: s.weight })),
-            holdings: v.cards.map((c) => ({ symbol: c.href ? c.symbol : null, name: c.name, type: ASSET_META[c.assetClass].label, category: c.category, sector: c.assetClass === "stock" ? c.sector : null, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
+            holdings: v.cards.map((c) => ({ symbol: marketTicker(c.symbol), name: c.name, type: ASSET_META[c.assetClass].label, category: c.category, sector: c.assetClass === "stock" ? c.sector : null, weight: c.weight, value: Math.round(c.value), pnlPct: c.pnlPct, todayPct: c.changePct, beta: c.beta, health: c.health, trend: c.trend.label, valuationVsPeers: c.valuation.label })),
           };
         }),
       toModelOutput: forModel((o) => o),

@@ -59,6 +59,8 @@ function isAboutAdvice(s: string): boolean {
   if (/\b(can(’|')?t|cannot|won(’|')?t|don(’|')?t|doesn(’|')?t|not|never|no one can|nobody can)\b[^.!?]{0,60}\b(tell|say|advise|recommend|suggest|determine|decide|answer|know|show|mean|indicate|identify|reveal|settle|imply|prove|establish|guarantee)\b/i.test(s)) return true;
   // "…but it doesn't show which holding you ought to sell": a denial followed by an open question.
   if (/\b(not|n(’|')t|cannot|never|nothing|no way)\b[^.!?]{0,80}\b(which|what|when|how much|how many)\b[^.!?]{0,60}\b(you|to)\s+(should|ought|must|need|buy|sell|hold|exit|add|trim)/i.test(s)) return true;
+  // "…that alone isn’t a signal that it’s a good time to invest": what is denied is the claim itself.
+  if (/(\bnot\b|n(’|')t\b|\bno\b|\bnever\b|\bnothing\b)[^.!?]{0,70}\bthat\s+(it(’|')?s|it is|this is|now is|you|they)\b/i.test(s)) return true;
   if (/\bwhether\b/i.test(s) || /\?\s*$/.test(s)) return true;
   if (/\b(for example|for instance|e\.g\.|suppose|imagine|let(’|')?s say|say you|if you had)\b/i.test(s) || /(उदाहरण|मान लीजिए|मान लो|जैसे कि)/u.test(s) || /\b(jaise ki|maan lo|maan lijiye|example ke liye)\b/i.test(s)) return true;
   // Hinglish and Hindi: a refusal names what it will not say, and "…ya nahi" or "…yeh depend karta hai" weighs the question.

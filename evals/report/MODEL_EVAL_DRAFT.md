@@ -225,6 +225,23 @@ Progression of the default configuration on all 93 cases, three runs each:
 
 Not done: starting the model before the scope guard has answered. The guard's median is about 1.0 s (3.6), which is what that would save.
 
+### 3.9 First production traces (8 October)
+
+From the trace table on the live app, the last seven days, by prompt version. A handful of answers, mostly the author's own test questions: a direction, not a measurement.
+
+| Prompt version | What it was | Answers | First word (median) | Cost per answer |
+|---|---|---|---|---|
+| `04e4d24e` | before any model work; GPT-6 Sol on analysis questions | 3 | 15.6 s | $0.0346 |
+| `70f7297b` | portfolio tools added | 2 | 9.7 s | $0.0138 |
+| `085a2e10` | Luna at minimal effort, advice filter | 1 | 6.0 s | $0.0009 |
+| `dc72c416` | portfolio read ahead | 1 | 3.3 s | $0.0003 |
+
+Two things production showed that the evals had not: `getPriceHistory` failed 2 times in 10, and reading the portfolio took 1.1 to 1.7 s there against a few hundred milliseconds locally. The first traced to price lookups on symbols that are not market tickers (a mutual fund, gold); the second to database queries sent one after another. Both were changed on 8 October; neither change has been measured in production yet.
+
+### 3.10 After the what-if tool and three new cases (8 October)
+
+96 cases (three added: two "what if the market falls" questions and one about mutual funds over a period). App routing, three runs, prompt `e29871ab`: 96 of 96, first word 4,718 ms, total 6,195 ms, $0.081. No regressions against the 93-case baseline. The advice filter fired once in 253 answers, again on a denial ("…isn't a signal that it's a good time to invest"); that is the fourth false positive found by eval runs since the corpus check, each fixed and added as a test.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -291,7 +308,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.10 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

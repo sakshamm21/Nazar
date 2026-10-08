@@ -56,7 +56,16 @@ export function toDate(v: any): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
-export const clean = (s: string) => s.trim().toUpperCase();
+/**
+ * A ticker as Yahoo knows it. Nazar stores a US share as "US:AAPL" and a coin as "CRYPTO:BTC" so
+ * they cannot collide with an NSE symbol; Yahoo calls them "AAPL" and "BTC-USD".
+ */
+export const clean = (s: string) => {
+  const t = s.trim().toUpperCase();
+  if (t.startsWith("US:")) return t.slice(3);
+  if (t.startsWith("CRYPTO:")) return `${t.slice(7)}-USD`;
+  return t;
+};
 
 /* ------------------------------------------------------------------ */
 /* Metric catalog — the metrics the agent can query by key             */

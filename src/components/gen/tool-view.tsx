@@ -4,7 +4,7 @@ import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { ErrorNote, Skeleton } from "./ui";
 import { CompareView, DcfView, EarningsView, FinancialsView, MetricsView, PriceView, QuoteView } from "./views";
-import { GainsToolView, GoalsToolView, IndicesView, MoversView, NewsView, OwnershipView, PerformanceToolView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
+import { GainsToolView, GoalsToolView, StressToolView, IndicesView, MoversView, NewsView, OwnershipView, PerformanceToolView, PortfolioToolView, ProfileView, SearchView, WatchlistView } from "./lists";
 import { CompsView, CorrelationView, DupontView, HealthView, RiskReturnView, SipView, TechnicalsView } from "./analysis-views";
 import { toolMeta, type ToolName } from "@/lib/ask/registry";
 import { trackClient } from "@/lib/events-client";
@@ -35,6 +35,7 @@ const VIEWS: Record<ToolName, ComponentType<ViewProps>> = {
   runSipBacktest: SipView,
   getTechnicalIndicators: TechnicalsView,
   getPortfolioPerformance: PerformanceToolView,
+  getStressTest: StressToolView,
   getCapitalGains: GainsToolView,
   getGoals: GoalsToolView,
   getMyPortfolio: PortfolioToolView,

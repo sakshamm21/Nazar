@@ -10,6 +10,15 @@ import { GROUP_COLOR, isManualSymbol } from "@/lib/instruments/asset-classes";
 import { PERIODS, explain, type Performance, type PeriodId } from "@/lib/portfolio/performance";
 
 const tone = (n: number | null | undefined) => (n == null || Math.abs(n) < 1e-9 ? "text-muted" : n > 0 ? "text-gain" : "text-loss");
+/** The question that opens Ask on the period being looked at. Worded so Ask reads this same analysis, not a guess. */
+export function askAbout(a: { period: PeriodId; change: number; changePct: number | null }): string {
+  const flat = Math.abs(a.changePct ?? 0) < 0.0005;
+  const dir = a.change > 0 ? "up" : "down";
+  if (a.period === "1D") return flat ? "What happened in my portfolio today?" : `Why am I ${dir} today?`;
+  const when = PERIODS.find((p) => p.id === a.period)!.phrase;
+  return flat ? `What did my portfolio do ${when}?` : `Why is my portfolio ${dir} ${when}?`;
+}
+
 const signed = (n: number) => inr(Math.round(n), { sign: true, decimals: 0 });
 
 /**
@@ -55,6 +64,9 @@ export function Analyzer({ perf, name }: { perf: Performance; name: string }) {
         <div className="t-overline">What happened</div>
         <h2 className={cn("t-title-1 mt-1", tone(Math.abs(a.changePct ?? 0) < 0.0005 ? 0 : a.change))}>{story.headline}</h2>
         <p className="mt-2 text-[15px] leading-6 text-muted">{story.what}</p>
+        <Link href={`/ask?q=${encodeURIComponent(askAbout(a))}`} onClick={() => trackClient("suggestion_click", { kind: "analysis", period: a.period })} className="mt-2 inline-block text-sm font-medium text-accent">
+          Ask Nazar about this →
+        </Link>
         <div className="mt-3">
           <PriceChart points={points} height={170} compare={{ label: "Same money in the Nifty" }} format={(v) => inr(Math.round(v), { decimals: 0 })} />
         </div>

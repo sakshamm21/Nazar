@@ -46,6 +46,10 @@ describe("everything else is left to the model", () => {
     "Give me a quick update on the stocks I'm watching",
     "How do I import my Zerodha holdings?",
     "hi",
+    // A scenario is worked out by its own tool, from the question's number.
+    "What if the Nifty falls 15%?",
+    "Agar market 20% gir jaye toh mere portfolio ka kya hoga?",
+    "If the Nifty fell 10%, roughly what would happen to my portfolio?",
   ])("%s", (q) => expect(planPrefetch(q)).toBeNull());
 });
 

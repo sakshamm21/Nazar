@@ -28,23 +28,32 @@ export type Note = { id: string; kind: "results" | "concentration" | "upcoming" 
 export async function buildPortfolioView(user: User, portfolioId?: string | null) {
   const db = await getDb();
   const sources = sourcesFor(user);
-  const portfolios = await listPortfolios(user.id);
+  // Queries that do not depend on each other are sent together. Each is a network round trip to
+  // the database, and one after another they were most of what a portfolio answer waited for.
+  const [portfolios, tradeDate, watching] = await Promise.all([listPortfolios(user.id), latestTradeDate(db, sources), listWatching(user.id)]);
   const active = portfolios.find((p) => p.id === portfolioId) ?? portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null;
-  const tradeDate = await latestTradeDate(db, sources);
-  const watching = await listWatching(user.id);
   const base = { user, portfolios, active, tradeDate, sources, watchingCount: watching.length };
   if (!active || !tradeDate) return { ...base, empty: true as const };
 
   const holdingsRows = await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, active.id));
   if (!holdingsRows.length) return { ...base, empty: true as const };
 
-  const day = await loadPortfolioDay(db, holdingsRows, tradeDate, sources);
+  const symbols = holdingsRows.map((h) => h.symbol).filter((s) => !isManualSymbol(s));
+  const [day, hist, peerSnaps, lotsByHolding] = await Promise.all([
+    loadPortfolioDay(db, holdingsRows, tradeDate, sources),
+    priceHistory(db, [...symbols, NIFTY], sources, shiftDate(tradeDate, -400), tradeDate),
+    // Valuation vs peers: P/E against other same-sector stocks Nazar tracks on this date.
+    db
+      .select({ symbol: schema.symbolSnapshots.symbol, metrics: schema.symbolSnapshots.metrics, sector: schema.instruments.sector, industry: schema.instruments.industry })
+      .from(schema.symbolSnapshots)
+      .innerJoin(schema.instruments, eq(schema.instruments.symbol, schema.symbolSnapshots.symbol))
+      .where(and(eq(schema.symbolSnapshots.tradeDate, tradeDate), inArray(schema.symbolSnapshots.source, dateSources(sources)))),
+    lotsForPortfolio(active.id),
+  ]);
   const states: HoldingState[] = day.holdings;
   const v = valuation(states);
   const w = weights(states);
   const attr = attribution(states, day.niftyPct);
-  const symbols = holdingsRows.map((h) => h.symbol).filter((s) => !isManualSymbol(s));
-  const hist = await priceHistory(db, [...symbols, NIFTY], sources, shiftDate(tradeDate, -400), tradeDate);
   const nifty = hist.get(NIFTY) ?? new Map<string, number>();
   const niftyOn = (d: string) => {
     let best: number | null = null;
@@ -75,13 +84,6 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   }
   const conc = concentration(states);
   const inner = diversificationScore(div?.effectiveBets ?? null, conc.topStock?.weight ?? null, stress10.portfolioBeta);
-
-  // Valuation vs peers: P/E against other same-sector stocks Nazar tracks on this date.
-  const peerSnaps = await db
-    .select({ symbol: schema.symbolSnapshots.symbol, metrics: schema.symbolSnapshots.metrics, sector: schema.instruments.sector, industry: schema.instruments.industry })
-    .from(schema.symbolSnapshots)
-    .innerJoin(schema.instruments, eq(schema.instruments.symbol, schema.symbolSnapshots.symbol))
-    .where(and(eq(schema.symbolSnapshots.tradeDate, tradeDate), inArray(schema.symbolSnapshots.source, dateSources(sources))));
 
   const cards = day.holdings
     .map((h) => {
@@ -148,7 +150,6 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   // Capital gains: what a sale would have realised, in the buckets Indian tax uses. There are no
   // recorded sales yet (a holding is a position, not a trade), so this reports the gains still
   // sitting in the portfolio and which bucket each would fall into if sold today.
-  const lotsByHolding = await lotsForPortfolio(active.id);
   const dayBySymbol = new Map(day.holdings.map((h) => [h.symbol, h]));
   const gains = unrealisedGains(
     holdingsRows.filter((h) => !isManualSymbol(h.symbol)).map((h) => {
@@ -184,6 +185,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     allocation: assetAllocation(states),
     performance,
     cards,
+    /** Each holding as the portfolio maths sees it, for a scenario worked out on request. */
+    states,
     notes: notesFor(tradeDate, day, conc, div),
     staleCount: cards.filter((c) => c.stale).length,
     /** The closes already read for this portfolio, so a page can reuse them instead of re-querying. */

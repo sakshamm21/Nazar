@@ -320,3 +320,46 @@ export function GoalsToolView({ data }: { data: any }) {
     </Panel>
   );
 }
+
+/** A market move applied to the portfolio: the estimated change and what accounts for most of it. */
+export function StressToolView({ data }: { data: any }) {
+  if (data.empty) return <EmptyPortfolio title="A market move, applied to your portfolio" />;
+  const fall = Number(data.niftyMovePct) < 0;
+  return (
+    <Panel
+      title={`If the Nifty ${fall ? "fell" : "rose"} ${Math.abs(Number(data.niftyMovePct))}%`}
+      subtitle={`${data.portfolio} · as of ${data.asOf} close · an estimate from how each holding has followed the Nifty`}
+      right={<div className={`text-sm font-semibold tabular-nums ${upDown(data.change)}`}>{pct(data.changePct)}</div>}
+    >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Now" value={rupees(data.valueNow)} />
+        <Stat label="Estimated change" value={signedRupees(data.change)} tone={upDown(data.change)} />
+        <Stat label="After" value={rupees(data.valueAfter)} />
+        <Stat label="Portfolio beta" value={data.portfolioBeta?.toFixed?.(2) ?? "—"} />
+      </div>
+      {(data.biggestEffects ?? []).length > 0 && (
+        <table className="mt-4 w-full text-sm tabular-nums">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-subtle">
+              <th className="py-1 font-medium">Accounts for most of it</th>
+              <th className="py-1 text-right font-medium">Beta</th>
+              <th className="py-1 text-right font-medium">Change</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {data.biggestEffects.slice(0, 6).map((h: any) => (
+              <tr key={`${h.name}:${h.change}`}>
+                <td className="py-1.5 text-text">{h.name}</td>
+                <td className="py-1.5 text-right text-muted">{Number(h.beta).toFixed(2)}</td>
+                <td className={`py-1.5 text-right ${upDown(h.change)}`}>{signedRupees(h.change)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <div className="mt-3 text-[11px] leading-4 text-subtle">
+        {data.holdingsThatWouldNot > 0 && `${data.holdingsThatWouldNot} of what you own (deposits, provident funds, cash) would not move. `}Real falls are uneven; this is arithmetic, not a forecast.
+      </div>
+    </Panel>
+  );
+}
