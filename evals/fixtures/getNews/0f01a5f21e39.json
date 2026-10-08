@@ -1,0 +1,47 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TCS",
+  "count": 4
+ },
+ "output": {
+  "query": "TCS",
+  "articles": [
+   {
+    "title": "TCS goIT Brings Teachers Back for Foundational Student Skills Development",
+    "publisher": "ACCESS Newswire",
+    "link": "https://finance.yahoo.com/technology/ai/articles/tcs-goit-brings-teachers-back-163000004.html",
+    "published": "2026-09-29",
+    "tickers": [
+     "TCS.NS"
+    ]
+   },
+   {
+    "title": "Mastercard Dreamonomics Research Finds U.S. Small Businesses Are Prioritizing Predictable Growth, With the TCS New York City Marathon Showing the Opportunity Major Moments Can Create",
+    "publisher": "Business Wire",
+    "link": "https://finance.yahoo.com/small-business/articles/mastercard-dreamonomics-research-finds-u-133000970.html",
+    "published": "2026-09-15",
+    "tickers": [
+     "MA"
+    ]
+   },
+   {
+    "title": "Beyond Type 1's Team of 80 Runners Impacted by Diabetes to Challenge Stigma at the 2026 TCS New York City Marathon",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/healthcare/articles/beyond-type-1s-team-80-130000775.html",
+    "published": "2026-09-15",
+    "tickers": []
+   },
+   {
+    "title": "Porsche sharpens focus on core business with MHP sale to India’s TCS",
+    "publisher": "Just Auto",
+    "link": "https://finance.yahoo.com/technology/ai/articles/porsche-sharpens-focus-core-business-180245000.html",
+    "published": "2026-08-25",
+    "tickers": [
+     "P911.DE",
+     "TCS.NS"
+    ]
+   }
+  ]
+ }
+}

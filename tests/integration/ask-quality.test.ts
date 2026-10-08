@@ -87,8 +87,8 @@ describe("the Ask quality numbers on the insights page", () => {
     expect(q.untracedAnswers).toBeGreaterThanOrEqual(1);
     expect(q.untracedShare).toBeGreaterThan(0);
     expect(q.avgSteps).toBeGreaterThan(1);
-    // The Hinglish question about "mera portfolio" was read ahead.
-    expect(q.readAheadShare).toBeCloseTo(1 / 5);
+    // Every one of the five was read ahead: the portfolio for "mera portfolio", the ticker for the four that name a company.
+    expect(q.readAheadShare).toBeCloseTo(1);
     expect(q.tools.find((t) => t.name === "runDcfValuation")).toMatchObject({ calls: 1, failed: 1 });
     expect(q.tools.find((t) => t.name === "getMyPortfolio")).toMatchObject({ calls: 1, failed: 0 });
     expect(q.versions).toEqual([expect.objectContaining({ version: promptVersion(), answers: 5, rated: 0, helpful: null })]);

@@ -5,12 +5,14 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { marketOf, track } from "@/lib/events";
 import { today as istToday } from "@/lib/goals/draft";
+import { getMaster } from "@/lib/instruments/master";
 import { LIMITS, checkAndRecord } from "@/lib/limits";
 import { answerLang, traceNumbers } from "./checks";
 import { compactHistory, detectLang, modelViewOf } from "./context";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "./models";
 import { SentenceFilter, findDirectives } from "./output-guard";
 import { allowedModelIds } from "./openai-models";
+import { asSearchResult, findCompany } from "./known-company";
 import { planPrefetch } from "./prefetch";
 import { systemPrompt, type AskMode } from "./prompt";
 import { promptVersion } from "./prompt-version";
@@ -200,9 +202,15 @@ export async function runAsk(input: AskInput): Promise<Response> {
     const names = (await db.select({ name: schema.portfolios.name }).from(schema.portfolios).where(eq(schema.portfolios.userId, userId))).map((p) => p.name);
     plan = planPrefetch(text, names);
   }
+  // A question that names one company: Nazar's own NSE list knows its ticker, so the model is
+  // handed that as a search already made and does not spend its first step asking Yahoo.
+  const company = !plan && !input.harness?.noReadAhead ? findCompany(text, getMaster()) : null;
+  const planned: { tool: string; input: unknown } | null = plan ?? (company ? { tool: "searchTicker", input: { query: company.query } } : null);
   const readAheadId = `read_${randomUUID().slice(0, 12)}`;
   const readAheadStart = Date.now();
-  const reading = plan
+  const reading = company
+    ? Promise.resolve({ output: asSearchResult(company) as unknown, ms: 0 })
+    : plan
     ? (tools as unknown as Record<string, { execute: (i: unknown, o: { toolCallId: string; messages: [] }) => Promise<unknown> }>)[plan.tool]
         .execute(plan.input, { toolCallId: readAheadId, messages: [] })
         .then((output) => ({ output, ms: Date.now() - readAheadStart }))
@@ -257,7 +265,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   const advice: string[] = [];
   const steps: TraceStep[] = [];
   // What was read ahead reaches the model exactly as a tool result it had asked for would.
-  const ahead = plan && read ? { tool: plan.tool, input: plan.input, output: read.output } : null;
+  const ahead = planned && read ? { tool: planned.tool, input: planned.input, output: read.output } : null;
   const modelMessages = await convertToModelMessages(compactHistory(messages, tools), { ignoreIncompleteToolCalls: true, tools });
   if (ahead) {
     const view = (plainTools as unknown as Record<string, { toModelOutput?: (o: { output: unknown }) => { type: "json"; value: any } }>)[ahead.tool].toModelOutput?.({ output: ahead.output }) ?? { type: "json" as const, value: ahead.output as any };

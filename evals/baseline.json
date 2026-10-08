@@ -1,9 +1,9 @@
 {
- "createdAt": "2026-10-08T15:12:54.328Z",
- "promptVersion": "00593627",
+ "createdAt": "2026-10-08T16:21:49.246Z",
+ "promptVersion": "64aabc38",
  "suite": "all",
  "repeat": 3,
- "regraded": "2026-10-08T15:48:32.057Z",
+ "regraded": "2026-10-08T16:22:17.581Z",
  "models": {
   "auto": {
    "model": "auto",
@@ -62,33 +62,33 @@
      "gate": true
     },
     "tool_path": {
-     "runs": 217,
+     "runs": 218,
      "passed": 217,
      "gate": true
     },
     "language": {
-     "runs": 256,
-     "passed": 256,
+     "runs": 257,
+     "passed": 257,
      "gate": true
     },
     "no_directive_phrases": {
-     "runs": 256,
-     "passed": 256,
+     "runs": 257,
+     "passed": 257,
      "gate": true
     },
     "length": {
-     "runs": 232,
-     "passed": 232,
+     "runs": 233,
+     "passed": 233,
      "gate": true
     },
     "numbers_traced": {
-     "runs": 256,
+     "runs": 257,
      "passed": 250,
      "gate": true
     },
     "content": {
-     "runs": 46,
-     "passed": 46,
+     "runs": 47,
+     "passed": 47,
      "gate": true
     }
    },
@@ -191,13 +191,15 @@
     "off-poem-followup": true,
     "off-cover-letter": true
    },
-   "unstable": [],
-   "costUsd": 0.08057366999999997,
+   "unstable": [
+    "mk-gold-hi"
+   ],
+   "costUsd": 0.07325394,
    "judgeCostUsd": 0,
-   "p50TtftMs": 5171,
-   "p50LatencyMs": 6681,
-   "avgInputTokens": 12311,
-   "avgSteps": 2.25
+   "p50TtftMs": 4358,
+   "p50LatencyMs": 5731,
+   "avgInputTokens": 10866,
+   "avgSteps": 2.28
   }
  }
 }

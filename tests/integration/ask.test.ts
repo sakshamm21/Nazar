@@ -145,12 +145,12 @@ describe("an ordinary answer", () => {
   it("is streamed, saved, billed, counted and traced", async () => {
     const u = await makeUser(db);
     const id = chatId();
-    const r = await ask(u, id, "What is TCS trading at?");
+    const r = await ask(u, id, "How are Indian markets doing today?");
     expect(r.status).toBe(200);
     expect(r.text).toContain("Here is what the data shows.");
 
     const [question, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
-    expect(answerText(question)).toBe("What is TCS trading at?");
+    expect(answerText(question)).toBe("How are Indian markets doing today?");
     expect(answerText(answer)).toBe("Here is what the data shows.");
     expect(answer.metadata).toMatchObject({ promptVersion: promptVersion(), mode: "simple", inputTokens: 1000, outputTokens: 50 });
 
@@ -332,13 +332,14 @@ describe("a run always ends in an answer", () => {
     const r = await ask(u, id, "Run a DCF on Infosys");
     expect(r.text).toContain("could not be run");
     expect(sent(calls[1])).toContain("Discount rate must be at least");
-    expect((await event(u.id, "question")).props).toMatchObject({ steps: 2, toolErrors: 1, tools: ["runDcfValuation"] });
+    // "Infosys" was resolved to its ticker before the model ran, so the search is there without a model step.
+    expect((await event(u.id, "question")).props).toMatchObject({ steps: 2, toolErrors: 1, tools: ["searchTicker", "runDcfValuation"], readAhead: "searchTicker" });
 
     const t = await traceOf(id);
-    expect(t.steps.map((s) => s.finishReason)).toEqual(["tool-calls", "stop"]);
-    expect(t.steps[0].tools).toHaveLength(1);
-    expect(t.steps[0].tools[0]).toMatchObject({ name: "runDcfValuation", ok: false });
-    expect(t.steps[0].tools[0].ms).toBeGreaterThanOrEqual(0);
+    expect(t.steps.map((s) => s.finishReason)).toEqual(["read-ahead", "tool-calls", "stop"]);
+    expect(t.steps[1].tools).toHaveLength(1);
+    expect(t.steps[1].tools[0]).toMatchObject({ name: "runDcfValuation", ok: false });
+    expect(t.steps[1].tools[0].ms).toBeGreaterThanOrEqual(0);
     expect(t.inputTokens).toBe(2000);
   });
 
@@ -561,11 +562,32 @@ describe("reading the portfolio ahead of the model", () => {
   it("a question about anything else is left to the model", async () => {
     const u = await makeUser(db);
     const id = chatId();
-    await ask(u, id, "What is TCS trading at?");
+    await ask(u, id, "How are Indian markets doing today?");
     expect(sent(calls[0])).not.toContain("No holdings yet");
     const t = await traceOf(id);
     expect(t.steps.map((s) => s.finishReason)).toEqual(["stop"]);
     expect((await event(u.id, "question")).props).toMatchObject({ readAhead: null });
+  });
+
+  it("a question that names one company is handed its ticker from Nazar's own list, as a search already made", async () => {
+    script.turns = [() => say("TCS closed higher.")];
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "What is TCS trading at?");
+    expect(calls).toHaveLength(1);
+    const prompt = sent(calls[0]);
+    expect(prompt).toContain('"toolName":"searchTicker"');
+    expect(prompt).toContain("TCS.NS");
+    const t = await traceOf(id);
+    expect(t.steps.map((s) => s.finishReason)).toEqual(["read-ahead", "stop"]);
+    expect(t.steps[0].tools[0]).toMatchObject({ name: "searchTicker", ok: true, ms: 0 });
+    expect((await event(u.id, "question")).props).toMatchObject({ readAhead: "searchTicker", tools: ["searchTicker"], tickers: [] });
+  });
+
+  it("two companies in one question are left to the model", async () => {
+    const id = chatId();
+    await ask(await makeUser(db), id, "Compare HDFC Bank and ICICI Bank on valuation");
+    expect((await traceOf(id)).steps.map((s) => s.finishReason)).toEqual(["stop"]);
   });
 
   it("a refused question shows nothing of what was read", async () => {
@@ -646,7 +668,7 @@ describe("changing the Watching list", () => {
     expect(offered(calls[0])).toContain("addToWatchlist");
     expect(offered(calls[0])).not.toContain("removeFromWatchlist");
     expect(await watched(u.id)).toEqual(["TITAN.NS"]);
-    expect((await traceOf(id)).steps[0].tools[0]).toMatchObject({ name: "addToWatchlist", ok: true });
+    expect((await traceOf(id)).steps[1].tools[0]).toMatchObject({ name: "addToWatchlist", ok: true });
 
     // The next question in the same chat is back to reading only, though the chat now holds a write.
     calls = [];

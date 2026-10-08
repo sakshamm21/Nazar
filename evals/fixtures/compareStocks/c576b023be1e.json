@@ -1,0 +1,146 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "TITAN.NS",
+   "KALYANKJIL.NS",
+   "SENCO.NS"
+  ],
+  "metrics": [
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "evToEbitda",
+   "priceToSales",
+   "revenueGrowth",
+   "operatingMargin",
+   "profitMargin",
+   "debtToEquity",
+   "returnOnEquity"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited"
+   },
+   {
+    "symbol": "KALYANKJIL.NS",
+    "name": "Kalyan Jewellers India Limited"
+   },
+   {
+    "symbol": "SENCO.NS",
+    "name": "Senco Gold Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "format": "large",
+    "values": [
+     3868238020608,
+     571627667456,
+     55251013632
+    ]
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     67.19328,
+     39.906273,
+     9.678438
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     49.06688,
+     28.590067,
+     12.416206
+    ]
+   },
+   {
+    "key": "priceToSales",
+    "label": "Price / sales (TTM)",
+    "format": "ratio",
+    "values": [
+     4.1856346,
+     1.4633363,
+     0.5719696
+    ]
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "format": "ratio",
+    "values": [
+     46.719,
+     26.944,
+     8.534
+    ]
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "format": "percent",
+    "values": [
+     0.123339996,
+     0.04887,
+     0.0627
+    ]
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "format": "percent",
+    "values": [
+     0.062319998,
+     0.036730003,
+     0.05909
+    ]
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "format": "percent",
+    "values": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.293,
+     0.457,
+     0.673
+    ]
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "format": "ratio",
+    "values": [
+     195.001,
+     96.966,
+     107.377
+    ]
+   }
+  ]
+ }
+}

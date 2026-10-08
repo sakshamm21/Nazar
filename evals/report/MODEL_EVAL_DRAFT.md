@@ -325,6 +325,25 @@ So on about 1,100 saved answers the rule fails exactly one thing: the error it w
 
 **Judge calibration is set up, not done.** `npm run eval:calibrate -- sample` wrote 40 judged answers from `13-01-33` to `evals/calibration/labels.json` with the verdicts hidden: all 14 answers a judge failed, and 26 it passed, spread across the four judges. `-- score` reports agreement per judge once a person has labelled them. Until then the judges still only report.
 
+### 3.16 The ticker read ahead, the arithmetic rule, and judged deep dives (8 October, night)
+
+**What 768 saved answers said about time.** Read from the three most recent full runs, at no cost: 269 answers began with the model calling `searchTicker`. In the company category that was 156 of 162, and those reached their first word (after the guard) in a median 6.5 s against 4.5 s for the six that went straight to data. The search's first result was often a foreign listing ("hdfc bank" → HDB, "infosys" → INFY, "titan" → BTTC); "zomato" found nothing.
+
+Nazar has its own NSE list with renames and the names people use. A question that names exactly one company now has it resolved in code (`src/lib/ask/known-company.ts`) and handed to the model as a search already made. Paired runs, the 18 company cases, three runs each, started within seconds of each other:
+
+| | Passed | First word p50 | Total p50 | Avg input tokens | Cost |
+|---|---|---|---|---|---|
+| Model searches (`2026-10-08T16-11-20`, `--no-read-ahead`) | 18 | 6,862 ms | 8,701 ms | 18,667 | $0.019 |
+| Ticker resolved ahead (`2026-10-08T16-10-54`) | 18 | 5,306 ms | 7,242 ms | 14,432 | $0.019 |
+
+42 of 54 answers were read ahead; the other 12 name two companies or more and are left to the model.
+
+**The arithmetic rule.** One line added to the prompt: quote a total the tool already has, and make any figure worked out exact. This is a prompt change, so it went through the full set.
+
+**All 97 cases, three runs, prompt `64aabc38`** (`2026-10-08T16-21-49`, the new baseline): 97 of 97, no regressions, first word 4,358 ms, total 5,731 ms, 10,866 input tokens on average, $0.073. Numbers traced in 250 of 257 answers, with the check now deciding. One unstable case: `mk-gold-hi` used `getKeyMetrics` on a gold ETF on one run of three. The previous baseline was 5,171 ms and 12,311 tokens at another hour; only the paired table above is a clean measure of the change. Whether the arithmetic rule reduced slips is not shown by this run: the slips were found by the judge, and this run had none.
+
+**Deep dives, judged** (`2026-10-08T16-23-53`, four cases, one run, judge Sonnet 5.5): 4 of 4 pass; first word 21.1 s. Judges: grounded 4/4, answers the question 4/4, no directive advice 4/4, plain words 1/2. The plain-words failure is the in-depth portfolio review in Simple mode: "effectively independent bets", "cash-flow-adjusted return" and "first-order estimate" left unexplained. All judge calls ran. $0.368, of which $0.237 was the judge.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -391,7 +410,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.15 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.16 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

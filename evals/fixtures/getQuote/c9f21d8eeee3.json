@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "TITAN.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "TITAN.NS",
+    "name": "Titan Company Limited",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 4359.5,
+    "change": -17.5,
+    "changePercent": -0.39981726,
+    "previousClose": 4377,
+    "open": 4380,
+    "dayHigh": 4467,
+    "dayLow": 4359.5,
+    "volume": 1490326,
+    "marketCap": 3868238020608,
+    "fiftyTwoWeekHigh": 5186.7,
+    "fiftyTwoWeekLow": 3506.5,
+    "trailingPE": 67.19328,
+    "marketState": "POSTPOST",
+    "asOf": "2026-10-08T09:45:00.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

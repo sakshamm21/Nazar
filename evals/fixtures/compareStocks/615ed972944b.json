@@ -1,0 +1,124 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "TCS.NS",
+   "INFY.NS",
+   "HCLTECH.NS"
+  ],
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "ebitdaMargin",
+   "profitMargin",
+   "revenueGrowth"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited"
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.080633,
+     13.583106,
+     18.308962
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     12.818464,
+     12.46418,
+     14.692633
+    ]
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "format": "ratio",
+    "values": [
+     9.97,
+     8.819455352672014,
+     11.046910294978252
+    ]
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "format": "percent",
+    "values": [
+     0.40389,
+     0.29676,
+     0.34004003
+    ]
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "format": "percent",
+    "values": [
+     0.23963,
+     0.21173,
+     0.16877002
+    ]
+   },
+   {
+    "key": "ebitdaMargin",
+    "label": "EBITDA margin",
+    "format": "percent",
+    "values": [
+     0.26125,
+     0.2208,
+     0.18917999
+    ]
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "format": "percent",
+    "values": [
+     0.18052,
+     0.16370001,
+     0.12966
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.139,
+     0.029,
+     0.03
+    ]
+   }
+  ]
+ }
+}
