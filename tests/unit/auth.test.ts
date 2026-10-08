@@ -12,7 +12,8 @@ describe("sessions (JWT in an httpOnly cookie)", () => {
     const [h, p, s] = t.split(".");
     const forged = Buffer.from(JSON.stringify({ sub: "admin", demo: false })).toString("base64url");
     expect(await verifySession(`${h}.${forged}.${s}`)).toBeNull();
-    expect(await verifySession(`${h}.${p}.x${s.slice(1)}`)).toBeNull();
+    // Change the signature's first character to a different one: writing "x" over an "x" tampers with nothing.
+    expect(await verifySession(`${h}.${p}.${s[0] === "x" ? "y" : "x"}${s.slice(1)}`)).toBeNull();
     expect(await verifySession(null)).toBeNull();
   });
   it("is signed with this server's secret only", async () => {
