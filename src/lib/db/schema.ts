@@ -115,6 +115,8 @@ export const sips = pgTable(
     amount: doublePrecision("amount").notNull(),
     /** 1 to 28, so every month has the day. */
     dayOfMonth: integer("day_of_month").notNull(),
+    /** When the SIP began, if the user said. Instalments from this date on are added by Nazar; without it, only from the day the plan was set up. */
+    startDate: date("start_date", { mode: "string" }),
     endDate: date("end_date", { mode: "string" }),
     active: boolean("active").notNull().default(true),
     /** The next instalment Nazar has not yet added. Only ever moves forward. */

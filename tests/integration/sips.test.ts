@@ -196,3 +196,70 @@ describe("what Ask is told about the user's SIPs", () => {
     expect(out.note).toMatch(/No SIPs/);
   });
 });
+
+describe("a SIP that began before today", () => {
+  /** A market that traded every day from the start of 2026, at a price that rises a rupee a month. */
+  const provider = (fail = false) =>
+    ({
+      name: "fake",
+      async dailyHistory(_symbol: string, from: Date) {
+        if (fail) throw new Error("provider down");
+        const out: { date: string; close: number; volume: number | null }[] = [];
+        for (let d = new Date(from); d <= new Date("2026-10-08T00:00:00Z"); d = new Date(d.getTime() + 86_400_000)) out.push({ date: d.toISOString().slice(0, 10), close: 100 + d.getUTCMonth(), volume: null });
+        return out;
+      },
+    }) as unknown as Parameters<typeof setSip>[4];
+
+  it("has every instalment since its start date added when it is set up, each at its own day's price", async () => {
+    const h = await holdingOf();
+    const { sip, added } = await setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "2026-06-01" }, "2026-10-08", provider());
+    // 10 June, July, August, September. 10 October has not come yet.
+    expect(added).toBe(4);
+    expect(sip).toMatchObject({ startDate: "2026-06-01", instalments: 4, invested: 20000, nextDue: "2026-10-10", active: true });
+    const lots = (await lotsOf(h.id)).filter((l) => l.sipId === sip.id);
+    expect(lots.map((l) => [l.date, l.price])).toEqual([["2026-06-10", 105], ["2026-07-10", 106], ["2026-08-10", 107], ["2026-09-10", 108]]);
+    const units = lots.reduce((a, l) => a + l.quantity, 0);
+    const after = await holdingOf();
+    // On top of the 100 units at 80 the holding had.
+    expect(after.quantity).toBeCloseTo(100 + units);
+    expect(after.avgPrice).toBeCloseTo((100 * 80 + 20000) / (100 + units));
+    // The checkup then carries on from the next due date, adding nothing twice.
+    expect(await applyDueSips(db, "2026-10-08")).toMatchObject({ plans: 0, added: 0 });
+  });
+
+  it("is refused for a start date in the future or absurdly far back, and nothing is saved", async () => {
+    const h = await holdingOf();
+    await expect(setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "2026-12-01" }, "2026-10-08", provider())).rejects.toThrow(/future/);
+    await expect(setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "1990-01-01" }, "2026-10-08", provider())).rejects.toThrow(/years back/);
+    expect(await sipOf(h.id)).toBeUndefined();
+  });
+
+  it("is not saved at all when past prices cannot be had, so nothing is half done", async () => {
+    const h = await holdingOf();
+    await expect(setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "2026-06-01" }, "2026-10-08", provider(true))).rejects.toThrow(/past prices/);
+    expect(await sipOf(h.id)).toBeUndefined();
+    expect(await lotsOf(h.id)).toHaveLength(1);
+    expect((await holdingOf()).quantity).toBe(100);
+  });
+
+  it("keeps its start date when the amount is changed later, and adds nothing again", async () => {
+    const h = await holdingOf();
+    await setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "2026-06-01" }, "2026-10-08", provider());
+    const { sip, added } = await setSip(user.id, h.id, { amount: 8000, dayOfMonth: 10, startDate: "2025-01-01" }, "2026-10-08", provider());
+    expect(added).toBe(0);
+    expect(sip).toMatchObject({ amount: 8000, startDate: "2026-06-01", instalments: 4 });
+    expect(await lotsOf(h.id)).toHaveLength(5);
+  });
+
+  it("can be stopped with its instalments taken back out, leaving the holding as it was", async () => {
+    const h = await holdingOf();
+    await setSip(user.id, h.id, { amount: 5000, dayOfMonth: 10, startDate: "2026-06-01" }, "2026-10-08", provider());
+    const res = await SipRoute.DELETE(await request(`/api/holdings/${h.id}/sip?undo=1`, { user, method: "DELETE" }), params(h.id));
+    expect(await res.json()).toMatchObject({ ok: true, removedInstalments: 4 });
+    expect(await sipOf(h.id)).toBeUndefined();
+    const after = await holdingOf();
+    expect(after.quantity).toBeCloseTo(100);
+    expect(after.avgPrice).toBeCloseTo(80);
+    expect(await lotsOf(h.id)).toHaveLength(1);
+  });
+});

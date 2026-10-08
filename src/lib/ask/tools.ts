@@ -580,6 +580,7 @@ function userTools(userId: string) {
               dayOfMonth: s.dayOfMonth,
               status: s.active ? "active" : "paused",
               nextDue: s.active ? s.nextDue : null,
+              startedOn: s.startDate,
               endsOn: s.endDate,
               instalmentsAddedByNazar: s.instalmentsAdded,
               investedInThoseInstalments: r0(s.investedThroughNazar),
@@ -589,7 +590,7 @@ function userTools(userId: string) {
               firstAddedOn: s.firstAddedOn,
               lastAddedOn: s.lastAddedOn,
             })),
-            note: "Instalments from before a SIP was set up in Nazar are part of the holding and are not counted here. For the holding as a whole, see getMyPortfolio.",
+            note: "A SIP with a startedOn date has every instalment since then counted here. One without it counts only instalments since it was set up in Nazar; earlier ones are part of the holding. For the holding as a whole, see getMyPortfolio.",
           };
         }),
       toModelOutput: forModel((o) => o),

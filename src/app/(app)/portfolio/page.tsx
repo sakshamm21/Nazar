@@ -20,7 +20,7 @@ import { portfolioView } from "@/lib/views/portfolio";
 export const metadata: Metadata = { title: "Portfolio" };
 
 /** The plan as the screen needs it. */
-const sipOf = (s: Sip | undefined) => (s ? { amount: s.amount, dayOfMonth: s.dayOfMonth, endDate: s.endDate, active: s.active, nextDue: s.nextDue, instalments: s.instalments, invested: s.invested } : null);
+const sipOf = (s: Sip | undefined) => (s ? { amount: s.amount, dayOfMonth: s.dayOfMonth, startDate: s.startDate, endDate: s.endDate, active: s.active, nextDue: s.nextDue, instalments: s.instalments, invested: s.invested } : null);
 
 export default async function PortfolioPage() {
   const user = await requirePageUser();

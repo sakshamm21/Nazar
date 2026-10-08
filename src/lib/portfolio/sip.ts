@@ -13,8 +13,10 @@ export const SIP_MIN_AMOUNT = 100;
 export const SIP_MAX_AMOUNT = 10_000_000;
 /** If no price turns up within this many days of a due date, the instalment is not guessed at. */
 const PRICE_WINDOW_DAYS = 10;
-/** A plan left alone for years is caught up at most this far in one go. */
-const MAX_CATCH_UP = 36;
+/** How far back a SIP's start date may be. */
+export const SIP_MAX_YEARS_BACK = 20;
+/** The most instalments added in one go: every month of the longest SIP allowed. */
+const MAX_CATCH_UP = SIP_MAX_YEARS_BACK * 12 + 1;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const parts = (iso: string) => iso.split("-").map(Number) as [number, number, number];
@@ -73,4 +75,11 @@ export function ordinal(n: number): string {
   const tens = n % 100;
   const suffix = tens >= 11 && tens <= 13 ? "th" : n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
   return `${n}${suffix}`;
+}
+
+/** How many due dates fall from `startDate` to `today`, both included: what a start date in the past will add. */
+export function instalmentsSince(dayOfMonth: number, startDate: string, today: string): number {
+  let n = 0;
+  for (let due = dueOnOrAfter(dayOfMonth, startDate); due <= today && n < MAX_CATCH_UP; due = dueAfter(dayOfMonth, due)) n++;
+  return n;
 }

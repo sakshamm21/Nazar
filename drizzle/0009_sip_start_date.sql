@@ -1,0 +1,1 @@
+ALTER TABLE "sips" ADD COLUMN "start_date" date;

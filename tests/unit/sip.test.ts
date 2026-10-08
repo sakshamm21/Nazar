@@ -1,6 +1,6 @@
 /** A monthly SIP's arithmetic: when an instalment falls due, and what it bought. */
 import { describe, expect, it } from "vitest";
-import { dueAfter, dueOnOrAfter, instalmentsDue, ordinal } from "@/lib/portfolio/sip";
+import { dueAfter, dueOnOrAfter, instalmentsDue, instalmentsSince, ordinal } from "@/lib/portfolio/sip";
 
 describe("due dates", () => {
   it("the next date with that day of the month, today included", () => {
@@ -65,5 +65,14 @@ describe("instalments that have fallen due", () => {
     const prices = closes({ "2026-10-05": 100 });
     expect(instalmentsDue(plan, prices, "2026-10-06")).toEqual(instalmentsDue(plan, prices, "2026-10-06"));
     expect(instalmentsDue({ ...plan, nextDue: "2026-11-05" }, prices, "2026-10-06").instalments).toEqual([]);
+  });
+});
+
+describe("what a start date in the past will add", () => {
+  it("counts the due dates from the start to today, both included", () => {
+    expect(instalmentsSince(10, "2026-06-01", "2026-10-08")).toBe(4);
+    expect(instalmentsSince(10, "2026-06-10", "2026-10-10")).toBe(5);
+    expect(instalmentsSince(10, "2026-06-11", "2026-07-09")).toBe(0);
+    expect(instalmentsSince(1, "2024-01-01", "2026-10-08")).toBe(34);
   });
 });

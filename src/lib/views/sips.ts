@@ -21,6 +21,7 @@ export type SipRowView = {
   dayOfMonth: number;
   active: boolean;
   nextDue: string;
+  startDate: string | null;
   endDate: string | null;
   /** Instalments Nazar added since the plan was set up, and the rupees in them. Earlier ones are part of the holding, not counted here. */
   instalmentsAdded: number;
@@ -55,6 +56,7 @@ export async function sipsView(user: { id: string }) {
         dayOfMonth: sip.dayOfMonth,
         active: sip.active,
         nextDue: sip.nextDue,
+        startDate: sip.startDate,
         endDate: sip.endDate,
         instalmentsAdded: sip.instalments,
         investedThroughNazar: sip.invested,

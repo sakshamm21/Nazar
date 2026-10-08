@@ -141,33 +141,41 @@ test.describe("Portfolio", () => {
     await expect(page.getByText("Emergency fund removed")).toBeVisible();
   });
 
-  test("Manage: start a monthly SIP on a holding, see it on the row, then stop it", async ({ page }) => {
+  test("Manage: start a monthly SIP that began months ago, see its instalments added, then undo it", async ({ page }) => {
     // On the second investor, so the main demo's holdings stay as everyone else expects them.
     await startDemo(page, "tester1@nazar.dev");
     await page.goto("/portfolio?tab=manage");
     const change = page.getByRole("button", { name: /^Change Parag Parikh Flexi Cap/ }).first();
     const dialog = page.getByRole("dialog");
-    // An earlier run that stopped half way may have left the plan on.
-    await change.click();
-    await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
-    if (await dialog.getByRole("button", { name: "Stop SIP" }).count()) {
-      await dialog.getByRole("button", { name: "Stop SIP" }).click();
-      await expect(page.getByText(/SIP into .* stopped/)).toBeVisible();
+    const openSip = async () => {
       await change.click();
       await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
+    };
+    const undo = dialog.getByRole("button", { name: /^Stop, and take out/ });
+    // An earlier run that stopped half way may have left the plan on.
+    await openSip();
+    if (await dialog.getByRole("button", { name: "Stop SIP" }).count()) {
+      await ((await undo.count()) ? undo : dialog.getByRole("button", { name: "Stop SIP" })).click();
+      await expect(page.getByText(/SIP into .* stopped/)).toBeVisible();
+      await openSip();
     }
+    // About four months back: three or four due dates have passed, whatever today is.
+    const start = new Date(Date.now() - 110 * 86_400_000).toISOString().slice(0, 10);
     await dialog.getByLabel("Amount each month (₹)").fill("5000");
     await dialog.getByLabel("Day of the month").fill("5");
     await expect(dialog.getByText(/First instalment Nazar will add/)).toBeVisible();
+    await dialog.getByLabel("Started on (optional)").fill(start);
+    await expect(dialog.getByText(/Nazar will add [34] instalments since .*, ₹(15|20),000 in all/)).toBeVisible();
     await dialog.getByRole("button", { name: "Start SIP" }).click();
-    await expect(page.getByText(/₹5,000 a month into .*, on the 5th/)).toBeVisible();
+    await expect(page.getByText(/₹5,000 a month into .*\. [34] instalments since .* added\./)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("SIP ₹5,000 · 5th")).toBeVisible();
 
-    await change.click();
-    await dialog.getByRole("radio", { name: /Monthly SIP/ }).click();
-    await expect(dialog.getByText(/₹5,000 on the 5th of each month\. Next:/)).toBeVisible();
-    await dialog.getByRole("button", { name: "Stop SIP" }).click();
-    await expect(page.getByText(/SIP into .* stopped/)).toBeVisible();
+    await openSip();
+    await expect(dialog.getByText(/₹5,000 on the 5th of each month\. Next: .* Started .* Nazar has added [34] instalments, ₹(15|20),000 in all\./)).toBeVisible();
+    // The start date is fixed once the plan exists.
+    await expect(dialog.getByLabel("Started on (optional)")).toHaveCount(0);
+    await undo.click();
+    await expect(page.getByText(/SIP into .* stopped, and its [34] instalments taken out/)).toBeVisible();
     await expect(page.getByText("SIP ₹5,000 · 5th")).toHaveCount(0);
   });
 
