@@ -1,0 +1,1 @@
+ALTER TABLE "ask_traces" ADD COLUMN "flags" jsonb DEFAULT '{}'::jsonb NOT NULL;

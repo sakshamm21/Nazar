@@ -1,0 +1,102 @@
+{
+ "tool": "getFinancialStatements",
+ "input": {
+  "symbol": "TCS.NS",
+  "statement": "income",
+  "period": "annual"
+ },
+ "output": {
+  "symbol": "TCS.NS",
+  "currency": "INR",
+  "statement": "income",
+  "period": "annual",
+  "fields": [
+   {
+    "key": "totalRevenue",
+    "label": "Revenue"
+   },
+   {
+    "key": "costOfRevenue",
+    "label": "Cost of revenue"
+   },
+   {
+    "key": "grossProfit",
+    "label": "Gross profit"
+   },
+   {
+    "key": "researchAndDevelopment",
+    "label": "R&D"
+   },
+   {
+    "key": "sellingGeneralAndAdministration",
+    "label": "SG&A"
+   },
+   {
+    "key": "operatingIncome",
+    "label": "Operating income"
+   },
+   {
+    "key": "EBITDA",
+    "label": "EBITDA"
+   },
+   {
+    "key": "netIncome",
+    "label": "Net income"
+   },
+   {
+    "key": "dilutedEPS",
+    "label": "Diluted EPS"
+   }
+  ],
+  "periods": [
+   {
+    "period": "2023-03-31",
+    "totalRevenue": 2254580000000,
+    "costOfRevenue": 1197590000000,
+    "grossProfit": 1056990000000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 235830000000,
+    "operatingIncome": 543770000000,
+    "EBITDA": 627080000000,
+    "netIncome": 421470000000,
+    "dilutedEPS": 115.19
+   },
+   {
+    "period": "2024-03-31",
+    "totalRevenue": 2408930000000,
+    "costOfRevenue": 1328710000000,
+    "grossProfit": 1080220000000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 180810000000,
+    "operatingIncome": 594250000000,
+    "EBITDA": 677600000000,
+    "netIncome": 459080000000,
+    "dilutedEPS": 125.88
+   },
+   {
+    "period": "2025-03-31",
+    "totalRevenue": 2553240000000,
+    "costOfRevenue": 1456830000000,
+    "grossProfit": 1096410000000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 140600000000,
+    "operatingIncome": 622930000000,
+    "EBITDA": 713690000000,
+    "netIncome": 485530000000,
+    "dilutedEPS": 134.19
+   },
+   {
+    "period": "2026-03-31",
+    "totalRevenue": 2670210000000,
+    "costOfRevenue": 1466030000000,
+    "grossProfit": 1204180000000,
+    "researchAndDevelopment": null,
+    "sellingGeneralAndAdministration": 174370000000,
+    "operatingIncome": 670220000000,
+    "EBITDA": 722740000000,
+    "netIncome": 492100000000,
+    "dilutedEPS": 136.01
+   }
+  ]
+ }
+}

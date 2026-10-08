@@ -90,7 +90,7 @@ describe("everything Nazar writes is advice-free", () => {
 const ROOT = path.resolve(__dirname, "../..");
 // Files whose job is to name the forbidden words: the guard itself and the AI's instructions/refusals.
 // brokers.ts matches CSV column headers ("avg buy price"); users never see those strings from us.
-const ALLOW = new Set(["src/lib/importers/brokers.ts", "src/lib/guard.ts", "src/lib/ask/prompt.ts", "src/lib/ask/scope-guard.ts", "src/app/api/chat/route.ts"]);
+const ALLOW = new Set(["src/lib/importers/brokers.ts", "src/lib/guard.ts", "src/lib/ask/prompt.ts", "src/lib/ask/scope-guard.ts", "src/lib/ask/output-guard.ts", "src/app/api/chat/route.ts"]);
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
     const p = path.join(dir, f);

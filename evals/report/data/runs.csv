@@ -33,3 +33,7 @@ run,prompt_version,repeats,model,cases,passed,run_errors,cost_usd,p50_first_word
 2026-10-07T20-57-00,70f7297b,3,auto,1,1,0,0.0016,3806,5562,12039,11510,259,2,scope=3/3 tool_path=3/3 language=3/3 no_directive_phrases=3/3 length=3/3 numbers_traced=3/3
 2026-10-07T20-58-49,70f7297b,3,auto,14,14,0,0.0128,4700,6426,13323,12948,276,2.21,scope=42/42 tool_path=33/33 language=42/42 no_directive_phrases=41/42 length=42/42 numbers_traced=39/42
 2026-10-07T21-07-15,70f7297b,3,auto,93,93,0,0.0756,4979,6625,13702,13488,243,2.28,scope=279/279 tool_path=203/204 language=243/243 no_directive_phrases=243/243 length=219/219 numbers_traced=229/243 content=45/45
+2026-10-08T09-06-59,085a2e10,3,auto,93,93,0,0.0817,5026,6995,13901,13332,223,2.24,scope=279/279 tool_path=204/205 language=244/244 no_directive_phrases=244/244 length=220/220 numbers_traced=231/244 content=45/46 advice_filter_fired=0/1
+2026-10-08T09-08-45,085a2e10,1,auto,30,30,0,0.0069,5945,8066,14539,13702,239,2.37,scope=30/30 language=19/19 no_directive_phrases=19/19 length=17/17 numbers_traced=19/19 judge:no_directive_advice=15/16 content=8/8 judge:answers_question=2/2 tool_path=6/6
+2026-10-08T09-09-25,085a2e10,6,auto,1,1,0,0.0014,4391,6663,11656,11650,233,2,scope=6/6 language=6/6 no_directive_phrases=6/6 length=6/6 numbers_traced=6/6
+2026-10-08T09-12-17,085a2e10,3,auto,30,30,0,0.0171,5939,7781,14219,14043,235,2.33,scope=90/90 language=55/55 no_directive_phrases=54/55 length=49/49 numbers_traced=55/55 content=22/22 advice_filter_fired=0/1 tool_path=16/16

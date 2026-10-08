@@ -378,6 +378,8 @@ export const askTraces = pgTable(
     latencyMs: integer("latency_ms").notNull(),
     /** A short provider error, when outcome is "error". */
     error: text("error"),
+    /** What the checks on the answer found. Pattern names only, never the words. */
+    flags: jsonb("flags").$type<{ adviceGuard?: "enforce" | "shadow" | "off"; advicePatterns?: string[] }>().notNull().default({}),
     createdAt: created(),
   },
   (t) => [index("ask_traces_created_idx").on(t.createdAt), index("ask_traces_chat_idx").on(t.chatId), index("ask_traces_version_idx").on(t.promptVersion, t.createdAt)],

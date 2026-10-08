@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "Eternal Limited India NSE"
+ },
+ "output": {
+  "query": "Eternal Limited India NSE",
+  "results": []
+ }
+}

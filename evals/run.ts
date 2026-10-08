@@ -134,6 +134,7 @@ async function main() {
       for (let i = 0; i < c.turns.length; i++) {
         const last = i === c.turns.length - 1;
         const log = { replayed: new Set<string>(), recorded: 0, missed: [] as string[] };
+        const removed: string[] = [];
         const res = await runAsk({
           user,
           chatId,
@@ -141,7 +142,7 @@ async function main() {
           mode: c.mode ?? "simple",
           ip: "eval",
           signal: AbortSignal.timeout(120_000),
-          harness: { today: EVAL_TODAY, skipLimits: true, reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
+          harness: { today: EVAL_TODAY, skipLimits: true, onAdviceRemoved: (sentence, pattern) => removed.push(`[${pattern}] ${sentence.slice(0, 240)}`), reasoningEffort: EFFORT || undefined, model: model === "auto" ? undefined : model, tools: (t) => withFixtures(t, { frozen: FROZEN, plant: last ? c.plant : undefined, log }) },
         });
         const body = await res.text();
         if (res.status !== 200) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
@@ -180,6 +181,7 @@ async function main() {
           latencyMs: trace.latencyMs,
           guardMs: trace.guard.ms,
           outcome: trace.outcome,
+          adviceRemoved: removed,
         });
         if (trace.outcome === "error") throw new Error(`the provider failed on turn ${i + 1}: ${trace.error ?? "unknown"}`);
       }

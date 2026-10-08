@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { answerLang, findDirectives, gradeToolPath, gradeWithCode, numbersIn, traceNumbers } from "../../evals/graders/code";
 import type { EvalCase, TurnRecord } from "../../evals/types";
 
-const turn = (o: Partial<TurnRecord> = {}): TurnRecord => ({ question: "q", answer: "a", blocked: false, tools: [], modelViews: [], steps: 1, inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, costUsd: 0, ttftMs: 0, latencyMs: 0, guardMs: 0, outcome: "finished", ...o });
+const turn = (o: Partial<TurnRecord> = {}): TurnRecord => ({ question: "q", answer: "a", blocked: false, tools: [], modelViews: [], steps: 1, inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, costUsd: 0, ttftMs: 0, latencyMs: 0, guardMs: 0, outcome: "finished", adviceRemoved: [], ...o });
 const used = (name: string, output: unknown = {}) => ({ name, input: {}, output, ok: true, replayed: true });
 
 describe("directive advice", () => {

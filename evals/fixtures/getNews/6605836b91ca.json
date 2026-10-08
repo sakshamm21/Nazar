@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "HDFCBANK.NS HDFC Bank",
+  "count": 5
+ },
+ "output": {
+  "query": "HDFCBANK.NS HDFC Bank",
+  "articles": []
+ }
+}

@@ -361,7 +361,7 @@ describe("a run always ends in an answer", () => {
 
 describe("a stopped answer", () => {
   it("keeps what was written, and is still billed, counted and traced", async () => {
-    script.turns = [() => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, ...Array.from({ length: 40 }, (_, i): LanguageModelV2StreamPart => ({ type: "text-delta", id: "t", delta: `word${i} ` })), { type: "text-end", id: "t" }, { type: "finish", finishReason: "stop", usage }]];
+    script.turns = [() => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "t" }, ...Array.from({ length: 40 }, (_, i): LanguageModelV2StreamPart => ({ type: "text-delta", id: "t", delta: `word${i}. ` })), { type: "text-end", id: "t" }, { type: "finish", finishReason: "stop", usage }]];
     script.delay = 25;
     const u = await makeUser(db);
     const id = chatId();
@@ -375,7 +375,8 @@ describe("a stopped answer", () => {
     await reader.cancel().catch(() => undefined);
 
     const [, partial] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "partial answer saved");
-    expect(answerText(partial)).toMatch(/^word0 word1 /);
+    // The answer reaches the reader a sentence at a time, so what was kept is whole sentences.
+    expect(answerText(partial)).toMatch(/^word0\. word1\. /);
     expect(answerText(partial)).not.toContain("word39");
 
     const e = await event(u.id, "answer_stopped");
@@ -406,5 +407,91 @@ describe("without a key", () => {
       if (key) process.env.OPENAI_API_KEY = key;
       if (routerKey) process.env.OPENROUTER_API_KEY = routerKey;
     }
+  });
+});
+
+describe("the no-advice rule, on what the model writes", () => {
+  const slip = "Infosys fell 3% this month. You should sell it before the results. The Nifty was flat.";
+  /** Sends the answer the way a model does: in small fragments, mid-word. */
+  const inFragments = (text: string): LanguageModelV2StreamPart[] => [
+    { type: "stream-start", warnings: [] },
+    { type: "text-start", id: "t" },
+    ...(text.match(/.{1,9}/gs) ?? []).map((delta): LanguageModelV2StreamPart => ({ type: "text-delta", id: "t", delta })),
+    { type: "text-end", id: "t" },
+    { type: "finish", finishReason: "stop", usage },
+  ];
+  const mode = process.env.ASK_ADVICE_GUARD;
+  const restore = () => {
+    if (mode === undefined) delete process.env.ASK_ADVICE_GUARD;
+    else process.env.ASK_ADVICE_GUARD = mode;
+  };
+
+  it("a sentence that tells the reader what to do never reaches them, or the saved chat", async () => {
+    delete process.env.ASK_ADVICE_GUARD;
+    script.turns = [() => inFragments(slip)];
+    const u = await makeUser(db);
+    const id = chatId();
+    const r = await ask(u, id, "Should I sell Infosys?");
+    expect(r.text).not.toContain("should sell");
+    expect(r.text).not.toContain("before the results");
+
+    const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
+    const text = answerText(answer);
+    expect(text).toContain("Infosys fell 3% this month.");
+    expect(text).toContain("The Nifty was flat.");
+    expect(text).toContain("left out here because it read as advice");
+    expect(text).not.toMatch(/should sell/);
+    expect(answer.metadata).toMatchObject({ adviceRemoved: 1 });
+
+    // Recorded by the name of the pattern, never by the words.
+    expect((await event(u.id, "advice_filtered")).props).toEqual({ mode: "enforce", model: answer.metadata!.model, promptVersion: promptVersion(), lang: "en", sentences: 1, patterns: ["you should"] });
+    expect((await traceOf(id)).flags).toEqual({ adviceGuard: "enforce", advicePatterns: ["you should"] });
+    expect((await event(u.id, "question")).props).toMatchObject({ adviceRemoved: 1 });
+  });
+
+  it("an ordinary answer passes through untouched", async () => {
+    delete process.env.ASK_ADVICE_GUARD;
+    const clean = "Infosys fell 3% this month, mostly with the rest of IT.\n\n- Revenue grew 4%.\n- Margins held.\n\nWhether to act on that is your decision";
+    script.turns = [() => inFragments(clean)];
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "How is Infosys doing?");
+    const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
+    expect(answerText(answer)).toBe(clean);
+    expect((await traceOf(id)).flags).toEqual({ adviceGuard: "enforce", advicePatterns: [] });
+  });
+
+  it("in shadow mode the sentence is let through and only recorded", async () => {
+    process.env.ASK_ADVICE_GUARD = "shadow";
+    try {
+      script.turns = [() => inFragments(slip)];
+      const u = await makeUser(db);
+      const id = chatId();
+      await ask(u, id, "Should I sell Infosys?");
+      const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
+      expect(answerText(answer)).toBe(slip);
+      expect((await traceOf(id)).flags).toEqual({ adviceGuard: "shadow", advicePatterns: ["you should"] });
+      expect((await event(u.id, "advice_filtered")).props).toMatchObject({ mode: "shadow", sentences: 1 });
+    } finally {
+      restore();
+    }
+  });
+
+  it("an answer written around a tool call is filtered on both sides of it", async () => {
+    delete process.env.ASK_ADVICE_GUARD;
+    script.turns = [
+      () => [{ type: "stream-start", warnings: [] }, { type: "text-start", id: "a" }, { type: "text-delta", id: "a", delta: "Let me look. I would recommend holding it meanwhile." }, { type: "text-end", id: "a" }, { type: "tool-call", toolCallId: "call_w", toolName: "getWatchlist", input: "{}" }, { type: "finish", finishReason: "tool-calls", usage }],
+      () => inFragments("Your list is empty. It is a good time to buy more. That is all there is."),
+    ];
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "What am I watching?");
+    const [, answer] = await eventually(async () => ((await messagesOf(id)).length === 2 ? messagesOf(id) : null), "chat saved");
+    const text = answerText(answer);
+    expect(text).toContain("Let me look.");
+    expect(text).toContain("Your list is empty.");
+    expect(text).toContain("That is all there is.");
+    expect(text).not.toMatch(/recommend|good time/);
+    expect((await traceOf(id)).flags.advicePatterns).toEqual(["I recommend", "good time to"]);
   });
 });

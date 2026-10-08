@@ -1,0 +1,32 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "GC=F",
+  "metrics": [
+   "price",
+   "changePercent"
+  ]
+ },
+ "output": {
+  "symbol": "GC=F",
+  "name": "Gold Dec 26",
+  "currency": "USD",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 4151.2
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.002535803
+   }
+  ]
+ }
+}

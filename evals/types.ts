@@ -56,6 +56,8 @@ export type TurnRecord = {
   latencyMs: number;
   guardMs: number;
   outcome: string;
+  /** The sentences the live advice filter removed from this answer, each with the pattern that caught it. */
+  adviceRemoved: string[];
 };
 
 export type Grade = {

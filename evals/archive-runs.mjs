@@ -44,6 +44,7 @@ const compact = (r) => ({
       latencyMs: t.latencyMs,
       guardMs: t.guardMs,
       outcome: t.outcome,
+      adviceRemoved: t.adviceRemoved,
     })),
   })),
 });

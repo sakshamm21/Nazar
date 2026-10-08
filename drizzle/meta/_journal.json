@@ -50,6 +50,13 @@
       "when": 1791381797279,
       "tag": "0006_ask_traces",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791449743763,
+      "tag": "0007_ask_trace_flags",
+      "breakpoints": true
     }
   ]
 }

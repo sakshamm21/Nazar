@@ -93,6 +93,7 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
 
   return (
     <div className="no-print mt-1.5">
+      <div className="mb-1.5 text-[12px] text-subtle">Nazar explains; the decision is yours. This isn&apos;t investment advice.</div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-subtle">
         {calls.length > 0 ? (
           <button

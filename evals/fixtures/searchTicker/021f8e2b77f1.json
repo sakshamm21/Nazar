@@ -1,0 +1,10 @@
+{
+ "tool": "searchTicker",
+ "input": {
+  "query": "HCL Technologies HCLTech"
+ },
+ "output": {
+  "query": "HCL Technologies HCLTech",
+  "results": []
+ }
+}

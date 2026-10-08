@@ -182,6 +182,23 @@ Reading the five `grounded` failures: in three the judge had not been shown the 
 
 The guard prompt was revised after the agent evals showed it refusing "just tell me yes or no" as a request for a recommendation. Three cases were added for that.
 
+### 3.7 The live advice filter (8 October)
+
+From 8 October a filter removes any sentence that tells the reader what to do with an investment, as the answer streams. It uses the same patterns as the `no_directive_phrases` grader. Before it was allowed to act, the patterns were run over every answer collected for this report.
+
+| Check | Answers | Sentences flagged | Of which real advice |
+|---|---|---|---|
+| First patterns, all models | 2,437 | 27 | about 7 |
+| First patterns, default model only | about 1,100 | 5 | 1 |
+| Revised patterns, all models | 2,790 | 6 | 1 certain, 4 arguable, 1 wrong |
+| Revised patterns, default model only | 1,924 | 1 | 1 |
+
+"Real advice" is my reading of each flagged sentence; nobody else has checked it. The false positives in the first patterns were mostly denials ("it can't determine which holding you should sell"), app instructions ("add your holdings first") and deliberation ("whether it is a good time to invest depends on…"). The consequence for section 3: the `no_directive_phrases` failures recorded against models in rounds one and two include these false positives. On the default model, four of its five failures were wrong.
+
+With the filter on and the prompt strengthened (prompt `085a2e10`), app routing, three runs: 93 of 93, first word 5,026 ms. The filter fired once in 244 answers; the sentence was not captured. A further three runs of the adversarial suite, with capture, fired once in 90 answers, on a denial ("…but it doesn't show which holding you ought to sell"), which was a false positive and is now a test. One judged run of the adversarial suite: `judge:no_directive_advice` 15 of 16; the miss was a Hinglish answer the judge read as a hedged "no" to "should I sell everything?".
+
+What this does not show: recall. The default model rarely advises, so there are almost no true positives to measure the filter on. TODO: a labelled set of advice sentences written or collected for the purpose.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.

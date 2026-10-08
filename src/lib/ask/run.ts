@@ -8,6 +8,7 @@ import { today as istToday } from "@/lib/goals/draft";
 import { LIMITS, checkAndRecord } from "@/lib/limits";
 import { compactHistory, detectLang, modelViewOf } from "./context";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "./models";
+import { SentenceFilter, findDirectives } from "./output-guard";
 import { allowedModelIds } from "./openai-models";
 import { systemPrompt, type AskMode } from "./prompt";
 import { promptVersion } from "./prompt-version";
@@ -30,7 +31,17 @@ const LANGUAGE_NOTE = {
 /** The most model calls one answer may take. The last one is not offered tools, so it has to answer. */
 export const MAX_STEPS = 10;
 
-export type AskMeta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string; promptVersion?: string };
+export type AskMeta = { model?: string; inputTokens?: number; outputTokens?: number; costUsd?: number; guarded?: boolean; latencyMs?: number; mode?: string; promptVersion?: string; adviceRemoved?: number };
+
+/**
+ * What happens to a sentence in an answer that tells the reader what to do with their money.
+ * "enforce" (the default) leaves it out as the answer streams. "shadow" lets it through and only
+ * records it, for trying a change to the patterns safely. "off" does neither.
+ */
+const adviceGuard = (): "enforce" | "shadow" | "off" => {
+  const v = process.env.ASK_ADVICE_GUARD;
+  return v === "shadow" || v === "off" ? v : "enforce";
+};
 type Msg = UIMessage<AskMeta>;
 
 export type AskInput = {
@@ -59,6 +70,8 @@ export type AskInput = {
     skipLimits?: boolean;
     /** How hard a reasoning model thinks before it answers: an experiment in trading depth for speed. */
     reasoningEffort?: string;
+    /** Receives each sentence the advice filter leaves out, so an eval can check the filter was right. */
+    onAdviceRemoved?: (sentence: string, pattern: string) => void;
   };
 };
 
@@ -192,6 +205,11 @@ export async function runAsk(input: AskInput): Promise<Response> {
   ) as unknown as typeof plainTools;
 
   const effort = input.harness?.reasoningEffort ?? process.env.ASK_REASONING_EFFORT ?? getModel(modelId)?.reasoningEffort;
+  const guardMode = adviceGuard();
+  /** One filter per stretch of text the model writes (an answer can have several, around tool calls). */
+  const filters = new Map<string, SentenceFilter>();
+  /** The patterns that removed a sentence (enforce) or would have (shadow). Names only, never the words. */
+  const advice: string[] = [];
   const steps: TraceStep[] = [];
   let stepStartedAt = Date.now();
   const isError = (out: unknown) => Boolean(out && typeof out === "object" && "error" in out);
@@ -215,6 +233,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       ttftMs: firstTokenAt ? firstTokenAt - startedAt : null,
       latencyMs: Date.now() - startedAt,
       error: error?.slice(0, 200) ?? null,
+      flags: { adviceGuard: guardMode, advicePatterns: advice },
     });
   };
 
@@ -233,6 +252,33 @@ export async function runAsk(input: AskInput): Promise<Response> {
     // how much to deliberate: the catalog's setting for it, or ASK_REASONING_EFFORT for the deployment.
     providerOptions: effort ? { openai: { reasoningEffort: effort } } : undefined,
     abortSignal: input.signal,
+    // The no-advice rule, held at the last point before the reader: text is released a sentence at
+    // a time, and a sentence that tells them what to do with their money is left out.
+    experimental_transform:
+      guardMode === "enforce"
+        ? () =>
+            new TransformStream({
+              transform(chunk, controller) {
+                if (chunk.type === "text-delta") {
+                  let f = filters.get(chunk.id);
+                  if (!f) filters.set(chunk.id, (f = new SentenceFilter(input.harness?.onAdviceRemoved)));
+                  const text = f.push(chunk.text);
+                  if (text) controller.enqueue({ ...chunk, text });
+                  return;
+                }
+                if (chunk.type === "text-end") {
+                  const f = filters.get(chunk.id);
+                  if (f) {
+                    const text = f.end();
+                    if (text) controller.enqueue({ type: "text-delta", id: chunk.id, text });
+                    advice.push(...f.removed);
+                    filters.delete(chunk.id);
+                  }
+                }
+                controller.enqueue(chunk);
+              },
+            })
+        : undefined,
     onChunk: ({ chunk }) => {
       if (firstOutputAt === null && (chunk.type === "text-delta" || chunk.type === "tool-input-start" || chunk.type === "tool-call")) firstOutputAt = Date.now();
       if (firstTokenAt === null && chunk.type === "text-delta") firstTokenAt = Date.now();
@@ -270,6 +316,8 @@ export async function runAsk(input: AskInput): Promise<Response> {
       trace("stopped", { inputTokens, outputTokens });
     },
     onFinish: ({ totalUsage, steps: done, finishReason }) => {
+      if (guardMode === "shadow") advice.push(...findDirectives(done.map((s) => s.text).join("\n")).filter((d) => d.blocks).map((d) => d.pattern));
+      if (advice.length) track(userId, "advice_filtered", { mode: guardMode, model: modelId, promptVersion: version, lang, sentences: advice.length, patterns: [...new Set(advice)] }, id);
       const inputTokens = totalUsage.inputTokens ?? 0;
       const outputTokens = totalUsage.outputTokens ?? 0;
       const cachedInputTokens = totalUsage.cachedInputTokens ?? 0;
@@ -297,6 +345,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
           lang,
           promptVersion: version,
           finishReason,
+          adviceRemoved: guardMode === "enforce" ? advice.length : 0,
           tools: calls.map((c) => c.toolName),
           toolErrors: results.filter((r) => isError(r.output)).length,
           steps: done.length,
@@ -332,7 +381,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
       if (part.type === "finish") {
         const i = part.totalUsage.inputTokens ?? 0;
         const o = part.totalUsage.outputTokens ?? 0;
-        return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, part.totalUsage.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt };
+        return { model: modelId, mode, promptVersion: version, inputTokens: i, outputTokens: o, costUsd: estimateCost(modelId, i, o, part.totalUsage.cachedInputTokens ?? 0), latencyMs: Date.now() - startedAt, adviceRemoved: guardMode === "enforce" ? advice.length : 0 };
       }
     },
     onError: (error) => {
