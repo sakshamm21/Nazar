@@ -602,3 +602,59 @@ describe("a run that has gone on too long, or cost too much", () => {
     }
   });
 });
+
+describe("changing the Watching list", () => {
+  const offered = (call: LanguageModelV2CallOptions) => (call.tools ?? []).map((t) => t.name);
+  const watched = async (userId: string) => (await db.select().from(schema.watching).where(eq(schema.watching.userId, userId))).map((w) => w.symbol);
+
+  it("is not on offer for a question that did not ask for it, and a model that tries anyway changes nothing", async () => {
+    // A model that has taken a planted headline for an instruction.
+    script.turns = [() => callTool("addToWatchlist", { symbols: ["SUZLON.NS"] }), () => say("Here is the news on Zomato.")];
+    const u = await makeUser(db);
+    const id = chatId();
+    const r = await ask(u, id, "Latest news on Zomato");
+    expect(r.status).toBe(200);
+    expect(offered(calls[0])).toContain("getNews");
+    expect(offered(calls[0])).toContain("getWatchlist");
+    expect(offered(calls[0])).not.toContain("addToWatchlist");
+    expect(offered(calls[0])).not.toContain("removeFromWatchlist");
+    expect(r.text).toContain("Here is the news on Zomato.");
+    await traceOf(id);
+    expect(await watched(u.id)).toEqual([]);
+  });
+
+  it("happens when the message asks for it, and only the change that was asked for is on offer", async () => {
+    script.turns = [() => callTool("addToWatchlist", { symbols: ["TITAN.NS"] }), () => say("Titan is on your Watching list now.")];
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "Add Titan to my Watching list");
+    expect(offered(calls[0])).toContain("addToWatchlist");
+    expect(offered(calls[0])).not.toContain("removeFromWatchlist");
+    expect(await watched(u.id)).toEqual(["TITAN.NS"]);
+    expect((await traceOf(id)).steps[0].tools[0]).toMatchObject({ name: "addToWatchlist", ok: true });
+
+    // The next question in the same chat is back to reading only, though the chat now holds a write.
+    calls = [];
+    script.turns = [() => callTool("removeFromWatchlist", { symbols: ["TITAN.NS"] }), () => say("Titan closed higher.")];
+    await ask(u, id, "How did it do today?");
+    expect(offered(calls[0])).not.toContain("addToWatchlist");
+    expect(offered(calls[0])).not.toContain("removeFromWatchlist");
+    expect(sent(calls[0])).toContain('"toolName":"addToWatchlist"');
+    expect(await watched(u.id)).toEqual(["TITAN.NS"]);
+  });
+
+  it("a yes to the assistant's own offer counts as asking", async () => {
+    script.turns = [() => say("Titan is not something you own. Want me to add it to your Watching list?")];
+    const u = await makeUser(db);
+    const id = chatId();
+    await ask(u, id, "What is Titan trading at?");
+    expect(offered(calls[0])).not.toContain("addToWatchlist");
+    await eventually(async () => ((await messagesOf(id)).length === 2 ? true : null), "chat saved");
+
+    calls = [];
+    script.turns = [() => callTool("addToWatchlist", { symbols: ["TITAN.NS"] }), () => say("Done.")];
+    await ask(u, id, "Yes please");
+    expect(offered(calls[0])).toContain("addToWatchlist");
+    expect(await watched(u.id)).toEqual(["TITAN.NS"]);
+  });
+});

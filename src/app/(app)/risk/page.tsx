@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AskLink } from "@/components/ask/ask-link";
 import { StressSlider } from "@/components/risk/stress-slider";
 import { RingGauge, RingLegend } from "@/components/rings/ring-gauge";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -51,6 +52,7 @@ export default async function RiskPage() {
           <div className="mt-5">
             <StressSlider holdings={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, beta: c.beta, assetClass: c.assetClass }))} />
           </div>
+          <AskLink question="What if the Nifty falls 10%? What would it do to my portfolio?" kind="risk" props={{ card: "stress" }} className="mt-4" />
         </Card>
 
         <div className="min-w-0 space-y-5 lg:col-span-5 lg:space-y-6">
@@ -98,6 +100,7 @@ export default async function RiskPage() {
             ) : (
               <p className="mt-4 text-sm text-muted">No single stock or sector is above the usual concentration levels.</p>
             )}
+            <AskLink question="How concentrated am I, and in what?" kind="risk" props={{ card: "concentration" }} className="mt-4" />
           </Card>
         </div>
       </div>
@@ -125,6 +128,7 @@ export default async function RiskPage() {
                 <p className="text-sm text-muted">No groups of holdings move closely together. Nicely spread.</p>
               )}
             </div>
+            <AskLink question="How diversified am I really?" kind="risk" props={{ card: "correlation" }} className="mt-4" />
             {matrix.length > 1 && <Heatmap symbols={withHist.map(name)} matrix={matrix} />}
           </>
         ) : (

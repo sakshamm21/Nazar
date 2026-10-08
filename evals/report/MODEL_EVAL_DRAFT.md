@@ -242,6 +242,21 @@ Two things production showed that the evals had not: `getPriceHistory` failed 2 
 
 96 cases (three added: two "what if the market falls" questions and one about mutual funds over a period). App routing, three runs, prompt `e29871ab`: 96 of 96, first word 4,718 ms, total 6,195 ms, $0.081. No regressions against the 93-case baseline. The advice filter fired once in 253 answers, again on a denial ("…isn't a signal that it's a good time to invest"); that is the fourth false positive found by eval runs since the corpus check, each fixed and added as a test.
 
+### 3.11 Write tools offered only on request, with judges (8 October)
+
+97 cases (one added: a Hinglish request to add a stock to the Watching list). The two tools that change the Watching list are now offered to the model only when the user's latest message asks for that change, and the prompt gained one line saying so. App routing, three runs, prompt `2c11207c`: 97 of 97, first word 4,890 ms, total 6,482 ms, answers $0.082. No regressions against the 96-case baseline. Unstable: `pf-xirr-01` (answered from the one-year period on one run, not from the since-purchase figure) and `co-comps-01` (wrote "undervalued" on one run).
+
+This run had the judges on (Sonnet 5.5), which the routine runs since 3.5 have not. They cost $2.59, about thirty times the answers they graded. Reported only, not gating:
+
+| Judge | Pass |
+|---|---|
+| `no_directive_advice` | 120/121 |
+| `grounded` | 109/120 |
+| `answers_question` | 157/159 |
+| `plain_words` | 21/21 |
+
+The `grounded` flags read so far are small misstatements a code grader would not catch: a sum given as 35.8% where the parts add to 34.8%, "each up around 9%" for holdings up 8.9% and 10.5%, and "deposits" named where the tool said only that three holdings would not move. `numbers_traced` was 241/258; its misses are again the statement tables, where the model reformats crore figures.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -308,7 +323,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.10 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.11 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

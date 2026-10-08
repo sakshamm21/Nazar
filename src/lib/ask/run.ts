@@ -17,6 +17,7 @@ import { promptVersion } from "./prompt-version";
 import { askConfigured, languageModel } from "./provider";
 import { classify, GUARD_MODEL, refusalText } from "./scope-guard";
 import { makeTools } from "./tools";
+import { WRITE_TOOLS, writesAsked } from "./writes";
 import { writeTrace, type Trace, type TraceGuard, type TraceOutcome, type TraceStep } from "./trace";
 
 /**
@@ -255,6 +256,10 @@ export async function runAsk(input: AskInput): Promise<Response> {
     steps.push({ n: 1, ms: read!.ms, finishReason: "read-ahead", inputTokens: 0, outputTokens: 0, tools: [{ name: ahead.tool, ms: read!.ms, ok: !isError(ahead.output), outChars: JSON.stringify(ahead.output ?? null).length, viewChars: JSON.stringify(view.value ?? null).length }] });
     firstOutputAt = Date.now();
   }
+  // The tools that change something are offered only when this message asks for that change, so
+  // nothing the model reads along the way (a headline, a company profile) can set one off.
+  const mayWrite = writesAsked(text, textOf(prevAssistant));
+  const activeTools = (Object.keys(tools) as (keyof typeof tools)[]).filter((n) => !WRITE_TOOLS.includes(n) || mayWrite.includes(n));
   let stepStartedAt = Date.now();
   /** What the answer has cost so far, from the steps that have finished. */
   const spent = () => estimateCost(modelId, steps.reduce((a, s) => a + s.inputTokens, 0), steps.reduce((a, s) => a + s.outputTokens, 0));
@@ -306,6 +311,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
     // Unfinished tool calls are dropped by convertToModelMessages.
     messages: modelMessages,
     tools,
+    activeTools,
     stopWhen: stepCountIs(MAX_STEPS),
     // Without this, a run that is still looking things up at the cap ends with no answer at all.
     prepareStep: ({ stepNumber }) => (stepNumber >= MAX_STEPS - 1 || Date.now() - startedAt > maxSeconds() * 1000 || spent() > maxUsdPerAnswer() ? { toolChoice: "none" } : undefined),

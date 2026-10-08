@@ -24,6 +24,16 @@ import { displayName } from "@/lib/market/portfolio-day";
 import { dateSources, instrumentsFor, latestResults, latestTradeDate, priceHistory, shiftDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
 import { GLOSSARY } from "@/lib/glossary";
 
+/**
+ * The question the Ask button opens. For something the user owns it says "my holding", so Ask reads
+ * their position before it answers. A ticker is given only when the market has one: Nazar's own
+ * symbols for funds, gold and assets entered by hand ("MF:…") mean nothing to a price lookup.
+ */
+function askAbout(name: string, symbol: string, held: boolean) {
+  const what = symbol.includes(":") ? name : `${name} (${symbol})`;
+  return held ? `Explain what's going on with my holding ${what} in simple words` : `Explain what's going on with ${what} in simple words`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ symbol: string }> }): Promise<Metadata> {
   return { title: decodeURIComponent((await params).symbol).replace(/\.NS$/, "") };
 }
@@ -125,7 +135,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
         </div>
         <div className="flex gap-2">
           {excelParts.length > 0 && <ExcelDownload parts={excelParts} title={`${name} · Nazar model`} />}
-          <ButtonLink href={`/ask?q=${encodeURIComponent(`Explain what's going on with ${name} (${symbol}) in simple words`)}`} variant="secondary">
+          <ButtonLink href={`/ask?q=${encodeURIComponent(askAbout(name, symbol, mine.length > 0))}`} variant="secondary">
             <MessageCircle className="h-4 w-4" /> Ask
           </ButtonLink>
         </div>

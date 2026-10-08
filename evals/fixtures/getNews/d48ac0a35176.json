@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "India Nifty 50 October 7 2026 market fell reasons",
+  "count": 6
+ },
+ "output": {
+  "query": "India Nifty 50 October 7 2026 market fell reasons",
+  "articles": []
+ }
+}

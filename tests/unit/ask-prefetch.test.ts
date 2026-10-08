@@ -17,6 +17,10 @@ describe("a question plainly about the user's portfolio", () => {
     ["What does beta mean? Use my holdings as examples", snapshot()],
     ["Mere portfolio mein sabse risky share kaunsa hai?", snapshot()],
     ["आज मेरे पोर्टफोलियो में क्या हुआ?", snapshot()],
+    // The questions the Risk and Stock screens open Ask with.
+    ["How concentrated am I, and in what?", snapshot()],
+    ["Explain what's going on with my holding Titan Company (TITAN.NS) in simple words", snapshot()],
+    ["Explain what's going on with my holding Parag Parikh Flexi Cap Fund in simple words", snapshot()],
     ["Why is my portfolio down this month?", period("1M")],
     ["How did my portfolio do over the last week?", period("1W")],
     ["Over the last year, how much of my portfolio's move was just the market?", period("1Y")],

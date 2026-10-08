@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AskLink } from "@/components/ask/ask-link";
 import { PriceChart } from "@/components/charts/price-chart";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
@@ -64,9 +65,7 @@ export function Analyzer({ perf, name }: { perf: Performance; name: string }) {
         <div className="t-overline">What happened</div>
         <h2 className={cn("t-title-1 mt-1", tone(Math.abs(a.changePct ?? 0) < 0.0005 ? 0 : a.change))}>{story.headline}</h2>
         <p className="mt-2 text-[15px] leading-6 text-muted">{story.what}</p>
-        <Link href={`/ask?q=${encodeURIComponent(askAbout(a))}`} onClick={() => trackClient("suggestion_click", { kind: "analysis", period: a.period })} className="mt-2 inline-block text-sm font-medium text-accent">
-          Ask Nazar about this →
-        </Link>
+        <AskLink question={askAbout(a)} kind="analysis" props={{ period: a.period }} className="mt-2" />
         <div className="mt-3">
           <PriceChart points={points} height={170} compare={{ label: "Same money in the Nifty" }} format={(v) => inr(Math.round(v), { decimals: 0 })} />
         </div>
