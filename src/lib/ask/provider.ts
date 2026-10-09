@@ -69,6 +69,9 @@ function selfHosted() {
 
 export function languageModel(id: string): LanguageModel {
   if (state.__nazarModels) return state.__nazarModels(id);
+  // A run that must not spend (the browser tests' own server) refuses here, at the one door every
+  // model call goes through. The topic check and import help both treat a failure as "no answer".
+  if (process.env.NAZAR_NO_MODEL_CALLS === "1") throw new Error("Model calls are switched off for this run (NAZAR_NO_MODEL_CALLS=1).");
   const own = selfHostedModels().get(id);
   if (own) return selfHosted().chat(own);
   return activeProvider() === "openrouter" ? openRouter().chat(id) : openai(id);

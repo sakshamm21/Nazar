@@ -10,7 +10,9 @@
  * One model call; it costs a fraction of a cent.
  */
 import { loadEnv } from "../scripts/env";
+import { requireSpendAllowed } from "./spend-lock";
 
+requireSpendAllowed("npm run eval:import", "less than a cent");
 loadEnv();
 process.env.LOG_LEVEL ??= "error";
 

@@ -161,3 +161,17 @@ describe("a server of the deployment's own", () => {
     for (const id of open) expect(statsFor(id), id).not.toBeNull();
   });
 });
+
+describe("a run that must not spend", () => {
+  afterEach(() => {
+    delete process.env.NAZAR_NO_MODEL_CALLS;
+  });
+  it("is refused at the one place every model call goes through, whatever keys are set", async () => {
+    const { languageModel } = await import("@/lib/ask/provider");
+    process.env.OPENROUTER_API_KEY = "sk-test";
+    process.env.NAZAR_NO_MODEL_CALLS = "1";
+    expect(() => languageModel("openai/gpt-6-luna")).toThrow(/switched off/);
+    delete process.env.NAZAR_NO_MODEL_CALLS;
+    expect(() => languageModel("openai/gpt-6-luna")).not.toThrow();
+  });
+});

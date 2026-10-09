@@ -406,7 +406,8 @@ test.describe("Mobile @mobile", () => {
 });
 
 test.describe("Ask @openai", () => {
-  test.skip(!process.env.OPENAI_API_KEY && !process.env.E2E_OPENAI, "needs an OpenAI key on the server");
+  // The one browser test that asks a real model. It spends credit, on the local server or the live site alike.
+  test.skip(process.env.NAZAR_ALLOW_MODEL_SPEND !== "1" || !process.env.E2E_OPENAI, "asks a paid model: runs only with NAZAR_ALLOW_MODEL_SPEND=1 and E2E_OPENAI=1");
   test("answers a portfolio question with getMyPortfolio", async ({ page }) => {
     await startDemo(page);
     await page.goto("/ask");

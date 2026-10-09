@@ -10,7 +10,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { loadEnv } from "../scripts/env";
+import { requireSpendAllowed } from "./spend-lock";
 
+requireSpendAllowed("npm run eval:guard", "$0.05");
 loadEnv();
 process.env.LOG_LEVEL ??= "error";
 

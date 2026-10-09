@@ -7,6 +7,8 @@ import { defineConfig, devices } from "@playwright/test";
  * On Windows it drives the installed Microsoft Edge (no browser download).
  */
 const external = process.env.BASE_URL;
+/** Only the shell can let a browser test reach a paid model (see evals/spend-lock.ts). */
+const spend = process.env.NAZAR_ALLOW_MODEL_SPEND === "1";
 const browser = process.platform === "win32" ? { channel: "msedge" as const } : {};
 
 export default defineConfig({
@@ -29,6 +31,7 @@ export default defineConfig({
         url: "http://localhost:3100/signin",
         timeout: 300_000,
         reuseExistingServer: true,
-        env: { PORT: "3100", NAZAR_PGLITE_DIR: ".data/e2e", EMAIL_DISABLED: "1", NEWS_ENABLED: "0" },
+        // The app under test refuses every call to a model, so no browser test can spend by accident.
+        env: { PORT: "3100", NAZAR_PGLITE_DIR: ".data/e2e", EMAIL_DISABLED: "1", NEWS_ENABLED: "0", ...(spend ? {} : { NAZAR_NO_MODEL_CALLS: "1" }) },
       },
 });

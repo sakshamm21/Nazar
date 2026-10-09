@@ -16,15 +16,18 @@
  *        --effort low|medium|high (reasoning effort for the answering model)
  *        --max-usd N (stop starting new cases past this spend; default 3) · --concurrency N
  *
- * It needs a model key (OPENROUTER_API_KEY, or OPENAI_API_KEY) and spends real money: the report
- * says how much. Market data is replayed from evals/fixtures after the first run.
+ * It needs a model key (OPENROUTER_API_KEY, or OPENAI_API_KEY) and spends real money, so it is
+ * locked: it runs only with NAZAR_ALLOW_MODEL_SPEND=1 set in the shell (see spend-lock.ts). The report
+ * says how much it estimates was spent; the real bill has run at about twice that. Market data is replayed from evals/fixtures after the first run.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import { loadEnv } from "../scripts/env";
+import { requireSpendAllowed } from "./spend-lock";
 import type { EvalCase, Grade, RunRecord, ToolUse, TurnRecord } from "./types";
 
+requireSpendAllowed("npm run eval:agent", "$0.20 for the full set without judges, $5 with them (list-price estimates have run at half the real bill)");
 loadEnv();
 process.env.LOG_LEVEL ??= "error";
 
