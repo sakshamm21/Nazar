@@ -243,8 +243,9 @@ describe("the fourth question after a chart", () => {
     const prompt = sent(calls[0]);
     expect(prompt).toContain("maxDrawdown");
     // The 260 raw points are not sent: the model gets the tool's sampled summary.
-    // (The bound is the whole prompt, system text included; the raw chart alone is over 12,000 characters.)
-    expect(prompt.length).toBeLessThan(13_000);
+    // (Measured without the system text, which grows whenever the prompt is tuned; the raw chart alone is over 12,000 characters.)
+    const conversation = JSON.stringify(calls[0].prompt.filter((m) => m.role !== "system"));
+    expect(conversation.length).toBeLessThan(6_000);
     expect((await traceOf(id)).turn).toBe(4);
   });
 });

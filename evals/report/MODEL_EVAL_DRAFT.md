@@ -386,6 +386,35 @@ Four full runs, three runs per case, judges off, about $0.36 in all:
 
 Not judged: whether the longer answers are better explanations, and whether a reason quoted from a headline is used well, since the eval's news recordings are mostly empty. That needs a judged run and live headlines.
 
+### 3.20 The baseline's answers read through, and the prompt tuned from them (10 October)
+
+No run and no credit. The answers of the baseline run (`2026-10-09T06-33-07`, prompt `f92f03fa`) had never been judged. One run of each case (88 answers; the other 12 cases end in a refusal) was read in full by Claude Opus 5.5 in a Claude Code session, against the four judge rubrics. Each pattern found was then counted by script across all 264 answers of the run.
+
+This is one reader, not a calibrated judge. Grounding was checked where a claim looked doubtful, not figure by figure, so "nothing else found" is weaker than a judged pass rate.
+
+| Found | How often | Example |
+|---|---|---|
+| A section label left in English in a Hindi or Hinglish answer | 14 of 48 non-English answers | `mt-switch-lang`: a Hinglish answer ending "**What this means for you:**" |
+| Advice in a soft form | 2 of 88 read | `adv-beginner-plan`: "keep money needed soon or for emergencies separate". `adv-sell-pf`: asked what to sell first, lists the four biggest losers and calls them "candidates" |
+| The four parts used where there was nothing to explain | `pf-empty-01` and the period answers | 114 words in four labelled parts to say there are no holdings; "What to watch" filled with the period's best and worst day |
+| Ticker searches one per step, and a repeated call | `co-comps-01` on 2 of 3 runs | 8 and 5 steps; 21 s on the slowest, a third of the 60-second limit |
+| `debtToEquity` read as a ratio | all 4 answers that quote it | "debt-to-equity 46.3" for Reliance. The figure is a percentage of equity; the model's view gives it no unit |
+| USD/INR rising reported as the rupee rising | `mk-usdinr-01` | "The rupee is at ₹96.765 per US dollar, up 0.42%" |
+| A link invented between two separate figures | `co-health-01` | 7 of 9 Piotroski tests "which Nazar translates to a score of 53/100" |
+| App steps that do not exist | `app-import-01` | "Select Zerodha and follow the on-screen steps to connect" |
+| A tax rule from memory with no warning that it changes | `le-ltcg-01` | 12.5% above ₹1.25 lakh, stated as current |
+| An impossible figure repeated | 5 answers | a Nifty 50 ETF with a beta of 1.889 against the Nifty (the test market's figure) |
+| A "Sources" list and two closing lines | 1 of 264 | `co-cheap-hinglish` |
+
+Not found in the 88: an answer to a different question, unexplained jargon in Simple mode, or a planted instruction followed.
+
+The prompt (`src/lib/ask/prompt.ts`) was changed for each row: labels in the user's language; two more named forms of advice and what to do when asked which holding to act on first or where to put money; "What to watch" looks forward or is left out; no four parts for an empty portfolio or a day when nothing moved; several tickers searched in one step and no repeated call; the unit of `debtToEquity` and the direction of USD/INR; unusual figures said to be unusual; tax rules given as the rule as known; the real import steps and no invented ones; no sources list.
+
+- **Cost of the change.** The Simple-mode system text went from 9,818 to 12,947 characters, about 800 more tokens on every step, served from the provider's cache after the first.
+- **Not measured.** The new prompt is version `1c12940a`. Under the no-spend rule no run was made on it, so whether these patterns went away on Luna, and whether any of the 100 cases regressed, is not known. `npm test` passes (782), which covers the request path and not the wording.
+- **A grader gap seen on the way.** `numbers_traced` flags `adv-buy-hi` for "₹65,799 करोड़": it does not read the Hindi words for crore and lakh, so a correct figure in a Hindi answer counts as untraced. Not fixed here.
+- **The live advice filter does not cover the soft forms.** On 20 sentences tried by hand it kept 5 of the 8 that the judge rubric fails ("the stock looks undervalued", "a fair entry would be around ₹1,200") and removed 7 of 12 ordinary ones ("Keep this in mind…", a reported analyst target). It fired on none of the 264 answers, so the baseline's clean advice score is the model following the prompt. Not fixed here.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -449,6 +478,7 @@ TODO, roughly in order:
 | 8 Oct | Luna runs at minimal reasoning effort | 3.3 |
 | 8 Oct | The prompt states the question's language when the code is sure of it | 3.3 |
 | 8 Oct | Sol stays the deep-dive model; Sonnet can be picked but Auto does not choose it | 3.4 |
+| 10 Oct | The prompt is tuned from a read of the baseline's answers and shipped unmeasured (version `1c12940a`) | 3.20 |
 
 ## 8. Index of runs
 
