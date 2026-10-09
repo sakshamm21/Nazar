@@ -35,7 +35,37 @@ export async function safe<T>(fn: () => Promise<T>, what: "data" | "analysis" = 
  * driver of input tokens (and therefore cost and latency). Errors pass through unchanged, and so
  * does a result that history compaction has already cut down: it no longer has the tool's shape.
  */
-export const forModel = (fn: (o: any) => unknown) => ({ output: o }: { output: any }) => ({ type: "json" as const, value: (o && typeof o === "object" && ("error" in o || o.truncated === true) ? o : fn(o)) as any });
+export const forModel = (fn: (o: any) => unknown) => ({ output: o }: { output: any }) => {
+  if (o && typeof o === "object" && ("error" in o || o.truncated === true)) return { type: "json" as const, value: o as any };
+  const view = fn(o) as any;
+  // A result in rupees gets its large amounts in words too, unless the tool has already done that its own way.
+  return { type: "json" as const, value: o?.currency === "INR" && view && typeof view === "object" && !("largeFiguresInWords" in view) ? withRupeeWords(view) : view };
+};
+
+/** Keys whose large numbers are counts, not money. */
+const NOT_MONEY = /volume|shares|float|count|units|quantity|employees|timestamp|date/i;
+
+/**
+ * Adds "<key>InWords" beside every rupee amount of a crore or more in a model view.
+ *
+ * A model asked to turn 33688000000 into crores gets it wrong by a factor of ten often enough to
+ * matter: it has written a ₹3.53 lakh crore market cap as ₹35.30 lakh crore, and a quarter's
+ * ₹3,369 crore profit as ₹33,688 crore. So the conversion is done here, and the prompt says to
+ * quote the words. Bounded, so a long table of figures does not double in size.
+ */
+export function withRupeeWords<T>(view: T, budget = { left: 60 }): T {
+  if (Array.isArray(view)) return view.map((x) => withRupeeWords(x, budget)) as T;
+  if (!view || typeof view !== "object") return view;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(view as Record<string, unknown>)) {
+    out[k] = v && typeof v === "object" ? withRupeeWords(v, budget) : v;
+    if (typeof v === "number" && Number.isFinite(v) && Math.abs(v) >= 1e7 && budget.left > 0 && !NOT_MONEY.test(k)) {
+      out[`${k}InWords`] = rupeesInWords(v);
+      budget.left--;
+    }
+  }
+  return out as T;
+}
 
 /** A large rupee amount as people in India say it: "₹3.53 lakh crore", "₹41,764 crore", "₹12.5 lakh". */
 export function rupeesInWords(n: number): string {

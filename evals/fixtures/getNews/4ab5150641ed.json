@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "SUNPHARMA.NS",
+  "count": 6
+ },
+ "output": {
+  "query": "SUNPHARMA.NS",
+  "articles": []
+ }
+}

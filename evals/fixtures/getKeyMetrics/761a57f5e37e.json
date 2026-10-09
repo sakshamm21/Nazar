@@ -1,0 +1,128 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TITAN.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "trailingPE",
+   "forwardPE",
+   "revenueGrowth",
+   "earningsGrowth",
+   "operatingMargin",
+   "profitMargin",
+   "totalCash",
+   "totalDebt",
+   "debtToEquity",
+   "dividendYield"
+  ]
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "name": "Titan Company Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 4395.1
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 3899826372608
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 5186.7
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 3506.5
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 67.74199
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 49.467564
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.123339996
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.062319998
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.293
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.628
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 38610001920
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 306210013184
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 195.001
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0034
+   }
+  ]
+ }
+}

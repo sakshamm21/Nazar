@@ -1,0 +1,58 @@
+{
+ "tool": "getIndianMarketMovers",
+ "input": {
+  "screen": "losers",
+  "count": 5
+ },
+ "output": {
+  "screen": "losers",
+  "title": "Nifty 50 · top losers",
+  "rows": [
+   {
+    "symbol": "JSWSTEEL.NS",
+    "name": "JSW Steel Limited",
+    "currency": "INR",
+    "price": 1168.8,
+    "changePercent": -0.54457986,
+    "volume": 455378,
+    "marketCap": 2853015388160
+   },
+   {
+    "symbol": "RELIANCE.NS",
+    "name": "Reliance Industries Limited",
+    "currency": "INR",
+    "price": 1173.4,
+    "changePercent": -0.3904903,
+    "volume": 7484958,
+    "marketCap": 15879003701248
+   },
+   {
+    "symbol": "BEL.NS",
+    "name": "Bharat Electronics Limited",
+    "currency": "INR",
+    "price": 366.85,
+    "changePercent": -0.12257742,
+    "volume": 8786709,
+    "marketCap": 2681592348672
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "currency": "INR",
+    "price": 1348,
+    "changePercent": -0.07416197,
+    "volume": 1760542,
+    "marketCap": 9676769984512
+   },
+   {
+    "symbol": "CIPLA.NS",
+    "name": "Cipla Limited",
+    "currency": "INR",
+    "price": 1307.8,
+    "changePercent": 0.07653452,
+    "volume": 184038,
+    "marketCap": 1056533184512
+   }
+  ]
+ }
+}

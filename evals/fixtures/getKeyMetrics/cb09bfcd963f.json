@@ -1,0 +1,72 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ASIANPAINT.NS",
+  "metrics": [
+   "returnOnEquity",
+   "profitMargin",
+   "revenue",
+   "revenueGrowth",
+   "operatingMargin",
+   "totalDebt",
+   "debtToEquity"
+  ]
+ },
+ "output": {
+  "symbol": "ASIANPAINT.NS",
+  "name": "Asian Paints Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.17687
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.12813
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "revenue",
+    "label": "Revenue (TTM)",
+    "category": "Growth",
+    "format": "large",
+    "value": 371869286400
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.179
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 39289298944
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 17.847
+   }
+  ]
+ }
+}

@@ -1,0 +1,55 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Asian Paints",
+  "count": 5
+ },
+ "output": {
+  "query": "Asian Paints",
+  "articles": [
+   {
+    "title": "AkzoNobel nears sale of south-east Asian paints unit to Nippon Paint - report",
+    "publisher": "Investing.com",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/akzonobel-nears-sale-south-east-195211711.html",
+    "published": "2026-10-04",
+    "tickers": [
+     "4612",
+     "AKZO",
+     "AXTA"
+    ]
+   },
+   {
+    "title": "Kashmir's stories and traditions come alive in Asian Paints' Tribute to the Valley",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/media-advertising/articles/kashmirs-stories-traditions-come-alive-115300411.html",
+    "published": "2026-08-12",
+    "tickers": [
+     "ASIANPAINT.NS"
+    ]
+   },
+   {
+    "title": "Asian Paints Ltd (BOM:500820) (Q1 2027) Earnings Call Highlights: Strong Volume Growth Amidst ...",
+    "publisher": "GuruFocus.com",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/asian-paints-ltd-bom-500820-010234656.html",
+    "published": "2026-07-31",
+    "tickers": [
+     "ASIANPAINT.NS"
+    ]
+   },
+   {
+    "title": "Asian Paints presents 'Colour As Continuum', a month-long exploration of colour, material and collectible design at Nilaya Anthology",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/media-advertising/articles/asian-paints-presents-colour-continuum-151100193.html",
+    "published": "2026-07-27",
+    "tickers": []
+   },
+   {
+    "title": "Asian Paints presents 'Colour As Continuum', a month-long exploration of colour, material and collectible design at Nilaya Anthology",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/media-advertising/articles/asian-paints-presents-colour-continuum-150400373.html",
+    "published": "2026-07-27",
+    "tickers": []
+   }
+  ]
+ }
+}

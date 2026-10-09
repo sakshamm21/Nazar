@@ -1,0 +1,88 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "metrics": [
+   "revenueGrowth",
+   "earningsGrowth",
+   "returnOnEquity",
+   "profitMargin",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "debtToEquity",
+   "dividendYield"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.39235
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 11.243267
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 1.7881584
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.26787
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.13838
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.166
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.181
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0188
+   }
+  ]
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "INFY.NS Infosys",
+  "count": 6
+ },
+ "output": {
+  "query": "INFY.NS Infosys",
+  "articles": []
+ }
+}

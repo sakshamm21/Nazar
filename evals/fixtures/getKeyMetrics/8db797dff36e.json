@@ -1,0 +1,56 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TMPV.NS",
+  "metrics": [
+   "price",
+   "changePercent",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "fiftyTwoWeekChange"
+  ]
+ },
+ "output": {
+  "symbol": "TMPV.NS",
+  "name": "Tata Motors Passenger Vehicles Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 279.75
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.024720747
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 688.6
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 272.2
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -0.58449566
+   }
+  ]
+ }
+}

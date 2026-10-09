@@ -1,0 +1,112 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ETERNAL.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "revenueGrowth",
+   "earningsGrowth",
+   "grossMargin",
+   "operatingMargin",
+   "profitMargin",
+   "totalCash",
+   "totalDebt",
+   "debtToEquity"
+  ]
+ },
+ "output": {
+  "symbol": "ETERNAL.NS",
+  "name": "Eternal Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 322.3
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 2966898081792
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 685.7446
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 85.54813
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.35189
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.0023700001
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.00642
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 1.82
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 2.333
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 66140000256
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 45920002048
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 14.826
+   }
+  ]
+ }
+}

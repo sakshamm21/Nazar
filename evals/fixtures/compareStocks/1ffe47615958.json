@@ -1,0 +1,135 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "TCS.NS",
+   "INFY.NS",
+   "HCLTECH.NS"
+  ],
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "profitMargin",
+   "revenueGrowth",
+   "debtToEquity"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited"
+   },
+   {
+    "symbol": "INFY.NS",
+    "name": "Infosys Limited"
+   },
+   {
+    "symbol": "HCLTECH.NS",
+    "name": "HCL Technologies Limited"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.847741,
+     13.917575,
+     18.809895
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     13.494313,
+     12.771096,
+     15.094623
+    ]
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "format": "ratio",
+    "values": [
+     7.1996675,
+     4.4651413,
+     4.4325237
+    ]
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "format": "ratio",
+    "values": [
+     9.97,
+     9.066989300622739,
+     11.392326394530276
+    ]
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "format": "percent",
+    "values": [
+     0.40389,
+     0.29676,
+     0.34004003
+    ]
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "format": "percent",
+    "values": [
+     0.23963,
+     0.21173,
+     0.16877002
+    ]
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "format": "percent",
+    "values": [
+     0.18052,
+     0.16370001,
+     0.12966
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.139,
+     0.029,
+     0.03
+    ]
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "format": "ratio",
+    "values": [
+     10.211,
+     9.541,
+     7.058
+    ]
+   }
+  ]
+ }
+}

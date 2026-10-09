@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TCS NSE",
+  "count": 6
+ },
+ "output": {
+  "query": "TCS NSE",
+  "articles": []
+ }
+}

@@ -1,0 +1,90 @@
+{
+ "tool": "getEarnings",
+ "input": {
+  "symbol": "TMPV.NS"
+ },
+ "output": {
+  "symbol": "TMPV.NS",
+  "currency": "INR",
+  "currencyUncertain": false,
+  "nextEarningsDate": "2026-11-19",
+  "history": [
+   {
+    "quarter": "2025-09-30",
+    "actual": -11.9078,
+    "estimate": 6.2175,
+    "surprisePct": -2.9152
+   },
+   {
+    "quarter": "2025-12-31",
+    "actual": -6.2708,
+    "estimate": -6.4975,
+    "surprisePct": 0.0349
+   },
+   {
+    "quarter": "2026-03-31",
+    "actual": 15.4522,
+    "estimate": 22,
+    "surprisePct": -0.2976
+   },
+   {
+    "quarter": "2026-06-30",
+    "actual": 2.1473,
+    "estimate": 4.96,
+    "surprisePct": -0.5671
+   }
+  ],
+  "quarterly": [
+   {
+    "period": "2Q2025",
+    "revenue": 156820000000,
+    "earnings": 39240000000
+   },
+   {
+    "period": "3Q2025",
+    "revenue": 129550000000,
+    "earnings": 761700000000
+   },
+   {
+    "period": "4Q2025",
+    "revenue": 701080000000,
+    "earnings": -34860000000
+   },
+   {
+    "period": "1Q2026",
+    "revenue": 1054470000000,
+    "earnings": 57830000000
+   }
+  ],
+  "estimates": [
+   {
+    "period": "0q",
+    "endDate": "2026-09-30",
+    "epsAvg": 5.06,
+    "revenueAvg": 1011209357000,
+    "growth": 1.4249
+   },
+   {
+    "period": "+1q",
+    "endDate": "2026-12-31",
+    "epsAvg": 6.595,
+    "revenueAvg": 1037722431000,
+    "growth": 2.0516999
+   },
+   {
+    "period": "0y",
+    "endDate": "2027-03-31",
+    "epsAvg": 27.63702,
+    "revenueAvg": 4056685848370,
+    "growth": 4.4109
+   },
+   {
+    "period": "+1y",
+    "endDate": "2028-03-31",
+    "epsAvg": 48.16916,
+    "revenueAvg": 4475405016410,
+    "growth": 0.7157
+   }
+  ]
+ }
+}

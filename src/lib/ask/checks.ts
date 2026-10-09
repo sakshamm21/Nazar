@@ -47,7 +47,9 @@ export function numbersIn(text: string): Num[] {
     .replace(/\b(fy|q[1-4]|cy|h[12])\s?'?\d{2,4}\b/gi, " ")
     // Gold purity, not twenty-four thousand.
     .replace(/\b(14|18|22|24)\s?(?:(k|kt|karat|carat)\b|कैरेट|कैरट)/gi, " ")
-    .replace(/^\s*\d+[.)]\s/gm, " ");
+    .replace(/^\s*\d+[.)]\s/gm, " ")
+    // A range states its unit once, after the second figure: "₹14,478–₹15,521 crore" is two amounts in crore.
+    .replace(/((?:₹|rs\.?\s?)?\d[\d,]*(?:\.\d+)?)\s?(?:–|—|-|to)\s?((?:₹|rs\.?\s?)?\d[\d,]*(?:\.\d+)?)\s?(lakh crores?|crores?|lakhs?|cr\b|%)/gi, "$1 $3 to $2 $3");
   const re = /(?<![A-Za-z\d.])([-−–+]?)\s?(₹|rs\.?\s?|inr\s?|\$|usd\s?)?(\d{1,3}(?:,\d{2,3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s?(%|percent|x\b|×|k\b|thousand|lakh crores?|lakhs?|lacs?|l\b|crores?|cr\b|million|mn\b|m\b|billion|bn\b|b\b|trillion|tn\b)?/gi;
   for (const m of cleaned.matchAll(re)) {
     const digits = m[3].replace(/,/g, "");

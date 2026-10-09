@@ -1,0 +1,48 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TMPV.NS",
+  "metrics": [
+   "price",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "beta"
+  ]
+ },
+ "output": {
+  "symbol": "TMPV.NS",
+  "name": "Tata Motors Passenger Vehicles Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 280.2
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 688.6
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 272.2
+   },
+   {
+    "key": "beta",
+    "label": "Beta (5Y)",
+    "category": "Risk & ownership",
+    "format": "ratio",
+    "value": null
+   }
+  ]
+ }
+}

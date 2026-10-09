@@ -1,0 +1,52 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Axis Bank",
+  "count": 3
+ },
+ "output": {
+  "query": "Axis Bank",
+  "articles": [
+   {
+    "title": "Apple Pay launches in India with Axis Bank partnership",
+    "publisher": "Quartz",
+    "link": "https://finance.yahoo.com/technology/articles/apple-pay-launches-india-axis-125526294.html",
+    "published": "2026-09-30",
+    "tickers": [
+     "AAPL",
+     "AXISBANK.BO",
+     "HDB",
+     "V",
+     "MA",
+     "IBN"
+    ]
+   },
+   {
+    "title": "Market Chatter: Apple Pay to Launch in India Tuesday With Axis Bank",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/market-chatter-apple-pay-launch-195143721.html",
+    "published": "2026-09-29",
+    "tickers": [
+     "AAPL",
+     "AXISBANK.BO",
+     "HDB",
+     "V",
+     "MA",
+     "IBN"
+    ]
+   },
+   {
+    "title": "Apple Pay to launch in India next month with Axis Bank- report",
+    "publisher": "Electronic Payments",
+    "link": "https://finance.yahoo.com/technology/articles/apple-pay-launch-india-next-072444839.html",
+    "published": "2026-09-21",
+    "tickers": [
+     "AXISBANK.BO",
+     "AAPL",
+     "HDB",
+     "IBN"
+    ]
+   }
+  ]
+ }
+}

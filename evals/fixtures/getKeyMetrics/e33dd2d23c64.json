@@ -1,0 +1,96 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TITAN.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "revenueGrowth",
+   "earningsGrowth",
+   "totalDebt",
+   "totalCash",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow"
+  ]
+ },
+ "output": {
+  "symbol": "TITAN.NS",
+  "name": "Titan Company Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 4384.4
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 3890332041216
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 5186.7
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 3506.5
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 67.577065
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 49.34713
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.293
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.628
+   },
+   {
+    "key": "totalCash",
+    "label": "Total cash",
+    "category": "Financial health",
+    "format": "large",
+    "value": 38610001920
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 306210013184
+   }
+  ]
+ }
+}

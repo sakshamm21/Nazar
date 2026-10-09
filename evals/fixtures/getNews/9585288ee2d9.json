@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TCS.NS TCS",
+  "count": 5
+ },
+ "output": {
+  "query": "TCS.NS TCS",
+  "articles": []
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "HDFCBANK.NS",
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "earningsGrowth",
+   "revenueGrowth",
+   "priceToBook",
+   "returnOnEquity"
+  ]
+ },
+ "output": {
+  "symbol": "HDFCBANK.NS",
+  "name": "HDFC Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.382514
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 11.236082
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 1.7870157
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.13838
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.166
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.181
+   }
+  ]
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TMPV.NS",
+  "metrics": [
+   "price",
+   "changePercent",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "revenueGrowth",
+   "earningsGrowth",
+   "operatingMargin",
+   "trailingPE",
+   "debtToEquity"
+  ]
+ },
+ "output": {
+  "symbol": "TMPV.NS",
+  "name": "Tata Motors Passenger Vehicles Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 279.5
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.023809524
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 688.6
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 272.2
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.02688
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": -0.082
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": -0.803
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 70.364
+   }
+  ]
+ }
+}

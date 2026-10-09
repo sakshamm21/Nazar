@@ -1,0 +1,80 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "INFY.NS",
+  "metrics": [
+   "revenueGrowth",
+   "earningsGrowth",
+   "operatingMargin",
+   "profitMargin",
+   "trailingPE",
+   "forwardPE",
+   "totalDebt",
+   "freeCashFlow"
+  ]
+ },
+ "output": {
+  "symbol": "INFY.NS",
+  "name": "Infosys Limited",
+  "currency": "INR",
+  "fxNote": "Reports in USD; amounts converted to INR at 96.6125.",
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 13.871935
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 12.729216
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.21173
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.16370001
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.029
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.053
+   },
+   {
+    "key": "freeCashFlow",
+    "label": "Free cash flow (TTM)",
+    "category": "Financial health",
+    "format": "large",
+    "value": 305838953814.39996
+   },
+   {
+    "key": "totalDebt",
+    "label": "Total debt",
+    "category": "Financial health",
+    "format": "large",
+    "value": 89173337500
+   }
+  ]
+ }
+}

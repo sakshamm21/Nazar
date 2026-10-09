@@ -1,0 +1,60 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Tata Motors",
+  "count": 5
+ },
+ "output": {
+  "query": "Tata Motors",
+  "articles": [
+   {
+    "title": "Iveco Group (BIT:IVG) Could Be 22% Below Fair Value After Tata Motors Bid",
+    "publisher": "Simply Wall St.",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/iveco-group-bit-ivg-could-221249567.html",
+    "published": "2026-09-05",
+    "tickers": [
+     "IVG.MI",
+     "TMCV.NS",
+     "IVG"
+    ]
+   },
+   {
+    "title": "Tata Motors Launches Recommended All-Cash Voluntary Totalitarian Tender Offer For Iveco Group Common Shares",
+    "publisher": "GlobeNewswire",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/tata-motors-launches-recommended-cash-200000874.html",
+    "published": "2026-09-04",
+    "tickers": [
+     "IVG"
+    ]
+   },
+   {
+    "title": "Tata Motors Q1 profit falls 80.2% despite revenue rise",
+    "publisher": "Just Auto",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/tata-motors-q1-profit-falls-113035672.html",
+    "published": "2026-08-14",
+    "tickers": [
+     "TMCV.NS",
+     "TMPV.BO"
+    ]
+   },
+   {
+    "title": "Tata Motors Ltd (BOM:544569) (Q1 2027) Earnings Call Highlights: Strong Volume Growth and FCF ...",
+    "publisher": "GuruFocus.com",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/tata-motors-ltd-bom-544569-010621342.html",
+    "published": "2026-08-14",
+    "tickers": [
+     "TMCV.NS"
+    ]
+   },
+   {
+    "title": "Tata Motors Passenger Vehicles Ltd (BOM:500570) (Q1 2027) Earnings Call Highlights: Record EV ...",
+    "publisher": "GuruFocus.com",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/tata-motors-passenger-vehicles-ltd-230555605.html",
+    "published": "2026-08-13",
+    "tickers": [
+     "TMPV.BO"
+    ]
+   }
+  ]
+ }
+}

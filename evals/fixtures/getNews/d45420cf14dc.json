@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Infosys latest quarterly results",
+  "count": 6
+ },
+ "output": {
+  "query": "Infosys latest quarterly results",
+  "articles": []
+ }
+}

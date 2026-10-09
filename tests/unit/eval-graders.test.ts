@@ -117,6 +117,10 @@ describe("number provenance", () => {
     expect(traceNumbers("Its market cap is ₹35.30 lakh crore.", [{ marketCap: 3530111844352 }]).untraced).toEqual(["₹35.30 lakh crore"]);
     expect(traceNumbers("Its market cap is ₹3.53 lakh crore.", [{ marketCap: 3530111844352, largeFiguresInWords: { marketCap: "₹3.53 lakh crore" } }]).untraced).toEqual([]);
   });
+  it("reads both ends of a range in the unit given once", () => {
+    expect(numbersIn("Revenue stayed in a band of ₹14,478–₹15,521 crore, with margins of 24 to 26%.").map((n) => n.value)).toEqual([14478e7, 15521e7, 24, 26]);
+    expect(traceNumbers("Revenue stayed in a band of ₹14,478–₹15,521 crore.", [{ q: [{ revenue: 144780000000 }, { revenue: 155210000000 }] }]).untraced).toEqual([]);
+  });
   it("does not read gold purity as a number", () => {
     expect(numbersIn("24K gold is at ₹7,450 a gram; 22 karat is lower.").map((n) => n.value)).toEqual([7450]);
   });

@@ -185,6 +185,8 @@ const marketTools = {
           })),
         };
       }),
+    // Nothing is left out; a result in rupees gains its revenue and profit in crores, in words.
+    toModelOutput: forModel((o) => o),
   }),
 
   getCompanyProfile: tool({
@@ -528,6 +530,8 @@ function userTools(userId: string) {
             notMoving: s.perHolding.filter((h) => Math.abs(h.loss) < 1).map((h) => h.name).slice(0, 12),
             biggestEffects: biggest.map((h) => ({ name: h.name, value: r0(h.value), beta: Math.round(h.beta * 100) / 100, change: r0(h.loss) })),
             holdingsWithAssumedBeta: s.perHolding.filter((h) => !h.betaKnown).length,
+            // The three headline amounts in words, so the answer quotes them instead of converting rupees to lakhs itself.
+            inWords: { valueNow: rupeesInWords(r.v.valuation.value), change: rupeesInWords(s.loss), valueAfter: rupeesInWords(s.valueAfter) },
             note: "An estimate: each holding's value times its beta times the Nifty's move. Real falls are uneven, betas shift, and funds or foreign holdings without enough history are assumed to move with the market.",
           };
         }),

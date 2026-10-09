@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Sun Pharma quarterly results",
+  "count": 6
+ },
+ "output": {
+  "query": "Sun Pharma quarterly results",
+  "articles": []
+ }
+}

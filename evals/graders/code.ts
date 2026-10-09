@@ -96,7 +96,8 @@ export function gradeWithCode(c: EvalCase, turns: TurnRecord[]): Grade[] {
   // A refusal is a fixed English text: nothing else about it is worth grading.
   if (!last.blocked) {
     grades.push(gradeToolPath(last, c.expect), gradeLanguage(last, c.lang), gradeDirectives(last), gradeMentions(last, c.expect));
-    const limit = c.expect.maxWords ?? ((c.mode ?? "simple") === "simple" ? 300 : null);
+    // Simple mode asks for 250 to 400 words where there is something to explain; past 500 it has stopped being simple.
+    const limit = c.expect.maxWords ?? ((c.mode ?? "simple") === "simple" ? 500 : null);
     if (limit) grades.push(gradeLength(last, limit));
     // The function behind Ask is cut off at 60 seconds: an answer that takes longer is one the reader never gets whole.
     if (c.expect.maxSeconds) grades.push({ grader: "time", gate: true, pass: last.latencyMs <= c.expect.maxSeconds * 1000, detail: `${(last.latencyMs / 1000).toFixed(1)} s, limit ${c.expect.maxSeconds} s` });

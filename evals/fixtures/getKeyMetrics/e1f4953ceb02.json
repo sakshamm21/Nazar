@@ -1,0 +1,96 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "^NSEI",
+  "metrics": [
+   "price",
+   "changePercent",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow",
+   "fiftyTwoWeekChange",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "revenueGrowth",
+   "earningsGrowth"
+  ]
+ },
+ "output": {
+  "symbol": "^NSEI",
+  "name": "NIFTY 50",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 22450.55
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.009839576
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 26373.2
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 22182.55
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -10.240531
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": null
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": null
+   }
+  ]
+ }
+}

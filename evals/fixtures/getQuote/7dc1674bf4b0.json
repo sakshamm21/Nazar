@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "INR=X"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "USDINR=X",
+    "name": "USD/INR",
+    "currency": "INR",
+    "exchange": "CCY",
+    "price": 96.6,
+    "change": -0.1800003,
+    "changePercent": -0.18598916,
+    "previousClose": 96.78,
+    "open": 96.78,
+    "dayHigh": 96.78,
+    "dayLow": 96.5,
+    "volume": 0,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 97.0541,
+    "fiftyTwoWeekLow": 85.8629,
+    "trailingPE": null,
+    "marketState": "REGULAR",
+    "asOf": "2026-10-09T06:12:16.000Z",
+    "timeZone": "Europe/London"
+   }
+  ]
+ }
+}

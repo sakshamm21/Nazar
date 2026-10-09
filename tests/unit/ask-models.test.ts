@@ -121,3 +121,43 @@ describe("what Settings says about each model", () => {
     }
   });
 });
+
+describe("a server of the deployment's own", () => {
+  const keys = ["SELF_HOSTED_BASE_URL", "SELF_HOSTED_MODELS", "SELF_HOSTED_API_KEY"];
+  afterEach(() => {
+    for (const k of keys) delete process.env[k];
+  });
+
+  it("serves nothing until it is given an address, whatever models are named", async () => {
+    const { selfHostedModels } = await import("@/lib/ask/provider");
+    process.env.SELF_HOSTED_MODELS = "z-ai/glm-5.3-flash";
+    expect(selfHostedModels().size).toBe(0);
+  });
+
+  it("serves the models it names, each under the name that server knows it by", async () => {
+    const { selfHostedModels, askConfigured: configured } = await import("@/lib/ask/provider");
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    process.env.SELF_HOSTED_BASE_URL = "http://10.0.0.5:8000/v1";
+    process.env.SELF_HOSTED_MODELS = "z-ai/glm-5.3-flash=glm-5.3-flash, deepseek/deepseek-v4.1-flash";
+    expect([...selfHostedModels()]).toEqual([["z-ai/glm-5.3-flash", "glm-5.3-flash"], ["deepseek/deepseek-v4.1-flash", "deepseek/deepseek-v4.1-flash"]]);
+    // With no hosted key at all, Ask can still run on that server alone.
+    expect(configured()).toBe(true);
+  });
+
+  it("puts those models on offer, and only ones the catalog knows", async () => {
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    process.env.SELF_HOSTED_BASE_URL = "http://10.0.0.5:8000/v1";
+    process.env.SELF_HOSTED_MODELS = "z-ai/glm-5.3-flash,someone/unknown-model";
+    const ids = await allowedModelIds();
+    expect(ids).toContain("z-ai/glm-5.3-flash");
+    expect(ids).not.toContain("someone/unknown-model");
+  });
+
+  it("every open-weight model in the catalog is one such a server could run, and says so in Settings' figures", () => {
+    const open = MODELS.filter((m) => m.openWeights).map((m) => m.id);
+    expect(open.length).toBeGreaterThanOrEqual(1);
+    for (const id of open) expect(statsFor(id), id).not.toBeNull();
+  });
+});

@@ -1,0 +1,112 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "HCLTECH.NS",
+  "metrics": [
+   "price",
+   "marketCap",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "priceToSales",
+   "evToEbitda",
+   "grossMargin",
+   "operatingMargin",
+   "profitMargin",
+   "revenueGrowth",
+   "earningsGrowth"
+  ]
+ },
+ "output": {
+  "symbol": "HCLTECH.NS",
+  "name": "HCL Technologies Limited",
+  "currency": "INR",
+  "fxNote": "Reports in USD; amounts converted to INR at 96.5850.",
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 1209.1
+   },
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 3271542439936
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 18.809895
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.094623
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 4.4325237
+   },
+   {
+    "key": "priceToSales",
+    "label": "Price / sales (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 2.293463172092106
+   },
+   {
+    "key": "evToEbitda",
+    "label": "EV / EBITDA",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 11.392326394530276
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.34004003
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.16877002
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.12966
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.03
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.084
+   }
+  ]
+ }
+}

@@ -1,0 +1,72 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ADANIENT.NS",
+  "metrics": [
+   "beta",
+   "marketCap",
+   "trailingPE",
+   "debtToEquity",
+   "revenueGrowth",
+   "profitMargin",
+   "fiftyTwoWeekChange"
+  ]
+ },
+ "output": {
+  "symbol": "ADANIENT.NS",
+  "name": "Adani Enterprises Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "marketCap",
+    "label": "Market cap",
+    "category": "Price",
+    "format": "large",
+    "value": 3538631000064
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.017680049
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 42.134106
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.06546
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.499
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 119.56
+   },
+   {
+    "key": "beta",
+    "label": "Beta (5Y)",
+    "category": "Risk & ownership",
+    "format": "ratio",
+    "value": null
+   }
+  ]
+ }
+}

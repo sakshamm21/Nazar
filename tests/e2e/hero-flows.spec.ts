@@ -296,6 +296,11 @@ test.describe("Ask and You", () => {
     await expect(luna).toContainText("4.4 s");
     await expect(luna).toContainText("about $0.30");
     await expect(group.getByRole("radio")).not.toHaveCount(1);
+    // Auto says how it picks, and the models that could run on a server of one's own are set apart.
+    await expect(group.getByText(/How Auto picks: one model, GPT-6 Luna, answers almost everything/)).toBeVisible();
+    await expect(group.getByText("Open-weight models")).toBeVisible();
+    await expect(group.getByText(/can be run on a server of your own/)).toBeVisible();
+    await expect(group.getByRole("radio", { name: /^GLM 5\.3 Flash/ })).toBeVisible();
     await luna.click();
     await expect(luna).toHaveAttribute("aria-checked", "true");
     await expect(auto).toHaveAttribute("aria-checked", "false");

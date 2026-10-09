@@ -32,6 +32,6 @@ export const MODEL_STATS: Record<string, ModelStats> = {
 };
 
 /** What Auto amounts to, in the same terms. */
-export const AUTO_STATS: ModelStats = { passed: 100, outOf: 100, testedOn: "all questions today, three runs", firstWordSeconds: 4.3, usdPer1000Answers: 0.3, note: "GPT-6 Luna for ordinary questions, GPT-6 Sol when you ask for a deep dive or a full report." };
+export const AUTO_STATS: ModelStats = { passed: 100, outOf: 100, testedOn: "all 100 questions on 9 October, three runs", firstWordSeconds: 4.9, usdPer1000Answers: 0.3, note: "GPT-6 Luna for ordinary questions, GPT-6 Sol when you ask for a deep dive or a full report." };
 
 export const statsFor = (id: string): ModelStats | null => MODEL_STATS[id] ?? null;

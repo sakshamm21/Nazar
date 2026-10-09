@@ -1,0 +1,113 @@
+{
+ "tool": "compareStocks",
+ "input": {
+  "symbols": [
+   "HDFCBANK.NS",
+   "ICICIBANK.NS",
+   "KOTAKBANK.NS",
+   "AXISBANK.NS",
+   "SBIN.NS"
+  ],
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "earningsGrowth",
+   "revenueGrowth"
+  ]
+ },
+ "output": {
+  "symbols": [
+   {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFC Bank Limited"
+   },
+   {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited"
+   },
+   {
+    "symbol": "KOTAKBANK.NS",
+    "name": "Kotak Mahindra Bank Limited"
+   },
+   {
+    "symbol": "AXISBANK.NS",
+    "name": "Axis Bank Limited"
+   },
+   {
+    "symbol": "SBIN.NS",
+    "name": "State Bank of India"
+   }
+  ],
+  "currencies": [
+   "INR",
+   "INR",
+   "INR",
+   "INR",
+   "INR"
+  ],
+  "notFound": [],
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "format": "ratio",
+    "values": [
+     15.403279,
+     17.419855,
+     21.96579,
+     14.1684475,
+     10.223472
+    ]
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "format": "ratio",
+    "values": [
+     11.25125,
+     14.450481,
+     18.86084,
+     10.438169,
+     9.068194
+    ]
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "format": "ratio",
+    "values": [
+     1.7894281,
+     2.540834,
+     2.431655,
+     1.7559825,
+     1.415672
+    ]
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.166,
+     0.114,
+     0.21,
+     0.14,
+     0.103
+    ]
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "format": "percent",
+    "values": [
+     0.181,
+     0.138,
+     0.225,
+     0.218,
+     0.099
+    ]
+   }
+  ]
+ }
+}

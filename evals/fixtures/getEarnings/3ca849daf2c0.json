@@ -1,0 +1,90 @@
+{
+ "tool": "getEarnings",
+ "input": {
+  "symbol": "MARUTI.NS"
+ },
+ "output": {
+  "symbol": "MARUTI.NS",
+  "currency": "INR",
+  "currencyUncertain": false,
+  "nextEarningsDate": "2026-10-29",
+  "history": [
+   {
+    "quarter": "2025-09-30",
+    "actual": 104.74,
+    "estimate": 119.08843,
+    "surprisePct": -0.1205
+   },
+   {
+    "quarter": "2025-12-31",
+    "actual": 120.67,
+    "estimate": 141.14279,
+    "surprisePct": -0.1451
+   },
+   {
+    "quarter": "2026-03-31",
+    "actual": 114.2,
+    "estimate": 133.26585,
+    "surprisePct": -0.14310001
+   },
+   {
+    "quarter": "2026-06-30",
+    "actual": 106.62,
+    "estimate": 110.52333,
+    "surprisePct": -0.0353
+   }
+  ],
+  "quarterly": [
+   {
+    "period": "3Q2025",
+    "revenue": 421008000000,
+    "earnings": 32931000000
+   },
+   {
+    "period": "4Q2025",
+    "revenue": 498915000000,
+    "earnings": 37940000000
+   },
+   {
+    "period": "1Q2026",
+    "revenue": 524493000000,
+    "earnings": 35905000000
+   },
+   {
+    "period": "2Q2026",
+    "revenue": 524551000000,
+    "earnings": 33521000000
+   }
+  ],
+  "estimates": [
+   {
+    "period": "0q",
+    "endDate": "2026-09-30",
+    "epsAvg": 99.9125,
+    "revenueAvg": 537665265380,
+    "growth": -0.0461
+   },
+   {
+    "period": "+1q",
+    "endDate": "2026-12-31",
+    "epsAvg": 106.95667,
+    "revenueAvg": 549352827250,
+    "growth": -0.11359999
+   },
+   {
+    "period": "0y",
+    "endDate": "2027-03-31",
+    "epsAvg": 465.76862,
+    "revenueAvg": 2134460926080,
+    "growth": 0.0137
+   },
+   {
+    "period": "+1y",
+    "endDate": "2028-03-31",
+    "epsAvg": 595.3997,
+    "revenueAvg": 2350429216960,
+    "growth": 0.2756
+   }
+  ]
+ }
+}

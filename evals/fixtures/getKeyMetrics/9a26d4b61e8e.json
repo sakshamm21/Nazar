@@ -1,0 +1,64 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ICICIBANK.NS",
+  "metrics": [
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "returnOnEquity",
+   "revenueGrowth",
+   "earningsGrowth"
+  ]
+ },
+ "output": {
+  "symbol": "ICICIBANK.NS",
+  "name": "ICICI Bank Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 17.423733
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 14.453698
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 2.5413997
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.16073999
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.114
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.138
+   }
+  ]
+ }
+}

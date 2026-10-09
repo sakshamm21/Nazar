@@ -1,6 +1,6 @@
 import "server-only";
 import { MODELS } from "./models";
-import { OPENROUTER_URL, activeProvider } from "./provider";
+import { OPENROUTER_URL, activeProvider, selfHostedModels } from "./provider";
 
 let cache: { at: number; key: string; ids: string[] } | null = null;
 
@@ -35,7 +35,9 @@ async function availableModelIds(): Promise<string[]> {
  * (comma-separated ids) — e.g. to keep expensive premium models off a public deployment.
  */
 export async function allowedModelIds(): Promise<string[]> {
-  const ids = await availableModelIds();
+  // What the deployment's own server runs is on offer whether or not the hosted provider lists it.
+  const own = [...selfHostedModels().keys()].filter((id) => MODELS.some((m) => m.id === id));
+  const ids = [...new Set([...(await availableModelIds()), ...own])];
   const allow = (process.env.ALLOWED_MODELS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!allow.length) return ids;
   const narrowed = ids.filter((id) => allow.includes(id));

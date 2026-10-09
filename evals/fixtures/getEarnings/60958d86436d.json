@@ -1,0 +1,90 @@
+{
+ "tool": "getEarnings",
+ "input": {
+  "symbol": "RELIANCE.NS"
+ },
+ "output": {
+  "symbol": "RELIANCE.NS",
+  "currency": "INR",
+  "currencyUncertain": false,
+  "nextEarningsDate": "2026-10-16",
+  "history": [
+   {
+    "quarter": "2025-09-30",
+    "actual": 13.42,
+    "estimate": 14.3451,
+    "surprisePct": -0.0645
+   },
+   {
+    "quarter": "2025-12-31",
+    "actual": 13.78,
+    "estimate": 14.88712,
+    "surprisePct": -0.0744
+   },
+   {
+    "quarter": "2026-03-31",
+    "actual": 12.54,
+    "estimate": 15.39111,
+    "surprisePct": -0.1852
+   },
+   {
+    "quarter": "2026-06-30",
+    "actual": 15.48,
+    "estimate": 14.97444,
+    "surprisePct": 0.033800002
+   }
+  ],
+  "quarterly": [
+   {
+    "period": "3Q2025",
+    "revenue": 2546230000000,
+    "earnings": 91290000000
+   },
+   {
+    "period": "4Q2025",
+    "revenue": 2649050000000,
+    "earnings": 186450000000
+   },
+   {
+    "period": "1Q2026",
+    "revenue": 1418230000000,
+    "earnings": 74220000000
+   },
+   {
+    "period": "2Q2026",
+    "revenue": 3094680000000,
+    "earnings": 209460000000
+   }
+  ],
+  "estimates": [
+   {
+    "period": "0q",
+    "endDate": "2026-09-30",
+    "epsAvg": 17.30714,
+    "revenueAvg": 3134108100000,
+    "growth": 0.2897
+   },
+   {
+    "period": "+1q",
+    "endDate": "2026-12-31",
+    "epsAvg": 17.49,
+    "revenueAvg": 3041012666670,
+    "growth": 0.2692
+   },
+   {
+    "period": "0y",
+    "endDate": "2027-03-31",
+    "epsAvg": 63.76643,
+    "revenueAvg": 11835357596280,
+    "growth": 0.0683
+   },
+   {
+    "period": "+1y",
+    "endDate": "2028-03-31",
+    "epsAvg": 71.04897,
+    "revenueAvg": 12422675491480,
+    "growth": 0.1142
+   }
+  ]
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "GOLDBEES.NS"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "GOLDBEES.NS",
+    "name": "Nippon India ETF Gold BeES",
+    "currency": "INR",
+    "exchange": "NSE",
+    "price": 122.65,
+    "change": 1.7099991,
+    "changePercent": 1.4139235,
+    "previousClose": 120.94,
+    "open": 122.12,
+    "dayHigh": 122.95,
+    "dayLow": 122.12,
+    "volume": 8038446,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 148.14,
+    "fiftyTwoWeekLow": 95.55,
+    "trailingPE": null,
+    "marketState": "REGULAR",
+    "asOf": "2026-10-09T06:27:05.000Z",
+    "timeZone": "Asia/Kolkata"
+   }
+  ]
+ }
+}

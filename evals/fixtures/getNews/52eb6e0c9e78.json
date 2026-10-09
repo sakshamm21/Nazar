@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Nifty 50 India market today October 7 2026 decline why",
+  "count": 5
+ },
+ "output": {
+  "query": "Nifty 50 India market today October 7 2026 decline why",
+  "articles": []
+ }
+}

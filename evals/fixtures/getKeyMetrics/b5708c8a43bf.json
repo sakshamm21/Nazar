@@ -1,0 +1,96 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "ASIANPAINT.NS",
+  "metrics": [
+   "revenueGrowth",
+   "earningsGrowth",
+   "grossMargin",
+   "operatingMargin",
+   "profitMargin",
+   "returnOnEquity",
+   "returnOnAssets",
+   "debtToEquity",
+   "trailingPE",
+   "forwardPE"
+  ]
+ },
+ "output": {
+  "symbol": "ASIANPAINT.NS",
+  "name": "Asian Paints Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 47.524155
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 38.939686
+   },
+   {
+    "key": "grossMargin",
+    "label": "Gross margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.43533
+   },
+   {
+    "key": "operatingMargin",
+    "label": "Operating margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.17687
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.12813
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "returnOnAssets",
+    "label": "Return on assets",
+    "category": "Profitability",
+    "format": "percent",
+    "value": null
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.179
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.399
+   },
+   {
+    "key": "debtToEquity",
+    "label": "Debt / equity (%)",
+    "category": "Financial health",
+    "format": "ratio",
+    "value": 17.847
+   }
+  ]
+ }
+}

@@ -1,0 +1,96 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "TCS.NS",
+  "metrics": [
+   "price",
+   "trailingPE",
+   "forwardPE",
+   "priceToBook",
+   "revenueGrowth",
+   "earningsGrowth",
+   "profitMargin",
+   "returnOnEquity",
+   "dividendYield",
+   "fiftyTwoWeekChange"
+  ]
+ },
+ "output": {
+  "symbol": "TCS.NS",
+  "name": "Tata Consultancy Services Limited",
+  "currency": "INR",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 2189.7
+   },
+   {
+    "key": "fiftyTwoWeekChange",
+    "label": "52-week change",
+    "category": "Price",
+    "format": "percent",
+    "value": -0.31446683
+   },
+   {
+    "key": "trailingPE",
+    "label": "P/E (TTM)",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 15.906581
+   },
+   {
+    "key": "forwardPE",
+    "label": "Forward P/E",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 13.544415
+   },
+   {
+    "key": "priceToBook",
+    "label": "Price / book",
+    "category": "Valuation",
+    "format": "ratio",
+    "value": 7.2263985
+   },
+   {
+    "key": "profitMargin",
+    "label": "Net margin",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.18052
+   },
+   {
+    "key": "returnOnEquity",
+    "label": "Return on equity",
+    "category": "Profitability",
+    "format": "percent",
+    "value": 0.47743
+   },
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.139
+   },
+   {
+    "key": "earningsGrowth",
+    "label": "Earnings growth (YoY)",
+    "category": "Growth",
+    "format": "percent",
+    "value": 0.046
+   },
+   {
+    "key": "dividendYield",
+    "label": "Dividend yield",
+    "category": "Dividends",
+    "format": "percent",
+    "value": 0.0312
+   }
+  ]
+ }
+}

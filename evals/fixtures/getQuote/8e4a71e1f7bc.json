@@ -1,0 +1,55 @@
+{
+ "tool": "getQuote",
+ "input": {
+  "symbols": [
+   "GOLD",
+   "GC=F"
+  ]
+ },
+ "output": {
+  "quotes": [
+   {
+    "symbol": "GOLD",
+    "name": "Gold.com, Inc.",
+    "currency": "USD",
+    "exchange": "NYSE",
+    "price": 41.66,
+    "change": 0.98,
+    "changePercent": 2.40904,
+    "previousClose": 40.68,
+    "open": 40.59,
+    "dayHigh": 41.75,
+    "dayLow": 40.5,
+    "volume": 392881,
+    "marketCap": 1212158208,
+    "fiftyTwoWeekHigh": 66.7,
+    "fiftyTwoWeekLow": 23,
+    "trailingPE": 13.794702,
+    "marketState": "PREPRE",
+    "asOf": "2026-10-08T20:00:03.000Z",
+    "timeZone": "America/New_York"
+   },
+   {
+    "symbol": "GC=F",
+    "name": "Gold Dec 26",
+    "currency": "USD",
+    "exchange": "COMEX",
+    "price": 4225.3,
+    "change": 68.299805,
+    "changePercent": 1.643007,
+    "previousClose": 4157,
+    "open": 4159.7,
+    "dayHigh": 4233.7,
+    "dayLow": 4156.1,
+    "volume": 35717,
+    "marketCap": null,
+    "fiftyTwoWeekHigh": 5586.2,
+    "fiftyTwoWeekLow": 3901.3,
+    "trailingPE": null,
+    "marketState": "REGULAR",
+    "asOf": "2026-10-09T05:50:38.000Z",
+    "timeZone": "America/New_York"
+   }
+  ]
+ }
+}

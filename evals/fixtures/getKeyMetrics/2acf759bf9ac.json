@@ -1,0 +1,48 @@
+{
+ "tool": "getKeyMetrics",
+ "input": {
+  "symbol": "GOLD",
+  "metrics": [
+   "price",
+   "changePercent",
+   "fiftyTwoWeekHigh",
+   "fiftyTwoWeekLow"
+  ]
+ },
+ "output": {
+  "symbol": "GOLD",
+  "name": "Gold.com, Inc.",
+  "currency": "USD",
+  "fxNote": null,
+  "metrics": [
+   {
+    "key": "price",
+    "label": "Price",
+    "category": "Price",
+    "format": "currency",
+    "value": 41.66
+   },
+   {
+    "key": "changePercent",
+    "label": "Day change",
+    "category": "Price",
+    "format": "percent",
+    "value": 0.0240904
+   },
+   {
+    "key": "fiftyTwoWeekHigh",
+    "label": "52-week high",
+    "category": "Price",
+    "format": "currency",
+    "value": 66.7
+   },
+   {
+    "key": "fiftyTwoWeekLow",
+    "label": "52-week low",
+    "category": "Price",
+    "format": "currency",
+    "value": 23
+   }
+  ]
+ }
+}

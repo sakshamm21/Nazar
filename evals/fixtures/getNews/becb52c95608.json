@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "TMPV.NS Tata Motors",
+  "count": 6
+ },
+ "output": {
+  "query": "TMPV.NS Tata Motors",
+  "articles": []
+ }
+}

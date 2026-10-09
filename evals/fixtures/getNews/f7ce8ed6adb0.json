@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "MARUTI.NS Maruti Suzuki",
+  "count": 6
+ },
+ "output": {
+  "query": "MARUTI.NS Maruti Suzuki",
+  "articles": []
+ }
+}

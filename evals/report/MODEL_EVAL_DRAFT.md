@@ -58,7 +58,7 @@ Code graders decide whether a case passes:
 | `scope` | the guard refused when it should, and only then |
 | `tool_path` | required tools were called, forbidden ones were not, within a step limit |
 | `language` | the answer is in the language of the question (English, Hindi in Devanagari, or Hinglish) |
-| `length` | Simple mode answers stay within 300 words |
+| `length` | Simple mode answers stay within 300 words (500 from 9 October, when the prompt began asking for more explanation) |
 | `content` | required or forbidden phrases, per case |
 | `no_directive_phrases` | no sentence tells the reader what to do with an investment, in three languages |
 
@@ -365,6 +365,27 @@ Luna passed every deciding check at a thirtieth of the cost and in under two thi
 
 No routing was changed. The same day Settings gained a picker that shows each model's score, time to first word and cost from this report (`src/lib/ask/model-stats.ts`), so the choice of a default is the user's.
 
+### 3.19 Answers that explain, not list (9 October)
+
+The complaint from use: answers were "just metrics and numbers". Not a model change. The prompt gained a DEPTH section: gather the context in the same step as the answer's data (the trend over quarters, margins and valuation, news for the reported reason), and write an explaining answer in four labelled parts: what happened, why, in context, what to watch. Lookups stay short. The length gate for Simple mode went from 300 to 500 words to match.
+
+Four full runs, three runs per case, judges off, about $0.36 in all:
+
+| Run | Prompt | Passed | First word p50 | Total p50 | Avg input tokens | Cost |
+|---|---|---|---|---|---|---|
+| `2026-10-08T17-24-14` (before) | no DEPTH | 100 | 4,274 ms | 5,500 ms | 11,228 | $0.078 |
+| `2026-10-09T05-54-06` | "explain, do not list", no structure | 99 | 4,509 ms | 6,045 ms | 11,799 | $0.083 |
+| `2026-10-09T06-06-30` | context tools and four parts | 100 | 4,430 ms | 5,784 ms | 12,281 | $0.090 |
+| `2026-10-09T06-33-07` (baseline) | the same, tightened | 100 | 4,855 ms | 6,175 ms | 12,642 | $0.091 |
+
+- **Asking for depth in general terms did almost nothing.** The first wording moved the median answer from 128 to 151 words on portfolio cases and left the content the same. Naming the parts and the tools to call is what changed the answers.
+- **How much longer.** On the 11 cases that call for an explanation (33 answers a run), the median went from 145 to 206 words, the first word from 4.7 s to 5.1 s and the whole answer from 6.9 s to 7.8 s. Across all cases the median is 118 to 131 words, because lookups stayed short. Cost rose about 17%.
+- **The one failure in the first run was the network** (`pf-riskiest-01`, two runs ended by a dropped connection), not the prompt.
+- **More context exposed the tenfold error twice more.** A what-if written as "₹35.8 lakh" for ₹3,58,000, and Sun Pharma's quarterly profit as "₹33,688 crore" for ₹3,369 crore, both caught by the number check now that it decides. The stress test now gives its headline amounts in words, and every result in rupees gets its amounts of a crore or more in words beside the raw figure (`withRupeeWords`), not only key metrics. In the baseline run the earnings case quotes ₹3,369 crore.
+- **Left as it is:** `co-comps-01` took 8 steps on one run of three (four ticker searches one after another, then an extra metrics lookup). The read-ahead resolves one company, not four.
+
+Not judged: whether the longer answers are better explanations, and whether a reason quoted from a headline is used well, since the eval's news recordings are mostly empty. That needs a judged run and live headlines.
+
 ## 4. What the data shows so far
 
 1. **The domain label did not help.** The one finance-tuned model, Ling 3.0 Flash Fin, scored lowest (55). It skipped the portfolio tool on 11 portfolio questions, went over length on 16 answers, and tripped the advice check on 4.
@@ -431,7 +452,7 @@ TODO, roughly in order:
 
 ## 8. Index of runs
 
-Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.18 and are in `runs.csv`.
+Each is a file in `data/`. Rows not listed here are small smoke tests or partial runs; `runs.csv` has all of them. Runs after `2026-10-07T21-07-15` are described in sections 3.7 to 3.19 and are in `runs.csv`.
 
 | Run | What it was |
 |---|---|

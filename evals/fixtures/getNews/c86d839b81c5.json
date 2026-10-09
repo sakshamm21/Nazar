@@ -1,0 +1,73 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "Sun Pharma",
+  "count": 6
+ },
+ "output": {
+  "query": "Sun Pharma",
+  "articles": [
+   {
+    "title": "Sun Pharma Establishes Endowed Professorship at Mount Sinai to Advance Dermatologic Care",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/healthcare/articles/sun-pharma-establishes-endowed-professorship-153000987.html",
+    "published": "2026-10-06",
+    "tickers": [
+     "SUNPHARMA.NS",
+     "524715"
+    ]
+   },
+   {
+    "title": "LIB Therapeutics and Sun Pharma Announce Global Licensing, Commercialization and Manufacturing Agreement for Lerodalcibep, a Novel PCSK9 Inhibitor, Ex-US and China; Lerodalcibep (Lyrokaul®) Approved in the EU",
+    "publisher": "Business Wire",
+    "link": "https://finance.yahoo.com/healthcare/articles/lib-therapeutics-sun-pharma-announce-120000719.html",
+    "published": "2026-09-28",
+    "tickers": [
+     "SUNPHARMA.NS"
+    ]
+   },
+   {
+    "title": "Sun Pharma Launches (C)Taro-Methylphenidate ER, the First and Only Bioequivalent to Concerta® with an Osmotic Delivery System",
+    "publisher": "CNW Group",
+    "link": "https://finance.yahoo.com/healthcare/articles/sun-pharma-launches-c-taro-130000699.html",
+    "published": "2026-09-24",
+    "tickers": [
+     "524715",
+     "SUNPHARMA.NS"
+    ]
+   },
+   {
+    "title": "First-Ever Standardized U.S. Treatment Recommendations Issued for Adults with Severe Alopecia Areata; Sun Pharma Welcomes Milestone",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/healthcare/articles/first-ever-standardized-u-treatment-123000475.html",
+    "published": "2026-09-22",
+    "tickers": [
+     "524715",
+     "SUNPHARMA.NS"
+    ]
+   },
+   {
+    "title": "Sun Pharma and Christian Siriano Launch \"Regrowth Restyled\" to Inspire Adults Living with Severe Alopecia Areata",
+    "publisher": "PR Newswire",
+    "link": "https://finance.yahoo.com/healthcare/articles/sun-pharma-christian-siriano-launch-123000981.html",
+    "published": "2026-09-17",
+    "tickers": [
+     "SUNPHARMA.NS",
+     "524715",
+     "SUNP IN",
+     "SUN.BO"
+    ]
+   },
+   {
+    "title": "Sun Pharma's quarterly profit jumps on strength in specialty medicines",
+    "publisher": "Reuters",
+    "link": "https://finance.yahoo.com/healthcare/articles/indias-sun-pharma-posts-higher-090749675.html",
+    "published": "2026-07-31",
+    "tickers": [
+     "SUNPHARMA.NS",
+     "OGN"
+    ]
+   }
+  ]
+ }
+}

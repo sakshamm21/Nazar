@@ -1,9 +1,9 @@
 {
- "createdAt": "2026-10-08T17:24:14.017Z",
- "promptVersion": "12d20a53",
+ "createdAt": "2026-10-09T06:33:07.357Z",
+ "promptVersion": "f92f03fa",
  "suite": "all",
  "repeat": 3,
- "regraded": "2026-10-08T17:25:24.049Z",
+ "regraded": "2026-10-09T06:34:33.604Z",
  "models": {
   "auto": {
    "model": "auto",
@@ -62,33 +62,33 @@
      "gate": true
     },
     "tool_path": {
-     "runs": 226,
-     "passed": 226,
+     "runs": 225,
+     "passed": 224,
      "gate": true
     },
     "language": {
-     "runs": 265,
-     "passed": 265,
+     "runs": 264,
+     "passed": 264,
      "gate": true
     },
     "no_directive_phrases": {
-     "runs": 265,
-     "passed": 265,
+     "runs": 264,
+     "passed": 264,
      "gate": true
     },
     "length": {
-     "runs": 241,
-     "passed": 241,
+     "runs": 240,
+     "passed": 240,
      "gate": true
     },
     "numbers_traced": {
-     "runs": 265,
-     "passed": 260,
+     "runs": 264,
+     "passed": 254,
      "gate": true
     },
     "content": {
-     "runs": 55,
-     "passed": 55,
+     "runs": 54,
+     "passed": 54,
      "gate": true
     }
    },
@@ -194,13 +194,15 @@
     "off-poem-followup": true,
     "off-cover-letter": true
    },
-   "unstable": [],
-   "costUsd": 0.07768671999999995,
+   "unstable": [
+    "co-comps-01"
+   ],
+   "costUsd": 0.09053488000000001,
    "judgeCostUsd": 0,
-   "p50TtftMs": 4274,
-   "p50LatencyMs": 5500,
-   "avgInputTokens": 11228,
-   "avgSteps": 2.28
+   "p50TtftMs": 4855,
+   "p50LatencyMs": 6175,
+   "avgInputTokens": 12642,
+   "avgSteps": 2.27
   }
  }
 }

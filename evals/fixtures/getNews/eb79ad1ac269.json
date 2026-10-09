@@ -1,0 +1,11 @@
+{
+ "tool": "getNews",
+ "input": {
+  "query": "ADANIENT.NS Adani Enterprises",
+  "count": 6
+ },
+ "output": {
+  "query": "ADANIENT.NS Adani Enterprises",
+  "articles": []
+ }
+}
