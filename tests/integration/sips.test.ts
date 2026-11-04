@@ -8,6 +8,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import * as SipRoute from "@/app/api/holdings/[id]/sip/route";
 import { makeTools } from "@/lib/ask/tools";
 import { schema, type DB } from "@/lib/db";
+import { NIFTY } from "@/lib/instruments/sectors";
 import { dueOnOrAfter } from "@/lib/portfolio/sip";
 import { upsertHoldings } from "@/lib/repo/portfolios";
 import { applyDueSips, setSip } from "@/lib/repo/sips";
@@ -182,6 +183,8 @@ describe("what Ask is told about the user's SIPs", () => {
     await price("2026-10-05", 100);
     await applyDueSips(db, "2026-10-05");
     await db.insert(schema.symbolSnapshots).values({ symbol: FUND, tradeDate: "2026-10-06", source: "live", price: 110 } as typeof schema.symbolSnapshots.$inferInsert).onConflictDoNothing();
+    // The latest Nifty snapshot sets "now" for valuation; without one it would be today's real date.
+    await db.insert(schema.symbolSnapshots).values({ symbol: NIFTY, tradeDate: "2026-10-06", source: "live", price: 25000 } as typeof schema.symbolSnapshots.$inferInsert).onConflictDoNothing();
     const out = await ask(user);
     expect(out).toMatchObject({ totalEachMonth: 5000, activeSips: 1, pausedSips: 0, nextInstalmentOn: "2026-11-05", goals: null });
     expect(out.sips[0]).toMatchObject({ amountEachMonth: 5000, dayOfMonth: 5, status: "active", instalmentsAddedByNazar: 1, investedInThoseInstalments: 5000, thoseUnitsWorthNow: 5500, gainOnThoseInstalments: 500 });
