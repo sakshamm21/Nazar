@@ -1,13 +1,82 @@
-# Nazar · your portfolio, watched
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/banner-dark.png">
+    <img src="assets/readme/banner-light.png" alt="Nazar: your portfolio, watched" width="880">
+  </picture>
+</p>
 
-> **Nazar tracks everything you own (stocks, mutual funds, ETFs, gold, US stocks, crypto, deposits) and explains what your money did and why, in plain words.**
-> *It explains; you decide.*
+<p align="center">
+  <a href="https://github.com/sakshamm21/Nazar/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sakshamm21/Nazar/ci.yml?branch=main&style=flat-square&label=build&color=2b54f0" alt="Build status"></a>
+  <img src="https://img.shields.io/badge/tests-782%20passing-0e1424?style=flat-square" alt="782 tests">
+  <img src="https://img.shields.io/badge/made%20with-Next.js%2016%20%2B%20Postgres-0e1424?style=flat-square" alt="Made with Next.js and Postgres">
+  <img src="https://img.shields.io/badge/for-Indian%20investors-0e1424?style=flat-square" alt="For Indian investors">
+</p>
 
-**Live app:** https://nazar-watch.vercel.app (press **Try the demo**)
+<p align="center">
+  <b>Nazar tracks everything you own</b> (stocks, mutual funds, ETFs, gold, US stocks, crypto, deposits)<br>
+  and explains what your money did and why, in plain words.<br>
+  <i>It explains; you decide.</i>
+</p>
 
-**Earlier version:** [StockAI (legacy)](https://stockai-legacy.vercel.app), on the [`legacy`](https://github.com/sakshamm21/Nazar/tree/legacy) branch.
+<p align="center">
+  <a href="https://nazar-watch.vercel.app"><img src="https://img.shields.io/badge/Try%20the-live%20demo-2b54f0?style=for-the-badge" alt="Try the live demo"></a>
+  &nbsp;
+  <a href="#run-it-locally"><img src="https://img.shields.io/badge/Run%20it-locally-0e1424?style=for-the-badge" alt="Run it locally"></a>
+</p>
 
----
+<p align="center">
+  <img src="assets/readme/hero.png" alt="Nazar's Home and Portfolio screens in dark and light" width="820">
+</p>
+
+<p align="center"><sub><b>Earlier version:</b> <a href="https://stockai-legacy.vercel.app">StockAI (legacy)</a>, on the <a href="https://github.com/sakshamm21/Nazar/tree/legacy"><code>legacy</code></a> branch.</sub></p>
+
+## See it in action
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/demo-dark.gif">
+    <img src="assets/readme/demo-light.gif" alt="Dragging along the portfolio value chart and switching from three months to a year" width="720">
+  </picture>
+  <br>
+  <sub>Drag along the value chart to read any day, then switch the period. Everything is priced from stored data.</sub>
+</p>
+
+## Features
+
+- **Everything you own, in one place.** Stocks, mutual funds, ETFs, REITs, gold and silver,
+  US stocks, crypto, deposits, PPF, EPF, NPS, bonds, property and cash.
+- **Today in one sentence.** Your value, what changed, and which holdings did it.
+- **Analysis from arithmetic.** What moved, why, how much was simply the market, and how you
+  did against the Nifty. Reproducible and tested, never a forecast.
+- **Import in a minute.** Holdings files from Zerodha, Groww and Upstox, and CAMS / KFintech
+  mutual fund statements.
+- **SIPs and goals.** Monthly SIPs added at each day's price, and savings goals that show what
+  they need every month.
+- **Ask.** An AI research assistant with 30 tools, in English, Hindi or Hinglish, that can read
+  your portfolio and never change it.
+- **No advice, enforced.** A test fails the build if anything tells you what to buy, sell or hold.
+- **Free to run.** Free market data, free-tier hosting, and capped model spend.
+
+<p align="center">
+  <img src="assets/readme/phones.png" alt="Home, Portfolio and Analysis on a phone" width="620">
+  <br>
+  <sub>On a phone: Home, Portfolio and Analysis.</sub>
+</p>
+
+## Contents
+
+1. [Why Nazar](#why-nazar)
+2. [Try it in a minute](#try-it-in-a-minute)
+3. [Screens](#screens)
+4. [How it works](#how-it-works)
+5. [Tech stack](#tech-stack)
+6. [Project structure](#project-structure)
+7. [Design](#design)
+8. [Test accounts](#test-accounts)
+9. [Run it locally](#run-it-locally)
+10. [Testing](#testing)
+11. [Deploy your own](#deploy-your-own)
+12. [Disclaimer](#disclaimer)
 
 ## Why Nazar
 
@@ -29,7 +98,26 @@ Nazar puts everything in one place, keeps the prices fresh on its own, and answe
 
 Signing in is required. See [the test accounts](#test-accounts) below.
 
-## Features
+## Screens
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/readme/home-light.png" alt="Home in the light theme"></td>
+    <td width="50%"><img src="assets/readme/ask-dark.png" alt="An Ask answer in the dark theme"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Home</b>: your value, today's change in one sentence, and a heatmap</sub></td>
+    <td align="center"><sub><b>Ask</b>: answers from your portfolio and live data, with sources</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/readme/analysis-light.png" alt="Analysis in the light theme"></td>
+    <td width="50%"><img src="assets/readme/you-dark.png" alt="The You page in the dark theme"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Analysis</b>: what moved, why, and against the Nifty</sub></td>
+    <td align="center"><sub><b>You</b>: profile, savings goals and the model Ask uses</sub></td>
+  </tr>
+</table>
 
 | Screen | What it does |
 |---|---|
@@ -58,6 +146,8 @@ flowchart LR
   DB --> UI[Next.js app<br/>charts · analysis]
   UI --> A[Ask: topic check → agent with tools<br/>→ advice filter → trace]
   P --> A
+  classDef accent fill:#2b54f0,stroke:#2b54f0,color:#fff
+  class N,A accent
 ```
 
 - **Pages never call the market-data provider.** Each evening the checkup fetches the data for everything someone holds once, stores a snapshot, and computes beta and a financial-health score from the stored data. Pages read only from the database, so they are fast and keep showing the last known prices when a data source is down.
