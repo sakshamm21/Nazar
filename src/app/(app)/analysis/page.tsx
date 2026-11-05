@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, LayoutDashboard, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
+import { ArrowRight, CalendarClock, LayoutDashboard, MessageCircle, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
@@ -69,8 +69,11 @@ export default async function AnalysisPage() {
             {v.notes.map((n) => {
               const Icon = NOTE_ICON[n.kind];
               return (
-                <li key={n.id}>
-                  <Link href={n.href} className="group -mx-2 flex gap-3 rounded-[12px] px-2 py-3.5 hover:bg-surface-2">
+                <li key={n.id} className="relative">
+                  <Link href={`/ask?q=${encodeURIComponent(`${n.title}. ${n.body} What does this mean for me?`)}`} aria-label={`Ask about: ${n.title}`} className="absolute right-0 top-3 z-10 flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium text-accent hover:bg-accent-soft">
+                    <MessageCircle className="h-3.5 w-3.5" /> Ask
+                  </Link>
+                  <Link href={n.href} className="group -mx-2 flex gap-3 rounded-[12px] px-2 py-3.5 pr-16 hover:bg-surface-2">
                     <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-accent-soft text-accent">
                       <Icon className="h-[18px] w-[18px]" />
                     </span>

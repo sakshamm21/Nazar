@@ -121,5 +121,6 @@ export async function remainingToday(userId: string, isDemo: boolean, ip?: strin
   const perDay = isDemo ? LIMITS.perDayDemo : LIMITS.perDay;
   if (!perDay) return null;
   const n = await count(`chat:u:${isDemo && ip ? `${userId}:${ip}` : userId}`, new Date(Date.now() - 24 * HOUR));
-  return { remaining: Math.max(0, perDay - n), limit: perDay };
+  // A demo's smaller allowance also says what an account gets.
+  return { remaining: Math.max(0, perDay - n), limit: perDay, ...(isDemo && LIMITS.perDay ? { accountLimit: LIMITS.perDay } : {}) };
 }
