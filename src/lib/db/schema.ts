@@ -196,6 +196,27 @@ export const holdingSales = pgTable(
 );
 
 /**
+ * Money a holding paid out: a dividend, interest, or anything else the user records. Entered by the
+ * user, never guessed; it outlives the holding, like a sale.
+ */
+export const holdingIncome = pgTable(
+  "holding_income",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    holdingId: text("holding_id").references(() => holdings.id, { onDelete: "set null" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    kind: text("kind").$type<"dividend" | "interest" | "other">().notNull(),
+    amount: doublePrecision("amount").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("income_portfolio_idx").on(t.portfolioId, t.date), index("income_user_idx").on(t.userId, t.date)],
+);
+
+/**
  * Splits and bonus issues seen on held symbols. A row is written once per (symbol, ex-date), and
  * holdings are adjusted in the same step, so an action is never applied twice.
  */

@@ -120,3 +120,9 @@ export async function lotsForHolding(holdingId: string): Promise<Lot[]> {
     .where(eq(schema.holdingLots.holdingId, holdingId));
   return rows.map((r) => ({ quantity: r.quantity, price: r.price, date: r.date, remaining: r.remaining }));
 }
+/** One holding's purchases, oldest first, with ids, for its history. */
+export async function lotRowsForHolding(holdingId: string) {
+  const db = await getDb();
+  const rows = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, holdingId));
+  return rows.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}

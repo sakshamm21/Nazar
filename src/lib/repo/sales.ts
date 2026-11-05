@@ -1,9 +1,9 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { istDate } from "@/lib/data/provider";
 import { getDb, schema } from "@/lib/db";
-import { badRequest, conflict } from "@/lib/errors";
+import { badRequest, conflict, notFound } from "@/lib/errors";
 import { track } from "@/lib/events";
 import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { catalogItem } from "@/lib/instruments/catalog";
@@ -96,4 +96,23 @@ export async function salesForHolding(userId: string, holdingId: string): Promis
   const db = await getDb();
   const rows = await db.select().from(schema.holdingSales).where(eq(schema.holdingSales.holdingId, holdingId));
   return rows.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/**
+ * Takes one purchase out of a holding: entered by mistake, or one of a SIP's expected instalments
+ * that never happened. The units still held from it leave the position; what is left is summarised
+ * again from the other purchases. The last purchase can't be removed this way (remove the holding).
+ */
+export async function deleteLot(userId: string, holdingId: string, lotId: string) {
+  const h = await requireHolding(userId, holdingId);
+  const db = await getDb();
+  const lots = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, h.id));
+  const lot = lots.find((l) => l.id === lotId);
+  if (!lot) throw notFound("Purchase not found.");
+  const rest = lots.filter((l) => l.id !== lotId);
+  const after = summarise(rest.map((l) => ({ quantity: l.quantity, price: l.price, date: l.date, remaining: l.remaining })));
+  if (after.quantity <= 1e-9) throw badRequest("This is the only purchase still held. Remove the holding instead.");
+  await db.delete(schema.holdingLots).where(eq(schema.holdingLots.id, lotId));
+  await db.update(schema.holdings).set({ quantity: after.quantity, avgPrice: after.avgPrice, buyDate: after.buyDate, updatedAt: new Date() }).where(eq(schema.holdings.id, h.id));
+  if (lot.sipId) await db.update(schema.sips).set({ instalments: sql`greatest(${schema.sips.instalments} - 1, 0)`, invested: sql`greatest(${schema.sips.invested} - ${lot.quantity * lot.price}, 0)` }).where(eq(schema.sips.id, lot.sipId));
 }

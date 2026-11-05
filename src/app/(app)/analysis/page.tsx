@@ -90,6 +90,29 @@ export default async function AnalysisPage() {
             </>
           )}
         </p>
+        {(v.returns.sales > 0 || v.returns.income > 0) && (
+          <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Still in the portfolio", v.returns.unrealised, null],
+              ["Realised in sales", v.returns.realised, `${inr(Math.round(v.returns.realisedThisYear))} in ${v.returns.fy}`],
+              ["Paid out as income", v.returns.income, `${inr(Math.round(v.returns.incomeThisYear))} in ${v.returns.fy}`],
+              ["Total return", v.returns.total, null],
+            ].map(([label, amount, sub]) => (
+              <div key={label as string} className="rounded-[12px] bg-surface-2 px-3 py-2.5">
+                <dt className="text-[12px] text-subtle">{label}</dt>
+                <dd className="mt-0.5">
+                  <Delta amount={amount as number} size="sm" showArrow={false} />
+                  {sub && <span className="num block text-[11px] text-subtle">{sub}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {v.returns.sales > 0 && (
+          <Link href="/analysis/taxes" className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
+            Capital gains by financial year <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
           <ReturnList title="Gained the most" rows={winners} empty="Nothing is in profit yet." />
           <ReturnList title="Lost the most" rows={losers} empty="Nothing is at a loss." />

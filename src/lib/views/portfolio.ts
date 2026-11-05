@@ -9,7 +9,8 @@ import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay, displayName } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
 import { buildPerformance } from "@/lib/portfolio/performance";
-import { unrealisedParts } from "@/lib/portfolio/capital-gains";
+import { financialYear, unrealisedParts } from "@/lib/portfolio/capital-gains";
+import { incomeForPortfolios } from "@/lib/repo/income";
 import { amfiCategory } from "@/lib/instruments/catalog";
 import { lotRemaining } from "@/lib/portfolio/lots";
 import { lotsForPortfolios } from "@/lib/repo/lots";
@@ -75,10 +76,11 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   if (!active || !tradeDate) return { ...base, empty: true as const };
 
   const ids = combined ? portfolios.map((p) => p.id) : [active.id];
-  const [ownRows, ownLots, sales] = await Promise.all([
+  const [ownRows, ownLots, sales, income] = await Promise.all([
     db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, ids)),
     lotsForPortfolios(ids),
     combined ? salesForUser(user.id) : salesForPortfolio(active.id),
+    incomeForPortfolios(ids),
   ]);
   const { rows: holdingsRows, lots: lotsByHolding } = combined ? mergeHoldings(ownRows, ownLots) : { rows: ownRows, lots: ownLots };
   if (!holdingsRows.length) return { ...base, empty: true as const };
@@ -109,7 +111,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   };
   // Each purchase and each sale placed on its own day, so a SIP or a later sale is counted when it happened.
   const lotsBySymbol = new Map(holdingsRows.map((r) => [r.symbol, lotsByHolding.get(r.id) ?? []]));
-  const saleFlows = sales.map((s) => ({ date: s.date, amount: s.units * s.price, parts: s.parts }));
+  // Money that came back: sales (with the purchases they used), and dividends and interest.
+  const saleFlows = [...sales.map((s) => ({ date: s.date, amount: s.units * s.price, parts: s.parts })), ...income.map((x) => ({ date: x.date, amount: x.amount }))];
   const xirr = xirrVsNifty(states, new Date(`${tradeDate}T10:00:00Z`), niftyOn, nifty.get(tradeDate) ?? [...nifty.values()].at(-1) ?? null, { lots: lotsBySymbol, sales: saleFlows });
   const health = healthRollup(states);
   const stress10 = stressTest(states, -0.1);
@@ -229,6 +232,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     niftyPct: day.niftyPct,
     gains,
     sales,
+    income,
+    returns: returnsSummary(v.unrealised, sales, income, tradeDate),
     taxSlabPct: user.prefs?.taxSlabPct ?? null,
     valuation: v,
     attribution: attr,
@@ -261,6 +266,28 @@ export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
 export const portfolioView = cache(async (user: User, portfolioId?: string | null) => buildPortfolioView(user, portfolioId));
 
 /** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
+/**
+ * What the money has made, three ways: gains still in the portfolio, gains already taken by selling,
+ * and income paid out, each in total and for this financial year (April to March).
+ */
+export function returnsSummary(unrealised: number, sales: { units: number; price: number; cost: number; date: string }[], income: { amount: number; date: string }[], today: string) {
+  const fy = financialYear(today);
+  const inYear = (d: string) => d >= fy.from && d <= fy.to;
+  const realisedOf = (xs: typeof sales) => xs.reduce((a, s) => a + s.units * s.price - s.cost, 0);
+  const incomeOf = (xs: typeof income) => xs.reduce((a, x) => a + x.amount, 0);
+  const realised = realisedOf(sales), paid = incomeOf(income);
+  return {
+    fy: fy.label,
+    unrealised,
+    realised,
+    realisedThisYear: realisedOf(sales.filter((s) => inYear(s.date))),
+    income: paid,
+    incomeThisYear: incomeOf(income.filter((x) => inYear(x.date))),
+    total: unrealised + realised + paid,
+    sales: sales.length,
+  };
+}
+
 /** A split or bonus issue in the last month on something held: what it did to the share count. */
 function splitNotes(splits: Awaited<ReturnType<typeof recentSplits>>, day: Awaited<ReturnType<typeof loadPortfolioDay>>, rows: (typeof schema.holdings.$inferSelect)[]): Note[] {
   return splits.map((s) => {

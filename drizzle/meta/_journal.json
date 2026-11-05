@@ -99,6 +99,13 @@
       "when": 1793896428698,
       "tag": "0013_usage_visitor",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793897140039,
+      "tag": "0014_holding_income",
+      "breakpoints": true
     }
   ]
 }

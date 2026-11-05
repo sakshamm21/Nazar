@@ -1,7 +1,7 @@
 "use client";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
@@ -33,7 +33,8 @@ export type HoldingRow = {
 
 export type SipRow = { amount: number; dayOfMonth: number; startDate: string | null; endDate: string | null; active: boolean; nextDue: string; instalments: number; invested: number };
 
-type Action = "more" | "less" | "edit" | "sip";
+type Action = "more" | "less" | "edit" | "sip" | "income" | "history";
+type IncomeKind = "dividend" | "interest" | "other";
 const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/,/g, "")));
 const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
@@ -49,6 +50,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
   const [sipDay, setSipDay] = useState("");
   const [sipEnd, setSipEnd] = useState("");
   const [sipStart, setSipStart] = useState("");
+  const [incomeKind, setIncomeKind] = useState<IncomeKind>("dividend");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -82,7 +84,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     setError(null);
     setQty(a === "edit" ? String(r.quantity) : "");
     setPrice(a === "edit" ? String(r.avgPrice) : a === "less" && r.price != null ? r.price.toFixed(2) : "");
-    setDate(a === "edit" ? (r.buyDate ?? "") : a === "less" ? today() : "");
+    setDate(a === "edit" ? (r.buyDate ?? "") : a === "less" || a === "income" ? today() : "");
   };
 
   const q = num(qty), p = num(price);
@@ -121,6 +123,18 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         if (!(q > 0) || !(p > 0)) return setError(`Enter the ${unit} you bought and the price.`);
         setBusy(true);
         await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", { mode: "add", holdings: [{ symbol: r.symbol, quantity: q, avgPrice: p, buyDate: date || null, source: "manual" }] });
+      } else if (action === "history") {
+        onClose();
+        return;
+      } else if (action === "income") {
+        if (!(q > 0)) return setError("Enter the amount received.");
+        if (!date) return setError("Enter the day it was paid.");
+        setBusy(true);
+        await apiCall(`/api/holdings/${r.id}/income`, "POST", { amount: q, date, kind: incomeKind });
+        toast(`${inr(q)} ${incomeKind === "dividend" ? "dividend" : incomeKind === "interest" ? "interest" : "income"} from ${r.name} recorded`);
+        onClose();
+        router.refresh();
+        return;
       } else if (action === "less") {
         if (!(q > 0)) return setError(`Enter the ${unit} you sold.`);
         if (q > r.quantity) return setError(`This holding has ${units(r.quantity)} ${unit}.`);
@@ -160,7 +174,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
             <Trash2 className="h-4 w-4" /> Remove
           </Button>
           <Button loading={busy} onClick={save}>
-            {manual ? "Save" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : action === "sip" ? (r.sip ? (r.sip.active ? "Save SIP" : "Resume SIP") : "Start SIP") : "Save"}
+            {manual ? "Save" : action === "history" ? "Done" : action === "income" ? "Record income" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : action === "sip" ? (r.sip ? (r.sip.active ? "Save SIP" : "Resume SIP") : "Start SIP") : "Save"}
           </Button>
         </div>
       }
@@ -169,9 +183,24 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         <ManualFields draft={draft} onChange={setDraft} idPrefix="edit" />
       ) : (
         <div className="space-y-4">
-          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }, { value: "sip", label: r.sip ? "Monthly SIP ✓" : "Monthly SIP" }]} />
+          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }, { value: "sip", label: r.sip ? "Monthly SIP ✓" : "Monthly SIP" }, { value: "income", label: "Income" }, { value: "history", label: "History" }]} />
+          {action === "history" && <HistoryPanel id={r.id} unit={unit} onChanged={() => router.refresh()} />}
+          {action === "income" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Amount received (₹)" htmlFor="ia">
+                  <Input id="ia" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="2500" />
+                </Field>
+                <Field label="Paid on" htmlFor="id">
+                  <Input id="id" type="date" max={today()} value={date} onChange={(e) => setDate(e.target.value)} />
+                </Field>
+              </div>
+              <Segmented<IncomeKind> label="Kind of income" size="sm" value={incomeKind} onChange={setIncomeKind} options={[{ value: "dividend", label: "Dividend" }, { value: "interest", label: "Interest" }, { value: "other", label: "Other" }]} />
+              <p className="t-caption">What landed in your bank. It counts in this holding&apos;s total return, and stays in your records after the holding is sold.</p>
+            </div>
+          )}
           {action === "sip" && <SipFields r={r} amount={sipAmount} day={sipDay} end={sipEnd} start={sipStart} onAmount={setSipAmount} onDay={setSipDay} onEnd={setSipEnd} onStart={setSipStart} busy={busy} setBusy={setBusy} onError={setError} onDone={() => { onClose(); router.refresh(); }} />}
-          <div className={action === "sip" ? "hidden" : "grid grid-cols-2 gap-3"}>
+          <div className={action === "sip" || action === "income" || action === "history" ? "hidden" : "grid grid-cols-2 gap-3"}>
             <Field label={action === "more" ? `${unit[0].toUpperCase()}${unit.slice(1)} bought` : action === "less" ? `${unit[0].toUpperCase()}${unit.slice(1)} sold` : `${unit[0].toUpperCase()}${unit.slice(1)} held`} htmlFor="hq">
               <Input id="hq" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder={action === "less" ? String(r.quantity) : "10"} />
             </Field>
@@ -293,5 +322,66 @@ function SipFields({ r, amount, day, end, start, onAmount, onDay, onEnd, onStart
         </button>
       )}
     </div>
+  );
+}
+
+type History = { lots: { id: string; date: string; quantity: number; remaining: number; price: number; sip: boolean }[]; sales: { id: string; date: string; units: number; price: number; cost: number }[]; income: { id: string; date: string; kind: string; amount: number }[] };
+
+/** Every purchase (and how much of it is still held), every sale and every payout, newest first. */
+function HistoryPanel({ id, unit, onChanged }: { id: string; unit: string; onChanged: () => void }) {
+  const [h, setH] = useState<History | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => {
+    apiCall<History>(`/api/holdings/${id}/history`, "GET").then(setH).catch((e) => setError((e as Error).message));
+  }, [id]);
+  useEffect(load, [load]);
+  const remove = async (url: string, what: string) => {
+    try {
+      await apiCall(url, "DELETE");
+      toast(`${what} removed`);
+      load();
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+  if (error) return <FormAlert message={error} />;
+  if (!h) return <p className="text-sm text-muted">Loading…</p>;
+  const live = h.lots.filter((l) => l.remaining > 0).length;
+  type Entry = { key: string; date: string; text: string; amount: number; sub: string; onDelete?: () => void };
+  const entries: Entry[] = [
+    ...h.lots.map((l) => ({
+      key: `l${l.id}`,
+      date: l.date,
+      text: `${l.sip ? "SIP instalment" : "Bought"} ${units(l.quantity)} ${unit} at ${inr(l.price, { decimals: 2 })}`,
+      amount: -l.quantity * l.price,
+      sub: l.remaining <= 0 ? "all sold since" : l.remaining < l.quantity ? `${units(l.remaining)} still held` : "still held",
+      onDelete: l.remaining > 0 && live > 1 ? () => remove(`/api/holdings/${id}/lots/${l.id}`, "Purchase") : undefined,
+    })),
+    ...h.sales.map((x) => ({ key: `s${x.id}`, date: x.date, text: `Sold ${units(x.units)} ${unit} at ${inr(x.price, { decimals: 2 })}`, amount: x.units * x.price, sub: `${x.units * x.price - x.cost >= 0 ? "gain" : "loss"} of ${inr(Math.abs(Math.round(x.units * x.price - x.cost)))}` })),
+    ...h.income.map((x) => ({ key: `i${x.id}`, date: x.date, text: x.kind === "dividend" ? "Dividend" : x.kind === "interest" ? "Interest" : "Income", amount: x.amount, sub: "paid out", onDelete: () => remove(`/api/income/${x.id}`, "Income") })),
+  ].sort((a, b) => (a.date < b.date ? 1 : -1));
+  if (!entries.length) return <p className="text-sm text-muted">Nothing recorded yet.</p>;
+  return (
+    <ul className="divide-y divide-line rounded-[12px] border border-line">
+      {entries.map((e) => (
+        <li key={e.key} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+          <span className="min-w-0">
+            <span className="block text-sm text-text">{e.text}</span>
+            <span className="block text-[12px] text-subtle">
+              {dayLabel(e.date, "en")} · {e.sub}
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1">
+            <span className={`num text-sm ${e.amount >= 0 ? "text-gain" : "text-muted"}`}>{e.amount >= 0 ? "+" : "−"}{inr(Math.abs(Math.round(e.amount)))}</span>
+            {e.onDelete && (
+              <button onClick={e.onDelete} aria-label={`Remove: ${e.text}`} className="rounded-full p-1.5 text-subtle hover:bg-loss-soft hover:text-loss">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

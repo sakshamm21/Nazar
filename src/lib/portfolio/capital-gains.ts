@@ -103,7 +103,7 @@ export function taxKindOf(o: { assetClass?: string | null; symbol?: string; cate
 export const rateFor = (r: Rate, slabPct: number | null): number | null => (r === "slab" ? (slabPct == null ? null : slabPct / 100) : r);
 
 /** One block of units: its gain, how long it was held, and the rules it follows. */
-export type GainPart = { symbol: string; name: string; kind: TaxKind; units: number; cost: number; value: number; gain: number; daysHeld: number; longTerm: boolean };
+export type GainPart = { symbol: string; name: string; kind: TaxKind; units: number; cost: number; value: number; gain: number; daysHeld: number; longTerm: boolean; /** The day the units were bought. */ bought?: string | null };
 
 export type Bucket = {
   kind: TaxKind;
@@ -211,7 +211,7 @@ export function unrealisedParts(positions: Position[], today: string): GainPart[
       const daysHeld = l.date ? holdingDays(l.date, today) : 0;
       const cost = l.units * l.price;
       const value = l.units * p.price;
-      out.push({ symbol: p.symbol, name: p.name, kind, units: l.units, cost, value, gain: value - cost, daysHeld, longTerm: isLongTerm(kind, daysHeld) });
+      out.push({ symbol: p.symbol, name: p.name, kind, units: l.units, cost, value, gain: value - cost, daysHeld, longTerm: isLongTerm(kind, daysHeld), bought: l.date });
     }
   }
   return out;
@@ -224,7 +224,7 @@ export function realisedParts(sale: { symbol: string; name: string; assetClass: 
     const daysHeld = holdingDays(p.date, sale.date);
     const cost = p.units * p.price;
     const value = p.units * sale.price;
-    return { symbol: sale.symbol, name: sale.name, kind, units: p.units, cost, value, gain: value - cost, daysHeld, longTerm: isLongTerm(kind, daysHeld) };
+    return { symbol: sale.symbol, name: sale.name, kind, units: p.units, cost, value, gain: value - cost, daysHeld, longTerm: isLongTerm(kind, daysHeld), bought: p.date };
   });
 }
 
