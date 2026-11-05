@@ -8,10 +8,17 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
 const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600"], variable: "--font-devanagari", display: "swap" });
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+const DESCRIPTION = "Track everything you own, from stocks and funds to gold, crypto and FDs, and see what your money did and why, in plain words. Free. No tips, no predictions.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: { default: "Nazar · Your portfolio, watched", template: "%s · Nazar" },
-  description: "Nazar watches your stocks every day and messages you only when something important happens, explaining what happened and why, in plain language.",
+  description: DESCRIPTION,
   applicationName: "Nazar",
+  manifest: "/manifest.webmanifest",
+  openGraph: { type: "website", siteName: "Nazar", title: "Nazar · Your portfolio, watched", description: DESCRIPTION, locale: "en_IN" },
+  twitter: { card: "summary_large_image", title: "Nazar · Your portfolio, watched", description: DESCRIPTION },
   icons: { icon: [{ url: "/icon.svg?v=rings", type: "image/svg+xml" }] },
 };
 

@@ -92,7 +92,7 @@ export default async function PortfolioPage() {
         health: view.health,
         innerRing: view.innerRing,
         risk: { stressLoss: view.risk.stress10.loss, effectiveBets: view.risk.diversification?.effectiveBets ?? null, clusterCount: view.risk.diversification?.clusters[0]?.symbols.length ?? null, clusterWeight: view.risk.diversification?.clusters[0]?.weight ?? null },
-        cards: view.cards.map((c) => ({ symbol: c.symbol, name: c.name, assetClass: c.assetClass, href: c.href, value: c.value, weight: c.weight, pnl: c.pnl, pnlPct: c.pnlPct, changePct: c.href == null ? null : c.changePct, dayImpact: c.href == null ? null : c.dayImpact, health: c.health, sparkline: c.sparkline, pending: c.pending })),
+        cards: view.cards.map((c) => ({ symbol: c.symbol, name: c.name, assetClass: c.assetClass, href: c.href, value: c.value, weight: c.weight, pnl: c.pnl, pnlPct: c.pnlPct, changePct: c.href == null ? null : c.changePct, dayImpact: c.href == null ? null : c.dayImpact, health: c.health, sparkline: c.sparkline, pending: c.pending, healthLabel: c.healthLabel, priceDate: c.priceDate })),
       };
 
   return (

@@ -159,3 +159,12 @@ describe("portfolio health (outer ring)", () => {
     expect(r).toMatchObject({ scored: 2, total: 3, coverageByValue: 0.8 });
   });
 });
+
+describe("health labels", () => {
+  it("a bank's lender check is never shown as if it were a company's score", async () => {
+    const { healthLabelOf } = await import("@/lib/views/portfolio");
+    expect(healthLabelOf(100, { kind: "lender", lenderPassed: 4, lenderTests: [{ pass: true }, { pass: true }, { pass: true }, { pass: true }] })).toBe("lender check 4 of 4");
+    expect(healthLabelOf(75, { kind: "piotroski" })).toBe("health 75");
+    expect(healthLabelOf(null, null)).toBeNull();
+  });
+});

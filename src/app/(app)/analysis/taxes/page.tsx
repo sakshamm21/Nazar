@@ -65,7 +65,7 @@ export default async function TaxesPage({ searchParams }: { searchParams: Promis
               <div>
                 <div className="text-[12px] text-subtle">Tax at these rates, with cess</div>
                 <div className="num text-[15px] font-medium text-text">
-                  {inr(Math.round(sum.tax))}
+                  {sum.tax >= 0.5 ? inr(Math.round(sum.tax), { decimals: 0 }) : "nil"}
                   {sum.untaxedSlabGain > 0 ? " + slab" : ""}
                 </div>
               </div>
@@ -88,7 +88,7 @@ export default async function TaxesPage({ searchParams }: { searchParams: Promis
                   </div>
                   <div className="mt-0.5 flex items-baseline justify-between gap-2">
                     <Delta amount={b.gain} size="sm" showArrow={false} />
-                    <span className="num text-[13px] font-medium text-text">{b.tax == null ? "at your slab" : inr(Math.round(b.tax))}</span>
+                    <span className="num text-[13px] font-medium text-text">{b.tax == null ? "at your slab" : b.tax >= 0.5 ? inr(Math.round(b.tax), { decimals: 0 }) : "nil"}</span>
                   </div>
                   {b.exempt > 0 && <div className="text-[11px] text-subtle">{inrCompact(b.exempt)} within the yearly exemption</div>}
                 </div>

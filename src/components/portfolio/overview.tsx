@@ -11,11 +11,11 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Delta } from "@/components/ui/delta";
 import { InfoTip } from "@/components/ui/info-tip";
 import { cn } from "@/lib/cn";
-import { absPct, inr, inrCompact, signedPct } from "@/lib/format";
+import { absPct, dayLabel, inr, inrCompact, signedPct } from "@/lib/format";
 import { ASSET_META, shortCode, type AssetClass } from "@/lib/instruments/asset-classes";
 import { AssetIcon } from "./asset-ui";
 
-export type OverviewCard = { symbol: string; name: string; assetClass: AssetClass; href: string | null; value: number; weight: number; pnl: number; pnlPct: number | null; changePct: number | null; dayImpact: number | null; health: number | null; sparkline: number[]; pending?: boolean };
+export type OverviewCard = { symbol: string; name: string; assetClass: AssetClass; href: string | null; value: number; weight: number; pnl: number; pnlPct: number | null; changePct: number | null; dayImpact: number | null; health: number | null; sparkline: number[]; pending?: boolean; healthLabel?: string | null; priceDate?: string | null };
 export type OverviewData = {
   name: string;
   asOf: string;
@@ -170,14 +170,14 @@ export function Overview({ d }: { d: OverviewData }) {
                     </div>
                     <span className="truncate text-[12px] text-subtle">
                       {absPct(c.weight, 0)} · {c.assetClass === "stock" ? shortCode(c.symbol) : ASSET_META[c.assetClass].label}
-                      {c.health != null && <> · health {c.health}</>}
+                      {c.healthLabel ? <> · {c.healthLabel}</> : c.health != null ? <> · health {c.health}</> : null}
                     </span>
                   </div>
                 </div>
                 {c.sparkline.length > 1 && <Sparkline values={c.sparkline} width={72} height={28} className="hidden shrink-0 md:block" />}
                 <div className="w-[92px] shrink-0 text-right">
                   <div className="num text-[15px] font-medium text-text">{inr(c.value)}</div>
-                  <div className="num text-[12px] text-subtle">{c.changePct != null ? <span className={c.changePct > 0 ? "text-gain" : c.changePct < 0 ? "text-loss" : ""}>{signedPct(c.changePct)} today</span> : c.pending ? "NAV pending" : "no daily price"}</div>
+                  <div className="num text-[12px] text-subtle">{c.changePct != null ? <span className={c.changePct > 0 ? "text-gain" : c.changePct < 0 ? "text-loss" : ""}>{signedPct(c.changePct)} today</span> : c.pending ? "NAV pending" : c.priceDate ? <span className="text-warn">price from {dayLabel(c.priceDate, "en", false)}</span> : "no daily price"}</div>
                 </div>
                 <div className="hidden w-[96px] shrink-0 text-right sm:block">
                   <Delta amount={c.pnl} compact showArrow={false} size="sm" />

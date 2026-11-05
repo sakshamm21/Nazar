@@ -160,7 +160,7 @@ export default async function AnalysisPage() {
           <RingGauge outer={v.health.score} inner={v.innerRing} size={124} label="health" />
           <div className="min-w-[200px] flex-1">
             <RingLegend outer={v.health.score} inner={v.innerRing} />
-            <p className="t-caption mt-3">{v.health.scored} of {v.health.total} holdings have a health score. Funds, gold and deposits are not scored.</p>
+            <p className="t-caption mt-3">{v.health.scored} of {v.health.total} holdings have a health score. Funds, gold and deposits are not scored. Companies get a 9-test score (Piotroski and Altman); banks and lenders, whose accounts work differently, get a 4-test lender check, shown as tests passed.</p>
           </div>
         </div>
         {scored.length > 1 && (
@@ -210,7 +210,9 @@ function HealthList({ title, rows }: { title: string; rows: CardRow[] }) {
         {rows.map((c) => (
           <li key={c.symbol} className="flex items-baseline justify-between gap-2 text-sm">
             <Link href={c.href ?? "/portfolio"} className="min-w-0 truncate text-text hover:underline">{c.name}</Link>
-            <span className={`num font-medium ${c.health! >= 70 ? "text-gain" : c.health! >= 45 ? "text-text" : "text-loss"}`}>{c.health}</span>
+            <span className={`num font-medium ${c.health! >= 70 ? "text-gain" : c.health! >= 45 ? "text-text" : "text-loss"}`} title={c.healthKind === "lender" ? "Banks and lenders get a 4-test lender check instead of the 9-test score" : undefined}>
+              {c.healthKind === "lender" ? (c.healthLabel ?? c.health) : c.health}
+            </span>
           </li>
         ))}
       </ul>
