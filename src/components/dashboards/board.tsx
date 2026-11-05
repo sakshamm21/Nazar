@@ -162,7 +162,7 @@ export function DashboardBoard({ dashboards, active, cards, options }: { dashboa
           </Card>
         )}
       </div>
-      <p className="t-caption">Worked out from what you hold today, priced on each past day. A comparison, not a forecast.</p>
+      <p className="t-caption">Worked out from your holdings today, priced on each past day. A comparison, not a forecast.</p>
     </div>
   );
 }

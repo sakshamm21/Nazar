@@ -34,7 +34,7 @@ export default async function DashboardsPage({ searchParams }: { searchParams: P
     const base = { widget: w, title: partLabel(w.part, names), scope: scopeName ?? "A deleted portfolio", benchmark: benchmarkLabel(w.benchmark), period: DASH_PERIODS.find((p) => p.id === w.period)!.label };
     if (!scopeName || !view || view.empty || (w.portfolio !== ALL && view.active?.id !== w.portfolio)) return { ...base, result: null, reason: scopeName ? "Nothing priced in this portfolio yet." : "That portfolio was deleted. Pick another." };
     const r = compare(view.perf.holdings, view.perf.dates, w.part, bench.get(w.benchmark) ?? new Map(), w.period);
-    return { ...base, result: r, reason: r ? null : "Nothing you hold matches this any more." };
+    return { ...base, result: r, reason: r ? null : "Nothing in this portfolio matches this any more." };
   });
 
   const groups = all.empty ? [] : GROUP_ORDER.filter((g) => all.perf.holdings.some((h) => h.group === g));
