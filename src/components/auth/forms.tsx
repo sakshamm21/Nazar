@@ -53,7 +53,7 @@ export function SignInForm({ demo }: { demo: { email: string; password: string }
     <>
       {demo && (
         <>
-          <DemoButton email={demo.email} password={demo.password} className="w-full" />
+          <DemoButton className="w-full" />
           <p className="t-caption mt-2.5 text-center">One tap. A full portfolio on live prices, nothing to type.</p>
           <div className="my-6 flex items-center gap-3 text-[12px] text-subtle" aria-hidden>
             <span className="h-px flex-1 bg-line" /> or use your account <span className="h-px flex-1 bg-line" />

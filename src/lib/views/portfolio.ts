@@ -9,17 +9,50 @@ import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay, displayName } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
 import { buildPerformance } from "@/lib/portfolio/performance";
-import { unrealisedParts } from "@/lib/portfolio/capital-gains";
+import { financialYear, unrealisedParts } from "@/lib/portfolio/capital-gains";
+import { incomeForPortfolios } from "@/lib/repo/income";
 import { amfiCategory } from "@/lib/instruments/catalog";
 import { lotRemaining } from "@/lib/portfolio/lots";
-import { lotsForPortfolio } from "@/lib/repo/lots";
+import { lotsForPortfolios } from "@/lib/repo/lots";
+import type { Lot } from "@/lib/portfolio/lots";
 import { recentSplits } from "@/lib/pipeline/corporate-actions";
-import { salesForPortfolio } from "@/lib/repo/sales";
+import { salesForPortfolio, salesForUser } from "@/lib/repo/sales";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
 import { logger } from "@/lib/logger";
 
 type User = typeof schema.users.$inferSelect;
+type HoldingRow = typeof schema.holdings.$inferSelect;
+
+/** The id that stands for every portfolio at once. */
+export const ALL = "all";
+/** The portfolio a view is about: one of the user's, or all of them together. */
+export type ActivePortfolio = { id: string; name: string; isDefault: boolean; combined?: boolean };
+
+/**
+ * Every portfolio's holdings as one: the same symbol in two portfolios is one position (units added,
+ * average weighted, every purchase kept), so a stock is never counted, charted or weighted twice.
+ */
+export function mergeHoldings(rows: HoldingRow[], lots: Map<string, Lot[]>) {
+  const bySymbol = new Map<string, HoldingRow[]>();
+  for (const r of rows) bySymbol.set(r.symbol, [...(bySymbol.get(r.symbol) ?? []), r]);
+  const out: HoldingRow[] = [];
+  const outLots = new Map<string, Lot[]>();
+  for (const [symbol, group] of bySymbol) {
+    if (group.length === 1) {
+      out.push(group[0]);
+      outLots.set(group[0].id, lots.get(group[0].id) ?? []);
+      continue;
+    }
+    const quantity = group.reduce((a, r) => a + r.quantity, 0);
+    const cost = group.reduce((a, r) => a + r.quantity * r.avgPrice, 0);
+    const dates = group.map((r) => r.buyDate).filter((d): d is string => !!d).sort();
+    const id = `${ALL}:${symbol}`;
+    out.push({ ...group[0], id, quantity, avgPrice: quantity ? cost / quantity : 0, buyDate: dates[0] ?? null });
+    outLots.set(id, group.flatMap((r) => lots.get(r.id) ?? []));
+  }
+  return { rows: out, lots: outLots };
+}
 
 export type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster" | "split"; title: string; body: string; href: string };
 
@@ -34,15 +67,26 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   // Queries that do not depend on each other are sent together. Each is a network round trip to
   // the database, and one after another they were most of what a portfolio answer waited for.
   const [portfolios, tradeDate, watching] = await Promise.all([listPortfolios(user.id), latestTradeDate(db, sources), listWatching(user.id)]);
-  const active = portfolios.find((p) => p.id === portfolioId) ?? portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null;
+  // With two or more portfolios, "All" is a choice of its own, and the one shown when none was picked.
+  const combined = portfolios.length >= 2 && (portfolioId === ALL || !portfolios.some((p) => p.id === portfolioId));
+  const active: ActivePortfolio | null = combined
+    ? { id: ALL, name: "All portfolios", isDefault: false, combined: true }
+    : ((portfolios.find((p) => p.id === portfolioId) ?? portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null) as ActivePortfolio | null);
   const base = { user, portfolios, active, tradeDate, sources, watchingCount: watching.length };
   if (!active || !tradeDate) return { ...base, empty: true as const };
 
-  const holdingsRows = await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, active.id));
+  const ids = combined ? portfolios.map((p) => p.id) : [active.id];
+  const [ownRows, ownLots, sales, income] = await Promise.all([
+    db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, ids)),
+    lotsForPortfolios(ids),
+    combined ? salesForUser(user.id) : salesForPortfolio(active.id),
+    incomeForPortfolios(ids),
+  ]);
+  const { rows: holdingsRows, lots: lotsByHolding } = combined ? mergeHoldings(ownRows, ownLots) : { rows: ownRows, lots: ownLots };
   if (!holdingsRows.length) return { ...base, empty: true as const };
 
   const symbols = holdingsRows.map((h) => h.symbol).filter((s) => !isManualSymbol(s));
-  const [day, hist, peerSnaps, lotsByHolding, sales] = await Promise.all([
+  const [day, hist, peerSnaps] = await Promise.all([
     loadPortfolioDay(db, holdingsRows, tradeDate, sources),
     priceHistory(db, [...symbols, NIFTY], sources, shiftDate(tradeDate, -400), tradeDate),
     // Valuation vs peers: P/E against other same-sector stocks Nazar tracks on this date.
@@ -51,8 +95,6 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
       .from(schema.symbolSnapshots)
       .innerJoin(schema.instruments, eq(schema.instruments.symbol, schema.symbolSnapshots.symbol))
       .where(and(eq(schema.symbolSnapshots.tradeDate, tradeDate), inArray(schema.symbolSnapshots.source, dateSources(sources)))),
-    lotsForPortfolio(active.id),
-    salesForPortfolio(active.id),
   ]);
   const states: HoldingState[] = day.holdings;
   const v = valuation(states);
@@ -69,7 +111,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   };
   // Each purchase and each sale placed on its own day, so a SIP or a later sale is counted when it happened.
   const lotsBySymbol = new Map(holdingsRows.map((r) => [r.symbol, lotsByHolding.get(r.id) ?? []]));
-  const saleFlows = sales.map((s) => ({ date: s.date, amount: s.units * s.price, parts: s.parts }));
+  // Money that came back: sales (with the purchases they used), and dividends and interest.
+  const saleFlows = [...sales.map((s) => ({ date: s.date, amount: s.units * s.price, parts: s.parts })), ...income.map((x) => ({ date: x.date, amount: x.amount }))];
   const xirr = xirrVsNifty(states, new Date(`${tradeDate}T10:00:00Z`), niftyOn, nifty.get(tradeDate) ?? [...nifty.values()].at(-1) ?? null, { lots: lotsBySymbol, sales: saleFlows });
   const health = healthRollup(states);
   const stress10 = stressTest(states, -0.1);
@@ -134,8 +177,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   const dates = [...nifty.keys()].filter((d) => d <= tradeDate);
   if (dates.at(-1) !== tradeDate) dates.push(tradeDate);
   const rowOf = new Map(holdingsRows.map((r) => [r.symbol, r]));
-  const performance = buildPerformance(
-    day.holdings.map((h) => {
+  const perfHoldings = day.holdings.map((h) => {
       const row = rowOf.get(h.symbol)!;
       const manual = isManualSymbol(h.symbol);
       return {
@@ -151,10 +193,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
         closes: manual ? null : [...(hist.get(h.symbol)?.entries() ?? [])],
         valueOn: manual ? (d: string) => manualValue(row.assetClass, row.details, row.avgPrice, d) : undefined,
       };
-    }),
-    dates,
-    nifty,
-  );
+    });
+  const performance = buildPerformance(perfHoldings, dates, nifty);
 
   // Capital gains: the gains sitting in the portfolio, one part per purchase still held, so a
   // holding topped up recently is part short-term and part long-term. Dated by the trade date, the
@@ -189,6 +229,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     niftyPct: day.niftyPct,
     gains,
     sales,
+    income,
+    returns: returnsSummary(v.unrealised, sales, income, tradeDate),
     taxSlabPct: user.prefs?.taxSlabPct ?? null,
     valuation: v,
     attribution: attr,
@@ -205,6 +247,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     states,
     notes: [...splitNotes(await recentSplits(db, symbols, shiftDate(tradeDate, -30)), day, holdingsRows), ...notesFor(tradeDate, day, conc, div)],
     staleCount: cards.filter((c) => c.stale).length,
+    /** Each holding as the value history sees it, and the dates, for comparisons built on top. */
+    perf: { holdings: perfHoldings, dates },
     /** The closes already read for this portfolio, so a page can reuse them instead of re-querying. */
     history: hist,
   };
@@ -221,6 +265,28 @@ export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
 export const portfolioView = cache(async (user: User, portfolioId?: string | null) => buildPortfolioView(user, portfolioId));
 
 /** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
+/**
+ * What the money has made, three ways: gains still in the portfolio, gains already taken by selling,
+ * and income paid out, each in total and for this financial year (April to March).
+ */
+export function returnsSummary(unrealised: number, sales: { units: number; price: number; cost: number; date: string }[], income: { amount: number; date: string }[], today: string) {
+  const fy = financialYear(today);
+  const inYear = (d: string) => d >= fy.from && d <= fy.to;
+  const realisedOf = (xs: typeof sales) => xs.reduce((a, s) => a + s.units * s.price - s.cost, 0);
+  const incomeOf = (xs: typeof income) => xs.reduce((a, x) => a + x.amount, 0);
+  const realised = realisedOf(sales), paid = incomeOf(income);
+  return {
+    fy: fy.label,
+    unrealised,
+    realised,
+    realisedThisYear: realisedOf(sales.filter((s) => inYear(s.date))),
+    income: paid,
+    incomeThisYear: incomeOf(income.filter((x) => inYear(x.date))),
+    total: unrealised + realised + paid,
+    sales: sales.length,
+  };
+}
+
 /** A split or bonus issue in the last month on something held: what it did to the share count. */
 function splitNotes(splits: Awaited<ReturnType<typeof recentSplits>>, day: Awaited<ReturnType<typeof loadPortfolioDay>>, rows: (typeof schema.holdings.$inferSelect)[]): Note[] {
   return splits.map((s) => {

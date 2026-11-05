@@ -449,7 +449,7 @@ function userTools(userId: string) {
     const names = pfs.map((p) => p.name);
     return v.empty ? { empty: { portfolios: names, empty: true as const, note: EMPTY_NOTE } } : { v, names };
   };
-  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.");
+  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for all of them together.");
   const r0 = (n: number) => Math.round(n);
 
   return {

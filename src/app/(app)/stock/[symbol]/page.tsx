@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sparkline } from "@/components/charts/sparkline";
 import { ExcelDownload } from "@/components/stock/excel-download";
+import { StockActions } from "@/components/stock/stock-actions";
 import { StockChart } from "@/components/stock/stock-chart";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -61,11 +62,19 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   if (!date) notFound();
   const [snaps, inst, hist, results] = await Promise.all([snapshotsAsOf(db, [symbol, NIFTY], date, sources), instrumentsFor(db, [symbol]), priceHistory(db, [symbol, NIFTY], sources, shiftDate(date, -400), date), latestResults(db, [symbol], sources)]);
   const snap = snaps.get(symbol);
+  const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, user.id));
+  const [mine, watchRow] = await Promise.all([
+    pfs.length ? db.select().from(schema.holdings).where(and(eq(schema.holdings.symbol, symbol), inArray(schema.holdings.portfolioId, pfs.map((p) => p.id)))) : Promise.resolve([]),
+    db.select().from(schema.watching).where(and(eq(schema.watching.userId, user.id), eq(schema.watching.symbol, symbol))).limit(1),
+  ]);
+  const actions = (n: string) => <StockActions symbol={symbol} name={n} assetClass={assetClass} watching={watchRow.length > 0} held={mine.map((h) => ({ id: h.id, portfolioId: h.portfolioId, portfolio: pfs.find((p) => p.id === h.portfolioId)?.name ?? "" }))} />;
   if (!snap) {
+    const n = catalogItem(symbol)?.name ?? symbol.replace(/\.NS$/, "");
     return (
       <div className="mx-auto max-w-3xl space-y-4">
-        <h1 className="t-title-1 text-text">{catalogItem(symbol)?.name ?? symbol.replace(/\.NS$/, "")}</h1>
-        <Card className="p-6 text-sm text-muted">Nazar hasn&apos;t checked this yet. Add it to a portfolio or your Watching list and it&apos;ll appear within a minute or two.</Card>
+        <h1 className="t-title-1 text-text">{n}</h1>
+        <Card className="p-6 text-sm text-muted">Nazar hasn&apos;t checked this yet. Add it to a portfolio or your Watching list and its prices, chart and details appear within a minute or two.</Card>
+        <div className="flex flex-wrap gap-2">{actions(n)}</div>
       </div>
     );
   }
@@ -76,8 +85,6 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   const nifty = hist.get(NIFTY) ?? new Map<string, number>();
   const points = [...closes.entries()].map(([d, value]) => ({ date: d, value }));
   const health = snap.health;
-  const pfs = await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, user.id));
-  const mine = pfs.length ? await db.select().from(schema.holdings).where(and(eq(schema.holdings.symbol, symbol), inArray(schema.holdings.portfolioId, pfs.map((p) => p.id)))) : [];
   const healthHist = await db
     .select({ d: schema.symbolSnapshots.tradeDate, h: schema.symbolSnapshots.health })
     .from(schema.symbolSnapshots)
@@ -133,7 +140,8 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
             <span className="t-caption">{assetClass === "mf" ? "latest NAV" : assetClass === "gold" ? "indicative price per gram" : assetClass === "us" || assetClass === "crypto" ? "dollar price in rupees" : `as of ${dayLabel(snap.tradeDate, "en")} close`}</span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {actions(name)}
           {excelParts.length > 0 && <ExcelDownload parts={excelParts} title={`${name} · Nazar model`} />}
           <ButtonLink href={`/ask?q=${encodeURIComponent(askAbout(name, symbol, mine.length > 0))}`} variant="secondary">
             <MessageCircle className="h-4 w-4" /> Ask
