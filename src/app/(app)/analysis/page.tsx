@@ -96,7 +96,7 @@ export default async function AnalysisPage() {
         </div>
       </Card>
 
-      <CapitalGainsCard rows={v.gains} />
+      <CapitalGainsCard parts={v.gains} slabPct={v.taxSlabPct} />
 
       <Card className="p-5 sm:p-6">
         <CardHeader overline="Risk" title="What could hurt, and how concentrated you are" right={<InfoTip k="stress" />} />

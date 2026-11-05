@@ -90,7 +90,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
       : action === "less" && q > 0 && q < r.quantity
         ? `After this: ${units(r.quantity - q)} ${unit} left.${p > 0 ? ` The sale brings in ${inr(q * p)}.` : ""} The oldest purchases are sold first.`
         : action === "less" && q > r.quantity
-          ? `You hold ${units(r.quantity)} ${unit}.`
+          ? `This holding has ${units(r.quantity)} ${unit}.`
           : action === "less" && q === r.quantity
             ? `That is all of it, so ${r.name} leaves this portfolio. The sale is kept in your gains.`
             : null;
@@ -120,7 +120,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", { mode: "add", holdings: [{ symbol: r.symbol, quantity: q, avgPrice: p, buyDate: date || null, source: "manual" }] });
       } else if (action === "less") {
         if (!(q > 0)) return setError(`Enter the ${unit} you sold.`);
-        if (q > r.quantity) return setError(`You hold ${units(r.quantity)} ${unit}.`);
+        if (q > r.quantity) return setError(`This holding has ${units(r.quantity)} ${unit}.`);
         if (!(p > 0)) return setError("Enter the price you sold at.");
         if (!date) return setError("Enter the day of the sale.");
         setBusy(true);

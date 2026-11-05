@@ -11,7 +11,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   "capital-gains": {
     term: "Capital gains buckets",
     plain:
-      "India taxes a profit on shares in two buckets: sold within a year at 20%, or held over a year at 12.5%. Gold, property and most other assets pay 12.5% either way. Long-term equity gains up to ₹1.25 lakh a year are exempt. Which bucket a holding lands in depends on the day its units are sold, so these figures only change when something actually sells.",
+      "India taxes a profit by what was sold and how long it was held. Shares and equity funds: 20% within a year, 12.5% after, with ₹1.25 lakh of long-term gains a year exempt. Gold ETFs: your slab rate within a year, 12.5% after. US stocks and physical gold: your slab rate within two years, 12.5% after. Debt funds bought since April 2023: always your slab rate. Crypto: 30%, and its losses can't be set off. A 4% cess is added. Each purchase counts from its own date.",
   },
   goals: {
     term: "Goals",

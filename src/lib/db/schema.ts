@@ -30,7 +30,14 @@ export const users = pgTable("users", {
   sessionVersion: integer("session_version").notNull().default(0),
   createdAt: created(),
   lastSeenAt: ts("last_seen_at").defaultNow().notNull(),
+  /** Choices that follow the person to any device. */
+  prefs: jsonb("prefs").$type<UserPrefs>().notNull().default({}),
 });
+
+export type UserPrefs = {
+  /** Income-tax slab in percent, for gains taxed at the slab rate. Unset: those gains are shown without a rupee figure. */
+  taxSlabPct?: number | null;
+};
 
 /* ------------------------------------------------------------------ */
 /* Portfolios                                                          */

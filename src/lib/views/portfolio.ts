@@ -9,8 +9,9 @@ import { NIFTY } from "@/lib/instruments/sectors";
 import { loadPortfolioDay, displayName } from "@/lib/market/portfolio-day";
 import { dateSources, latestTradeDate, priceHistory, shiftDate, sourcesFor } from "@/lib/market/store";
 import { buildPerformance } from "@/lib/portfolio/performance";
-import { gainClassOf, unrealisedGains } from "@/lib/portfolio/capital-gains";
-import { summarise } from "@/lib/portfolio/lots";
+import { unrealisedParts } from "@/lib/portfolio/capital-gains";
+import { amfiCategory } from "@/lib/instruments/catalog";
+import { lotRemaining } from "@/lib/portfolio/lots";
 import { lotsForPortfolio } from "@/lib/repo/lots";
 import { salesForPortfolio } from "@/lib/repo/sales";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
@@ -152,25 +153,28 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     nifty,
   );
 
-  // Capital gains: what a sale would have realised, in the buckets Indian tax uses. There are no
-  // recorded sales yet (a holding is a position, not a trade), so this reports the gains still
-  // sitting in the portfolio and which bucket each would fall into if sold today.
+  // Capital gains: the gains sitting in the portfolio, one part per purchase still held, so a
+  // holding topped up recently is part short-term and part long-term. Dated by the trade date, the
+  // day in India, rather than the server clock.
   const dayBySymbol = new Map(day.holdings.map((h) => [h.symbol, h]));
-  const gains = unrealisedGains(
-    holdingsRows.filter((h) => !isManualSymbol(h.symbol)).map((h) => {
-      const lotSummary = summarise(lotsByHolding.get(h.id) ?? []);
-      const state = dayBySymbol.get(h.symbol);
-      return {
-        symbol: h.symbol,
-        name: state?.name ?? displayName(h.symbol),
-        units: h.quantity,
-        // The lots know what the units actually cost; the summary row is only a fallback.
-        cost: h.quantity * (lotSummary.avgPrice || h.avgPrice),
-        price: state?.price ?? null,
-        bought: lotSummary.buyDate,
-        class: gainClassOf({ assetClass: state?.assetClass ?? h.assetClass, category: state?.category ?? null }),
-      };
-    }),
+  const gains = unrealisedParts(
+    holdingsRows
+      .filter((h) => !isManualSymbol(h.symbol))
+      .map((h) => {
+        const state = dayBySymbol.get(h.symbol);
+        const assetClass = state?.assetClass ?? h.assetClass;
+        const held = (lotsByHolding.get(h.id) ?? []).filter((l) => lotRemaining(l) > 0);
+        return {
+          symbol: h.symbol,
+          name: state?.name ?? displayName(h.symbol),
+          assetClass,
+          category: assetClass === "mf" ? amfiCategory(h.symbol) : (state?.category ?? null),
+          price: state?.price ?? null,
+          // A holding with no ledger yet is one purchase at its average price.
+          lots: held.length ? held.map((l) => ({ units: lotRemaining(l), price: l.price, date: l.date })) : [{ units: h.quantity, price: h.avgPrice, date: h.buyDate }],
+        };
+      }),
+    tradeDate,
   );
 
   return {
@@ -179,6 +183,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     asOf: day.asOf,
     niftyPct: day.niftyPct,
     gains,
+    sales,
+    taxSlabPct: user.prefs?.taxSlabPct ?? null,
     valuation: v,
     attribution: attr,
     h2: { line: attributionLine(attr), split: marketSplitLine(attr) },

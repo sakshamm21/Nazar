@@ -34,6 +34,13 @@ const fundCategory = (c: string) => c.split(" - ").at(-1)?.trim() || c;
 /** AMFI also lists ETFs as schemes. They are held as exchange units, so the exchange listing is the one to show. */
 const funds = () => read("amfi-schemes.csv").filter((r) => !/\bETFs?\b/i.test(r[4] ?? ""));
 
+let amfiCategories: Map<string, string> | null = null;
+/** The full AMFI category of a fund ("Equity Scheme - Flexi Cap Fund"), which decides how it is taxed. */
+export function amfiCategory(symbol: string): string | null {
+  amfiCategories ??= new Map(funds().map((r) => [mfSymbol(r[0]), r[4] ?? ""]));
+  return amfiCategories.get(symbol) || null;
+}
+
 export function getCatalog(): Catalog {
   if (cache) return cache;
   const items: CatalogItem[] = [];

@@ -28,7 +28,7 @@ export async function recordSale(userId: string, holdingId: string, input: { uni
   if (!(input.units > 0) || !(input.price > 0)) throw badRequest("Enter the units sold and the price.");
   if (input.date > today()) throw badRequest("A sale can't be dated in the future.");
   const units = Math.min(input.units, h.quantity);
-  if (input.units > h.quantity * (1 + 1e-9)) throw badRequest(`You hold ${h.quantity} units, so you can't sell ${input.units}.`);
+  if (input.units > h.quantity * (1 + 1e-9)) throw badRequest(`This holding has ${h.quantity} units, fewer than ${input.units}.`);
 
   const db = await getDb();
   const lotRows = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, h.id)).orderBy(asc(schema.holdingLots.date));
