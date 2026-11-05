@@ -33,7 +33,7 @@ const SORTS: { value: SortKey; label: string }[] = [
 const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
 /** The changing side of Portfolio: your portfolios, what each holds, and what you only watch. */
-export function PortfolioManager({ portfolios, activeId, rows, totals, watching, isDemo, max }: { portfolios: PortfolioSummary[]; activeId: string | null; rows: Row[]; totals: Totals; watching: Watch[]; isDemo: boolean; max: number }) {
+export function PortfolioManager({ portfolios, activeId, rows, totals, watching, max }: { portfolios: PortfolioSummary[]; activeId: string | null; rows: Row[]; totals: Totals; watching: Watch[]; isDemo?: boolean; max: number }) {
   const router = useRouter();
   const params = useSearchParams();
   const [builder, setBuilder] = useState<null | "all" | "manual">(params.get("add") === "1" ? "all" : null);
@@ -152,7 +152,6 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, watching,
             </Card>
           ))}
           {groups.length === 0 && <p className="px-1 text-sm text-muted">No holding matches “{filter.trim()}”.</p>}
-          {isDemo && <p className="t-caption">Demo account: it is shared, and what you change here is undone when it is put back tonight.</p>}
         </>
       )}
 

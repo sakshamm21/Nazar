@@ -12,7 +12,9 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Delta } from "@/components/ui/delta";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
 import { cn } from "@/lib/cn";
-import { getDb } from "@/lib/db";
+import { eq, sql } from "drizzle-orm";
+import { StartChecklist, type Step } from "@/components/home/start-checklist";
+import { getDb, schema } from "@/lib/db";
 import { dayLabel, inr, inrCompact, istTime, signedPct } from "@/lib/format";
 import { displayName } from "@/lib/market/portfolio-day";
 import { instrumentsFor, shiftDate, snapshotsAsOf } from "@/lib/market/store";
@@ -38,6 +40,22 @@ export default async function HomePage() {
   const user = await requirePageUser();
   const v = await portfolioView(user, await selectedPortfolioId());
   const first = user.name.split(" ")[0];
+  // The start-up checklist, for a real account until it is done or put away.
+  let checklist: React.ReactNode = null;
+  if (!user.isTestAccount && !user.prefs?.checklistDismissed) {
+    const db0 = await getDb();
+    const [[g], [c]] = await Promise.all([
+      db0.select({ n: sql<number>`count(*)::int` }).from(schema.goals).where(eq(schema.goals.userId, user.id)),
+      db0.select({ n: sql<number>`count(*)::int` }).from(schema.chats).where(eq(schema.chats.userId, user.id)),
+    ]);
+    const steps: Step[] = [
+      { id: "portfolio", label: "Add or import what you own", href: "/portfolio/import", done: !v.empty },
+      { id: "analysis", label: "Read your first analysis", href: "/analysis", done: !!user.prefs?.seenAnalysis },
+      { id: "goal", label: "Set a savings goal", href: "/settings", done: Number(g.n) > 0 },
+      { id: "ask", label: "Ask a question about your money", href: "/ask", done: Number(c.n) > 0 },
+    ];
+    if (steps.some((x) => !x.done)) checklist = <StartChecklist steps={steps} />;
+  }
   const switcher = <PortfolioTabs portfolios={v.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={v.active?.id ?? null} />;
 
   if (v.empty) {
@@ -53,16 +71,17 @@ export default async function HomePage() {
             body="Search any stock, fund, ETF, gold, US stock or coin and add it in seconds, or import a broker file. Nazar then keeps the prices fresh and shows you what moved and why."
             action={
               <div className="flex flex-wrap justify-center gap-2">
-                <ButtonLink href="/portfolio?add=1">
-                  <Plus className="h-4 w-4" /> Add what you own
+                <ButtonLink href="/portfolio/import">
+                  <Upload className="h-4 w-4" /> Import from Zerodha, Groww, Upstox or CAMS
                 </ButtonLink>
-                <ButtonLink href="/portfolio/import" variant="secondary">
-                  <Upload className="h-4 w-4" /> Import a file
+                <ButtonLink href="/portfolio?add=1" variant="secondary">
+                  <Plus className="h-4 w-4" /> Add by hand
                 </ButtonLink>
               </div>
             }
           />
         </Card>
+        {checklist}
       </div>
     );
   }
@@ -90,6 +109,7 @@ export default async function HomePage() {
         <WatchingStatus className="mt-1.5" stocks={v.cards.length} watching={v.watchingCount ?? 0} lastCheck={lastCheck} stale={v.staleCount > 0} />
       </div>
       {switcher}
+      {checklist}
 
       <Card className="p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">

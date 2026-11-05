@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiCall } from "@/lib/api-client";
 
-/** One tap into the demo account: a full portfolio on live prices, nothing to type. */
-export function DemoButton({ email, password, label = "Try the demo", className }: { email: string; password: string; label?: string; className?: string }) {
+/** One tap into a private copy of the demo: a full portfolio on live prices, nothing to type. */
+export function DemoButton({ label = "Try the demo", className }: { label?: string; className?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   return (
@@ -19,7 +19,7 @@ export function DemoButton({ email, password, label = "Try the demo", className 
       onClick={async () => {
         setBusy(true);
         try {
-          await apiCall("/api/auth/login", "POST", { email, password });
+          await apiCall("/api/auth/demo", "POST");
           router.push("/home");
           router.refresh();
         } catch (e) {

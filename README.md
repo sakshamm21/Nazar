@@ -95,7 +95,7 @@ Nazar puts everything in one place, keeps the prices fresh on its own, and answe
 
 ## Try it in a minute
 
-1. Open the live app and press **Try the demo**. It signs you into a full account: 14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits, and a second smaller portfolio.
+1. Open the live app and press **Try the demo**. It gives you a private, full account for 24 hours: 14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits, and a second smaller portfolio.
 2. **Home** is the glance: your value, today's change in one sentence, and a map of every holding coloured by how it moved.
 3. **Portfolio → Overview**: drag along the value chart, tap the allocation ring, sort the holdings table. **Manage** is where you add, change or remove holdings and portfolios, and set up a monthly SIP.
 4. **Analysis**: pick a period and read what moved, why, and how it compares with the Nifty; then returns, unsold gains, risk and health.
@@ -251,7 +251,7 @@ Type has two voices: Sora for headings and Inter for text and numbers, with IBM 
 
 ## Test accounts
 
-Signing in is required. **Try the demo** on the landing and sign-in pages signs into the first account below in one tap. The others sign in through the form (password `nazar123` for all).
+Signing in is required. **Try the demo** on the landing and sign-in pages gives each visitor a private copy of the investor below for 24 hours, so nobody sees anyone else's changes. The accounts below sign in through the form (password `nazar123` for all) and are shared.
 
 | Account | What it holds |
 |---|---|
@@ -264,7 +264,8 @@ Signing in is required. **Try the demo** on the landing and sign-in pages signs 
 Things to know:
 - They run on live data like any account: prices refresh when you open the app and every evening.
 - Each has about 45 sessions of stored price history, so charts and analysis have something to show from the first visit.
-- They are shared, and put back to their starting state once a day.
+- They are shared, and put back to their starting state once a day. A private demo is cleared once its 24 hours are up.
+- The personas come with savings goals, a monthly SIP and one recorded sale (priced at that day's stored close), so every screen has something to show.
 - Their names and passwords can't be changed, they can't be deleted, and they never send email.
 - A demo visitor gets a smaller daily allowance of Ask questions than a signed-up user.
 

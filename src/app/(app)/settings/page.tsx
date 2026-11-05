@@ -38,6 +38,7 @@ export default async function SettingsPage() {
           email: user.email,
           emailVerified: !!user.emailVerifiedAt,
           isTestAccount: user.isTestAccount,
+          privateDemo: user.isDemo,
           memberSince: user.createdAt.toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" }),
           stats: { portfolios: portfolios.length, holdings: holdings.length, watching: watching.length, netWorth: holdings.length ? netWorth : null },
         }}
