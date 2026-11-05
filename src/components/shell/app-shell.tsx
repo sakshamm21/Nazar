@@ -130,7 +130,14 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             </div>
           )}
           {children}
-          <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.</footer>
+          <footer className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line pt-5 text-[12px] leading-5 text-subtle">
+            <span>Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.</span>
+            <span className="flex gap-4">
+              <Link href="/contact" className="hover:text-text">Feedback</Link>
+              <Link href="/privacy" className="hover:text-text">Privacy</Link>
+              <Link href="/terms" className="hover:text-text">Terms</Link>
+            </span>
+          </footer>
         </main>
       </div>
 

@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, LayoutDashboard, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
+import { ArrowRight, CalendarClock, LayoutDashboard, MessageCircle, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
@@ -69,8 +69,11 @@ export default async function AnalysisPage() {
             {v.notes.map((n) => {
               const Icon = NOTE_ICON[n.kind];
               return (
-                <li key={n.id}>
-                  <Link href={n.href} className="group -mx-2 flex gap-3 rounded-[12px] px-2 py-3.5 hover:bg-surface-2">
+                <li key={n.id} className="relative">
+                  <Link href={`/ask?q=${encodeURIComponent(`${n.title}. ${n.body} What does this mean for me?`)}`} aria-label={`Ask about: ${n.title}`} className="absolute right-0 top-3 z-10 flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium text-accent hover:bg-accent-soft">
+                    <MessageCircle className="h-3.5 w-3.5" /> Ask
+                  </Link>
+                  <Link href={n.href} className="group -mx-2 flex gap-3 rounded-[12px] px-2 py-3.5 pr-16 hover:bg-surface-2">
                     <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-accent-soft text-accent">
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
@@ -160,7 +163,7 @@ export default async function AnalysisPage() {
           <RingGauge outer={v.health.score} inner={v.innerRing} size={124} label="health" />
           <div className="min-w-[200px] flex-1">
             <RingLegend outer={v.health.score} inner={v.innerRing} />
-            <p className="t-caption mt-3">{v.health.scored} of {v.health.total} holdings have a health score. Funds, gold and deposits are not scored.</p>
+            <p className="t-caption mt-3">{v.health.scored} of {v.health.total} holdings have a health score. Funds, gold and deposits are not scored. Companies get a 9-test score (Piotroski and Altman); banks and lenders, whose accounts work differently, get a 4-test lender check, shown as tests passed.</p>
           </div>
         </div>
         {scored.length > 1 && (
@@ -210,7 +213,9 @@ function HealthList({ title, rows }: { title: string; rows: CardRow[] }) {
         {rows.map((c) => (
           <li key={c.symbol} className="flex items-baseline justify-between gap-2 text-sm">
             <Link href={c.href ?? "/portfolio"} className="min-w-0 truncate text-text hover:underline">{c.name}</Link>
-            <span className={`num font-medium ${c.health! >= 70 ? "text-gain" : c.health! >= 45 ? "text-text" : "text-loss"}`}>{c.health}</span>
+            <span className={`num font-medium ${c.health! >= 70 ? "text-gain" : c.health! >= 45 ? "text-text" : "text-loss"}`} title={c.healthKind === "lender" ? "Banks and lenders get a 4-test lender check instead of the 9-test score" : undefined}>
+              {c.healthKind === "lender" ? (c.healthLabel ?? c.health) : c.health}
+            </span>
           </li>
         ))}
       </ul>

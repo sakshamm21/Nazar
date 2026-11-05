@@ -72,9 +72,15 @@ describe("everything Nazar writes is advice-free", () => {
       T.quarterName("2026-06-30"),
     ]));
   });
-  it("the two emails Nazar sends: a sign-up code and a password reset", () => {
-    expect(Object.keys(emails).sort()).toEqual(["passwordReset", "verificationCode"]);
-    expectClean(strings([emails.verificationCode({ name: "Aarav", code: "123456", minutes: 15 }), emails.passwordReset({ name: "Aarav", url: "https://x/reset", minutes: 30 })]));
+  it("the emails Nazar sends: a sign-up code, a password reset and the opt-in weekly summary", () => {
+    expect(Object.keys(emails).sort()).toEqual(["passwordReset", "verificationCode", "weeklySummary"]);
+    expectClean(
+      strings([
+        emails.verificationCode({ name: "Aarav", code: "123456", minutes: 15 }),
+        emails.passwordReset({ name: "Aarav", url: "https://x/reset", minutes: 30 }),
+        emails.weeklySummary({ name: "Aarav", headline: "Up ₹12,000 over the last week", lines: ["Infosys added the most."], url: "https://x/analysis", unsubscribe: "https://x/u" }),
+      ]),
+    );
   });
   it("glossary and disclaimer", () => {
     expectClean(strings(GLOSSARY));

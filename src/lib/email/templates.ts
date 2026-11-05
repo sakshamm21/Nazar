@@ -45,6 +45,24 @@ export const emails = {
     return { subject, text, html };
   },
 
+  /**
+   * The weekly summary, for those who switched it on: what the week did and why, in the same tested
+   * sentences as Analysis, and one link to unsubscribe.
+   */
+  weeklySummary({ name, headline, lines, url, unsubscribe }: { name: string; headline: string; lines: string[]; url: string; unsubscribe: string }) {
+    const subject = `Your week: ${headline}`;
+    const text = `Hi ${name},\n\n${headline}.\n\n${lines.join("\n")}\n\nSee the full analysis: ${url}\n\nStop these emails: ${unsubscribe}`;
+    const html = layout({
+      lang: "en",
+      preheader: headline,
+      body: `<p style="margin:0 0 12px">Hi ${esc(name)},</p><p style="margin:0 0 14px;font-size:20px;font-weight:600;color:${C.ink}">${esc(headline)}</p>
+${lines.map((l) => `<p style="margin:0 0 10px;color:${C.text}">${esc(l)}</p>`).join("")}
+<p style="margin:20px 0 0">${button(url, "See the full analysis")}</p>`,
+      footer: `You get this because you switched on the weekly summary. <a href="${esc(unsubscribe)}" style="color:${C.muted}">Stop these emails</a>.<br>`,
+    });
+    return { subject, text, html };
+  },
+
   passwordReset({ name, url, minutes }: { name: string; url: string; minutes: number }) {
     const subject = "Reset your Nazar password";
     const text = `Hi ${name},\n\nReset your password here (valid for ${minutes} minutes):\n${url}\n\nIf you didn't ask for this, you can ignore this email.`;

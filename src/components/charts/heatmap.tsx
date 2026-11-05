@@ -129,6 +129,9 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
               <span>{inr(Math.round(active.value))} · {sum + (mode === "today" ? stillSum : 0) ? Math.round((active.value / (sum + (mode === "today" ? stillSum : 0))) * 100) : 0}% of this portfolio</span>
               {active.today != null ? <span className={active.today > 0 ? "text-gain" : active.today < 0 ? "text-loss" : ""}>{signedPct(active.today)} today</span> : active.pending ? <span>NAV pending</span> : null}
               {active.total != null && <span className={active.total > 0 ? "text-gain" : active.total < 0 ? "text-loss" : ""}>{signedPct(active.total)} overall</span>}
+              <Link href={`/ask?q=${encodeURIComponent(`Explain what's going on with my holding ${active.name} in simple words`)}`} className="font-medium text-accent hover:underline">
+                Ask about it
+              </Link>
             </span>
           </>
         ) : (

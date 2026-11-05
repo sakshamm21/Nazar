@@ -14,6 +14,10 @@ const Prefs = z
       .refine((x) => (SLABS as readonly number[]).includes(x), "Pick one of the income-tax slabs.")
       .nullable(),
     checklistDismissed: z.boolean(),
+    model: z.string().trim().min(1).max(80),
+    theme: z.enum(["dark", "light"]),
+    defaultPortfolio: z.string().trim().min(1).max(64),
+    weeklyEmail: z.boolean(),
   })
   .partial();
 const Patch = z.object({ name: z.string().trim().min(1).max(80).optional(), prefs: Prefs.optional() });

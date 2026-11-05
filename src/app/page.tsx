@@ -203,6 +203,11 @@ export default async function Landing() {
             <NazarMark size={20} /> Nazar · a project by Saksham Malhotra
           </div>
           <p>Nazar explains; you decide. Not a SEBI-registered investment adviser. Prices can be delayed.</p>
+          <nav aria-label="About" className="flex gap-4">
+            <Link href="/privacy" className="hover:text-text">Privacy</Link>
+            <Link href="/terms" className="hover:text-text">Terms</Link>
+            <Link href="/contact" className="hover:text-text">Contact</Link>
+          </nav>
           {process.env.NEXT_PUBLIC_LEGACY_URL && (
             <a href={process.env.NEXT_PUBLIC_LEGACY_URL} className="hover:text-text">
               StockAI (legacy)

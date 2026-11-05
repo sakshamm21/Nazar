@@ -4,6 +4,9 @@ import { GoalsCard } from "@/components/goals/goals-card";
 import { Preferences } from "@/components/settings/preferences";
 import { ProfileCard } from "@/components/settings/profile-card";
 import { TaxCard } from "@/components/settings/tax-card";
+import { DataCard } from "@/components/settings/data-card";
+import { UpdatesCard } from "@/components/settings/updates-card";
+import { pushPublicKey } from "@/lib/push";
 import { requirePageUser } from "@/lib/current-user";
 import { istDate } from "@/lib/data/provider";
 import { getDb, schema } from "@/lib/db";
@@ -46,7 +49,9 @@ export default async function SettingsPage() {
       <GoalsCard view={goals} />
       <TaxCard slabPct={user.prefs?.taxSlabPct ?? null} />
       <Preferences />
-      <p className="t-caption px-1">Nazar only emails you to confirm your address or reset your password. It explains; you decide. It is not a SEBI-registered investment adviser.</p>
+      <UpdatesCard weeklyEmail={!!user.prefs?.weeklyEmail} canEmail={!!user.emailVerifiedAt && !user.isDemo && !user.isTestAccount} pushKey={pushPublicKey()} />
+      <DataCard portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} opensOn={user.prefs?.defaultPortfolio ?? "all"} />
+      <p className="t-caption px-1">Besides the weekly summary you can switch on above, Nazar only emails you to confirm your address or reset your password. It explains; you decide. It is not a SEBI-registered investment adviser.</p>
     </div>
   );
 }

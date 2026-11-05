@@ -114,6 +114,11 @@ export function SignUpForm() {
       <Button type="submit" size="lg" loading={busy} className="w-full">
         Create account
       </Button>
+      <p className="text-center text-[12px] leading-5 text-subtle">
+        By creating an account you agree to the{" "}
+        <Link href="/terms" className="underline hover:text-text">terms</Link> and the{" "}
+        <Link href="/privacy" className="underline hover:text-text">privacy policy</Link>.
+      </p>
     </form>
   );
 }

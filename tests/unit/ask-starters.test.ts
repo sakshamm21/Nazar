@@ -33,3 +33,14 @@ describe("the month's question", () => {
     expect(monthQuestion(null)).toBe("What did my portfolio do this month?");
   });
 });
+
+describe("starters beyond today", () => {
+  it("name a big mover of the week, a goal that is behind and the year's realised gains", () => {
+    const s = startersFor({ dayChange: 0, dayChangePct: 0, notes: [] }, { weekMover: { name: "Infosys", pct: 0.08 }, goalBehind: "House", realisedThisYear: 12000 });
+    expect(s.map((x) => x.id)).toEqual(["week-mover", "goal-behind", "realised"]);
+    expect(s[0].label).toBe("Infosys up 8% this week");
+  });
+  it("say nothing about a small weekly move", () => {
+    expect(startersFor({ dayChange: 0, dayChangePct: 0, notes: [] }, { weekMover: { name: "TCS", pct: 0.02 } })).toEqual([]);
+  });
+});

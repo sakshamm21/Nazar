@@ -40,6 +40,15 @@ export type UserPrefs = {
   /** The start-up checklist on Home: put away, and whether Analysis has been opened yet. */
   checklistDismissed?: boolean;
   seenAnalysis?: boolean;
+  /** Ask's model ("auto" or a model id) and the theme, so they follow the person to any device. */
+  model?: string;
+  theme?: "dark" | "light";
+  /** Which portfolio the app opens on: "all" or a portfolio id. */
+  defaultPortfolio?: string;
+  /** The weekly email, off unless switched on. */
+  weeklyEmail?: boolean;
+  /** When Home was last opened, for "since you last looked". */
+  lastHomeAt?: string;
 };
 
 /* ------------------------------------------------------------------ */
@@ -254,6 +263,19 @@ export const dashboards = pgTable(
     updatedAt: ts("updated_at").defaultNow().notNull(),
   },
   (t) => [index("dashboards_user_idx").on(t.userId, t.sortOrder)],
+);
+
+/** A browser that asked for notifications: where to send them, and the keys to encrypt them with. */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    endpoint: text("endpoint").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("push_user_idx").on(t.userId)],
 );
 
 /** Stocks the user watches without owning them. */

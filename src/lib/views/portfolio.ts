@@ -67,6 +67,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   // Queries that do not depend on each other are sent together. Each is a network round trip to
   // the database, and one after another they were most of what a portfolio answer waited for.
   const [portfolios, tradeDate, watching] = await Promise.all([listPortfolios(user.id), latestTradeDate(db, sources), listWatching(user.id)]);
+  // Nothing picked on this device: the portfolio the person chose to open on.
+  portfolioId ??= user.prefs?.defaultPortfolio ?? null;
   // With two or more portfolios, "All" is a choice of its own, and the one shown when none was picked.
   const combined = portfolios.length >= 2 && (portfolioId === ALL || !portfolios.some((p) => p.id === portfolioId));
   const active: ActivePortfolio | null = combined
@@ -161,6 +163,10 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
         pnlPct: invested ? value / invested - 1 : null,
         health: h.health,
         healthKind: h.snapshot?.health?.kind ?? "none",
+        // Banks and lenders pass a 4-test check, not the 9-test score other companies get: said as such.
+        healthLabel: healthLabelOf(h.health, h.snapshot?.health ?? null),
+        /** The day the price is from, when it is not today's. */
+        priceDate: h.stale && h.snapshot?.tradeDate ? h.snapshot.tradeDate : null,
         beta: h.beta,
         trend: trendLabel(closes),
         valuation: valuationVsPeers(h.snapshot?.metrics?.trailingPE, peers),
@@ -265,6 +271,16 @@ export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
 export const portfolioView = cache(async (user: User, portfolioId?: string | null) => buildPortfolioView(user, portfolioId));
 
 /** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
+/** "health 75", or for a bank "lender check 3 of 4", so the two are never read as one scale. */
+export function healthLabelOf(score: number | null, info: { kind: string; lenderPassed?: number; lenderTests?: { pass: boolean | null }[] } | null): string | null {
+  if (score == null) return null;
+  if (info?.kind === "lender") {
+    const scored = (info.lenderTests ?? []).filter((t) => t.pass !== null).length;
+    return `lender check ${info.lenderPassed ?? 0} of ${scored}`;
+  }
+  return `health ${score}`;
+}
+
 /**
  * What the money has made, three ways: gains still in the portfolio, gains already taken by selling,
  * and income paid out, each in total and for this financial year (April to March).

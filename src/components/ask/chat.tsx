@@ -33,7 +33,7 @@ export function Chat({
   /** What the examples on the start screen are built from. */
   context: AskContext;
   /** Questions left today when this conversation was opened (counted down as the user asks). */
-  remaining?: { remaining: number; limit: number } | null;
+  remaining?: { remaining: number; limit: number; accountLimit?: number } | null;
   /** A question to send on load (e.g. "Ask about this stock" links to /ask?q=…). */
   prompt?: { text: string; nonce: number } | null;
 }) {
@@ -172,7 +172,15 @@ export function Chat({
             <span className="text-loss">{input.length} / {MAX_CHARS} characters: please shorten your question.</span>
           ) : (
             <>
-              <span>{left != null ? `${left} of ${remaining!.limit} questions left today` : "Enter to send · Shift + Enter for a new line"}</span>
+              <span>
+                {left != null ? `${left} of ${remaining!.limit} questions left today` : "Enter to send · Shift + Enter for a new line"}
+                {left != null && left <= 1 && remaining?.accountLimit ? (
+                  <>
+                    {" · "}
+                    <a href="/signup" className="font-medium text-accent hover:underline">An account gets {remaining.accountLimit} a day</a>
+                  </>
+                ) : null}
+              </span>
               <span>Nazar explains; you decide. Data can be delayed.</span>
             </>
           )}
