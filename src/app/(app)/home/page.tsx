@@ -133,7 +133,7 @@ export default async function HomePage() {
       <Card className="p-5 sm:p-6">
         <CardHeader overline="Your money, at a glance" title="What is up, what is down" />
         <div className="mt-4">
-          <Heatmap tiles={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, today: c.href == null ? null : c.changePct, total: c.pnlPct, href: c.href, pending: c.pending }))} />
+          <Heatmap tiles={v.cards.map((c) => ({ symbol: c.symbol, name: c.name, value: c.value, today: c.href == null ? null : c.changePct, total: c.pnlPct, href: c.href, pending: c.pending, daily: c.href != null }))} />
         </div>
       </Card>
 
