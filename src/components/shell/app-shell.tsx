@@ -1,5 +1,5 @@
 "use client";
-import { Home, LineChart, LogOut, MessageCircle, UserRound, Wallet } from "lucide-react";
+import { Home, LayoutDashboard, LineChart, LogOut, MessageCircle, UserRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -15,11 +15,13 @@ const NAV = [
   { href: "/home", label: "Home", hint: "Today at a glance", icon: Home },
   { href: "/portfolio", label: "Portfolio", hint: "Charts and holdings", icon: Wallet },
   { href: "/analysis", label: "Analysis", hint: "What moved, and why", icon: LineChart },
+  { href: "/dashboards", label: "Dashboards", hint: "Your own comparisons", icon: LayoutDashboard },
   { href: "/ask", label: "Ask", hint: "Questions, answered", icon: MessageCircle },
 ];
-const MOBILE = [...NAV, { href: "/settings", label: "You", hint: "", icon: UserRound }];
+// Five tabs fit a phone: Dashboards is reached from Analysis there.
+const MOBILE = [...NAV.filter((n) => n.href !== "/dashboards"), { href: "/settings", label: "You", hint: "", icon: UserRound }];
 
-const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
+const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/dashboards", "dashboards"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
 
 export type ShellUser = { name: string; email: string; isTestAccount: boolean };
 
@@ -33,7 +35,8 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
   useEffect(() => {
     if (area) trackClient("view", { area });
   }, [area]);
-  const active = (href: string) => path === href || path.startsWith(`${href}/`) || (href === "/portfolio" && path.startsWith("/stock")) || (href === "/analysis" && path.startsWith("/risk"));
+  // On a phone Dashboards has no tab of its own, so Analysis lights up for it.
+  const active = (href: string, mobile = false) => path === href || path.startsWith(`${href}/`) || (href === "/portfolio" && path.startsWith("/stock")) || (href === "/analysis" && (path.startsWith("/risk") || (mobile && path.startsWith("/dashboards"))));
   const signOut = async () => {
     setLeaving(true);
     await apiCall("/api/auth/logout", "POST").catch(() => null);
@@ -110,7 +113,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         <ul className="mx-auto grid max-w-md grid-cols-5">
           {MOBILE.map(({ href, label, icon: Icon }) => {
-            const on = active(href);
+            const on = active(href, true);
             return (
               <li key={href}>
                 <Link href={href} aria-current={on ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium", on ? "text-accent" : "text-subtle")}>

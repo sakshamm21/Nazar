@@ -177,8 +177,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   const dates = [...nifty.keys()].filter((d) => d <= tradeDate);
   if (dates.at(-1) !== tradeDate) dates.push(tradeDate);
   const rowOf = new Map(holdingsRows.map((r) => [r.symbol, r]));
-  const performance = buildPerformance(
-    day.holdings.map((h) => {
+  const perfHoldings = day.holdings.map((h) => {
       const row = rowOf.get(h.symbol)!;
       const manual = isManualSymbol(h.symbol);
       return {
@@ -194,10 +193,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
         closes: manual ? null : [...(hist.get(h.symbol)?.entries() ?? [])],
         valueOn: manual ? (d: string) => manualValue(row.assetClass, row.details, row.avgPrice, d) : undefined,
       };
-    }),
-    dates,
-    nifty,
-  );
+    });
+  const performance = buildPerformance(perfHoldings, dates, nifty);
 
   // Capital gains: the gains sitting in the portfolio, one part per purchase still held, so a
   // holding topped up recently is part short-term and part long-term. Dated by the trade date, the
@@ -250,6 +247,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     states,
     notes: [...splitNotes(await recentSplits(db, symbols, shiftDate(tradeDate, -30)), day, holdingsRows), ...notesFor(tradeDate, day, conc, div)],
     staleCount: cards.filter((c) => c.stale).length,
+    /** Each holding as the value history sees it, and the dates, for comparisons built on top. */
+    perf: { holdings: perfHoldings, dates },
     /** The closes already read for this portfolio, so a page can reuse them instead of re-querying. */
     history: hist,
   };

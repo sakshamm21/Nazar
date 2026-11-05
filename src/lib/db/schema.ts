@@ -234,6 +234,25 @@ export const corporateActions = pgTable(
   (t) => [primaryKey({ columns: [t.symbol, t.exDate] })],
 );
 
+/**
+ * A dashboard: a named set of comparisons the user builds, each one something they own (a whole
+ * portfolio, a kind of asset, one holding) against an index over a period.
+ */
+export type DashboardWidget = { id: string; portfolio: string; part: string; benchmark: string; period: "1M" | "3M" | "6M" | "1Y" };
+export const dashboards = pgTable(
+  "dashboards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    widgets: jsonb("widgets").$type<DashboardWidget[]>().notNull().default([]),
+    createdAt: created(),
+    updatedAt: ts("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("dashboards_user_idx").on(t.userId, t.sortOrder)],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

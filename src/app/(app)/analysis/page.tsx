@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
+import { ArrowRight, CalendarClock, LayoutDashboard, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
@@ -24,9 +24,14 @@ export default async function AnalysisPage() {
   const view = await portfolioView(user, await selectedPortfolioId());
   const switcher = <PortfolioTabs portfolios={view.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={view.active?.id ?? null} />;
   const head = (
-    <div>
-      <h1 className="t-title-1 text-text">Analysis</h1>
-      <p className="mt-1 text-sm text-muted">What your portfolio did, why, and what is worth knowing about it. Worked out from stored prices, never a forecast.</p>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 className="t-title-1 text-text">Analysis</h1>
+        <p className="mt-1 text-sm text-muted">What your portfolio did, why, and what is worth knowing about it. Worked out from stored prices, never a forecast.</p>
+      </div>
+      <ButtonLink href="/dashboards" variant="secondary" size="sm">
+        <LayoutDashboard className="h-4 w-4" /> Dashboards
+      </ButtonLink>
     </div>
   );
   if (view.empty)
