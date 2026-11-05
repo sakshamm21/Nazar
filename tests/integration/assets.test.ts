@@ -139,9 +139,9 @@ describe("refresh on open", () => {
     expect(await refreshFor(user, provider)).toEqual({ updated: false, reason: "fresh" });
     expect(m.state.calls.quotes).toBe(after);
   });
-  it("never runs for demo accounts or empty portfolios", async () => {
+  it("never runs for empty portfolios (a private demo with nothing in it included)", async () => {
     const calls = m.state.calls.quotes;
-    expect(await refreshFor(await makeUser(db, { isDemo: true }), provider)).toMatchObject({ updated: false, reason: "demo" }); // legacy anonymous visitors
+    expect(await refreshFor(await makeUser(db, { isDemo: true }), provider)).toMatchObject({ updated: false, reason: "empty" });
     expect(await refreshFor(other, provider)).toMatchObject({ updated: false, reason: "empty" });
     expect(m.state.calls.quotes).toBe(calls);
   });

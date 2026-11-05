@@ -23,3 +23,13 @@ describe("questions from today's portfolio", () => {
     expect(s.map((x) => x.id)).toEqual(["today", "results-A reported results", "results-B reported results"]);
   });
 });
+
+describe("the month's question", () => {
+  it("follows what the month did", async () => {
+    const { monthQuestion } = await import("@/components/ask/ask-start");
+    expect(monthQuestion(0.036)).toBe("Why is my portfolio up this month?");
+    expect(monthQuestion(-0.02)).toBe("Why is my portfolio down this month?");
+    expect(monthQuestion(0.001)).toBe("What did my portfolio do this month?");
+    expect(monthQuestion(null)).toBe("What did my portfolio do this month?");
+  });
+});

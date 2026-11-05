@@ -185,7 +185,7 @@ test.describe("Portfolio", () => {
     const { portfolios } = await (await page.request.get("/api/portfolios")).json();
     for (const p of portfolios ?? []) await page.request.delete(`/api/portfolios/${p.id}`);
     await page.goto("/home");
-    await page.getByRole("link", { name: "Add what you own" }).click();
+    await page.getByRole("link", { name: "Add by hand" }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toHaveCount(1);
     await dialog.getByRole("tab", { name: "Stocks", exact: true }).click();
@@ -222,6 +222,30 @@ test.describe("Portfolio", () => {
     await page.waitForURL(/\/home/);
     await page.goto("/portfolio?tab=manage");
     await expect(page.getByText("Infosys").filter({ visible: true }).first()).toBeVisible();
+  });
+});
+
+test.describe("Search, stock pages and Dashboards", () => {
+  test("search finds a stock, its page adds it to a portfolio, and Watch toggles", async ({ page }) => {
+    await startDemo(page, "tester2@nazar.dev");
+    await page.keyboard.press("ControlOrMeta+k");
+    const search = page.getByRole("dialog", { name: "Search" });
+    await search.getByLabel("Search for a stock, fund, ETF or gold").fill("tata power");
+    await search.getByRole("option", { name: /Tata Power/ }).first().getByRole("button").first().click();
+    await page.waitForURL(/\/stock\/TATAPOWER/);
+    await expect(page.getByRole("button", { name: "Watch" })).toBeVisible();
+    await page.getByRole("button", { name: "Add to portfolio" }).click();
+    await page.waitForURL(/add=1/);
+    await expect(page.getByRole("dialog").getByText("Tata Power").first()).toBeVisible();
+  });
+
+  test("Dashboards open on a default set of comparisons and can be edited", async ({ page }) => {
+    await startDemo(page, "tester1@nazar.dev");
+    await page.goto("/dashboards");
+    await expect(page.getByRole("heading", { name: /vs Nifty 50/ }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Edit" }).click();
+    await expect(page.getByRole("button", { name: "Add a comparison" })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
   });
 });
 
@@ -277,7 +301,7 @@ test.describe("Ask and You", () => {
     await page.goto("/ask");
     await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
     // The history list can hold conversations with this title; the suggestion is the last such button.
-    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Why is my portfolio (up|down) this month\?|What did my portfolio do this month\?)$/ }).last()).toBeVisible();
     await page.getByRole("tab", { name: "One company" }).click();
     await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
     await expect(page.getByLabel("Your question")).toBeVisible();
@@ -401,7 +425,11 @@ test.describe("Mobile @mobile", () => {
       await nav.getByRole("link", { name: label }).click();
       await page.waitForURL(url);
     }
-    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+    // The top bar searches and adds; signing out lives on You.
+    await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Add to a portfolio" })).toBeVisible();
+    await nav.getByRole("link", { name: "You" }).click();
+    await expect(page.getByRole("button", { name: "Sign out" }).first()).toBeVisible();
   });
 });
 
@@ -413,7 +441,7 @@ test.describe("Ask @openai", () => {
     await page.goto("/ask");
     // Earlier runs leave conversations with this title in the history list, which comes first in
     // the page; the suggestion on the start screen is the last button with the name.
-    await page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last().click();
+    await page.getByRole("button", { name: /^(Why is my portfolio (up|down) this month\?|What did my portfolio do this month\?)$/ }).last().click();
     await expect(page.getByText(/Reading your portfolio|read-only from Nazar's checkup/).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/the decision is yours/i)).toBeVisible({ timeout: 90_000 });
   });

@@ -10,7 +10,13 @@ import type { Starter } from "@/lib/ask/starters";
 import { trackClient } from "@/lib/events-client";
 
 /** What the page knows about the person asking, used to make the examples about their own money. */
-export type AskContext = { stock: string | null; second: string | null; hasPortfolio: boolean; today?: Starter[] };
+export type AskContext = { stock: string | null; second: string | null; hasPortfolio: boolean; today?: Starter[]; /** The portfolio's change over the last month, as a fraction. */ monthPct?: number | null };
+
+/** The month's question follows what the month actually did. */
+export function monthQuestion(pct: number | null | undefined) {
+  if (pct == null || Math.abs(pct) < 0.005) return "What did my portfolio do this month?";
+  return pct < 0 ? "Why is my portfolio down this month?" : "Why is my portfolio up this month?";
+}
 
 type Topic = { id: string; label: string; icon: LucideIcon; blurb: string; questions: string[] };
 
@@ -24,7 +30,7 @@ function topics(c: AskContext): Topic[] {
       icon: Wallet,
       blurb: "Nazar reads your holdings from the last checkup. It can see them; it can never change them.",
       questions: c.hasPortfolio
-        ? ["Why is my portfolio down this month?", "Which of my holdings is riskiest, and why?", "How diversified am I really?", "What does beta mean? Use my holdings as examples"]
+        ? [monthQuestion(c.monthPct), "Which of my holdings is riskiest, and why?", "How diversified am I really?", "What does beta mean? Use my holdings as examples"]
         : ["How are Indian markets doing today?", "What is a healthy number of stocks to track?", "What does diversification actually mean?"],
     },
     {

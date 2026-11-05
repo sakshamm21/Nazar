@@ -52,6 +52,12 @@
   mutual fund statements.
 - **SIPs and goals.** Monthly SIPs added at each day's price, and savings goals that show what
   they need every month.
+- **All your portfolios together, or one at a time.** A stock held in two portfolios is one
+  position in the combined view.
+- **Sales, income and tax years.** Record a sale at its price and date, or a dividend; see what
+  was realised and paid out, and every sale of a financial year by the rules it follows.
+- **Dashboards.** Build your own comparisons: everything, your funds, your stocks or one
+  holding against the Nifty or a sector index, on as many dashboards as you like.
 - **Ask.** An AI research assistant with 30 tools, in English, Hindi or Hinglish, that can read
   your portfolio and never change it.
 - **No advice, enforced.** A test fails the build if anything tells you what to buy, sell or hold.
@@ -89,7 +95,7 @@ Nazar puts everything in one place, keeps the prices fresh on its own, and answe
 
 ## Try it in a minute
 
-1. Open the live app and press **Try the demo**. It signs you into a full account: 14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits, and a second smaller portfolio.
+1. Open the live app and press **Try the demo**. It gives you a private, full account for 24 hours: 14 stocks plus funds, ETFs, a REIT, gold, US stocks, Bitcoin and deposits, and a second smaller portfolio.
 2. **Home** is the glance: your value, today's change in one sentence, and a map of every holding coloured by how it moved.
 3. **Portfolio → Overview**: drag along the value chart, tap the allocation ring, sort the holdings table. **Manage** is where you add, change or remove holdings and portfolios, and set up a monthly SIP.
 4. **Analysis**: pick a period and read what moved, why, and how it compares with the Nifty; then returns, unsold gains, risk and health.
@@ -121,9 +127,11 @@ Signing in is required. See [the test accounts](#test-accounts) below.
 
 | Screen | What it does |
 |---|---|
-| **Home** | Total value with today's change, one sentence on what caused it, and a heatmap of every holding: bigger tile, more of your money; green rose, red fell. |
+| **Home** | With more than one portfolio, opens on all of them together. Total value with today's change, one sentence on what caused it, and a heatmap of every holding: bigger tile, more of your money; green rose, red fell. |
 | **Portfolio · Overview** | A value chart you can drag through (1 week to 1 year, against the Nifty), your yearly return (XIRR) beside the Nifty's, an allocation ring, today's biggest movers, sector mix, a health summary and a sortable table of every holding. |
-| **Portfolio · Manage** | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver, US stocks and crypto; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Record a later purchase on any holding, kept as its own lot, or a sale at its price and date, taken from the oldest purchases first and kept after the holding is gone. Create, rename and delete portfolios (up to six), and keep a "Watching" list. |
+| **Portfolio · Manage** | One search across stocks, ETFs, mutual funds, REITs and InvITs, gold and silver, US stocks and crypto; add several at once, or add deposits, PPF, EPF, NPS, bonds, property and cash at the value you enter. Record a later purchase on any holding, kept as its own lot, a sale at its price and date (taken from the oldest purchases first and kept after the holding is gone), or a dividend or interest paid. Each holding's History lists every purchase, sale and payout, and one wrong purchase can be taken out on its own. Create, rename and delete portfolios (up to six), and keep a "Watching" list. |
+| **Dashboards** | Named dashboards of your own comparisons. Each card is something you own (everything, the market-linked part, one kind of asset, or one holding; from all portfolios or one) against the Nifty 50 or a sector index, over a month to a year, with both lines starting at 100. A new account starts with whole portfolio, market-linked, funds and stocks against the Nifty. |
+| **Capital gains by year** (`/analysis/taxes`) | Every recorded sale in an Indian financial year, each part by the rules it follows and how long it was held, with the tax at those rates (with cess, at your slab if you give it), the year's dividends and interest, and an Excel download. |
 | **Monthly SIPs** | Set a SIP on any holding: an amount and a day of the month, starting today or in the past. Nazar adds each instalment at that day's price, catches up on the months already gone, and lets you pause, stop or undo it. |
 | **Import** | A holdings file from Zerodha, Groww or Upstox (CSV/Excel), or a mutual fund statement from CAMS / KFintech (PDF). Rows are matched by ISIN first, so renamed companies still resolve. For a name no rule can match, a model suggests candidates, each checked against the NSE list, for you to pick or skip. |
 | **Analysis** | Pick a period (today to a year): what the portfolio did, which holdings did it, how much was simply the market, and how the ride went against the Nifty. Below that: what stands out right now, gains and losses since you invested, what your unsold gains would count as under the rules for each kind of asset (short-term or long-term from each purchase's own date, the exemption, and the tax with cess, at your slab if you give it), a stress test, concentration, hidden clusters of holdings that move together, and the health of what you own. |
@@ -243,7 +251,7 @@ Type has two voices: Sora for headings and Inter for text and numbers, with IBM 
 
 ## Test accounts
 
-Signing in is required. **Try the demo** on the landing and sign-in pages signs into the first account below in one tap. The others sign in through the form (password `nazar123` for all).
+Signing in is required. **Try the demo** on the landing and sign-in pages gives each visitor a private copy of the investor below for 24 hours, so nobody sees anyone else's changes. The accounts below sign in through the form (password `nazar123` for all) and are shared.
 
 | Account | What it holds |
 |---|---|
@@ -256,7 +264,8 @@ Signing in is required. **Try the demo** on the landing and sign-in pages signs 
 Things to know:
 - They run on live data like any account: prices refresh when you open the app and every evening.
 - Each has about 45 sessions of stored price history, so charts and analysis have something to show from the first visit.
-- They are shared, and put back to their starting state once a day.
+- They are shared, and put back to their starting state once a day. A private demo is cleared once its 24 hours are up.
+- The personas come with savings goals, a monthly SIP and one recorded sale (priced at that day's stored close), so every screen has something to show.
 - Their names and passwords can't be changed, they can't be deleted, and they never send email.
 - A demo visitor gets a smaller daily allowance of Ask questions than a signed-up user.
 

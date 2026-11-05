@@ -17,6 +17,8 @@ export type Profile = {
   email: string;
   emailVerified: boolean;
   isTestAccount: boolean;
+  /** A visitor's own demo copy, not the shared one. */
+  privateDemo?: boolean;
   memberSince: string;
   stats: { portfolios: number; holdings: number; watching: number; netWorth: number | null };
 };
@@ -99,7 +101,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-muted">
             <span className="truncate">{profile.name === first ? profile.email : `${profile.name} · ${profile.email}`}</span>
             {profile.isTestAccount ? (
-              <Chip tone="warn">Shared demo account</Chip>
+              <Chip tone="warn">{profile.privateDemo ? "Your demo, for 24 hours" : "Shared demo account"}</Chip>
             ) : profile.emailVerified ? (
               <Chip tone="gain">
                 <BadgeCheck className="h-3 w-3" /> Verified
@@ -143,7 +145,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           </Button>
         )}
       </div>
-      {profile.isTestAccount && <p className="t-caption mt-3">Everyone who opens the demo shares this account, and it is put back to its starting state every night. Create your own account to keep your portfolio.</p>}
+      {profile.isTestAccount && <p className="t-caption mt-3">{profile.privateDemo ? "This demo is yours alone and is cleared after 24 hours." : "Everyone who opens this test account shares it, and it is put back to its starting state every night."} Create your own account to keep your portfolio.</p>}
       <PasswordSheet open={password} onClose={() => setPassword(false)} />
     </Card>
   );

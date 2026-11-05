@@ -1,5 +1,5 @@
 "use client";
-import { Home, LineChart, LogOut, MessageCircle, UserRound, Wallet } from "lucide-react";
+import { Home, LayoutDashboard, LineChart, LogOut, MessageCircle, Plus, Search, UserRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,31 +9,36 @@ import { Avatar } from "@/components/ui/avatar";
 import { apiCall } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { trackClient } from "@/lib/events-client";
+import { SearchPalette } from "./search-palette";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
   { href: "/home", label: "Home", hint: "Today at a glance", icon: Home },
   { href: "/portfolio", label: "Portfolio", hint: "Charts and holdings", icon: Wallet },
   { href: "/analysis", label: "Analysis", hint: "What moved, and why", icon: LineChart },
+  { href: "/dashboards", label: "Dashboards", hint: "Your own comparisons", icon: LayoutDashboard },
   { href: "/ask", label: "Ask", hint: "Questions, answered", icon: MessageCircle },
 ];
-const MOBILE = [...NAV, { href: "/settings", label: "You", hint: "", icon: UserRound }];
+// Five tabs fit a phone: Dashboards is reached from Analysis there.
+const MOBILE = [...NAV.filter((n) => n.href !== "/dashboards"), { href: "/settings", label: "You", hint: "", icon: UserRound }];
 
-const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
+const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/dashboards", "dashboards"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
 
-export type ShellUser = { name: string; email: string; isTestAccount: boolean };
+export type ShellUser = { name: string; email: string; isTestAccount: boolean; /** A visitor's private demo, and when it ends. */ demoEndsAt?: string | null };
 
 /** Mobile: bottom tab bar. Desktop: sidebar with the account, theme and sign-out always in view. */
 export function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
+  const [searching, setSearching] = useState(false);
   // One "view" per screen opened: what /insights counts as using the product.
   const area = AREAS.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? null;
   useEffect(() => {
     if (area) trackClient("view", { area });
   }, [area]);
-  const active = (href: string) => path === href || path.startsWith(`${href}/`) || (href === "/portfolio" && path.startsWith("/stock")) || (href === "/analysis" && path.startsWith("/risk"));
+  // On a phone Dashboards has no tab of its own, so Analysis lights up for it.
+  const active = (href: string, mobile = false) => path === href || path.startsWith(`${href}/`) || (href === "/portfolio" && path.startsWith("/stock")) || (href === "/analysis" && (path.startsWith("/risk") || (mobile && path.startsWith("/dashboards"))));
   const signOut = async () => {
     setLeaving(true);
     await apiCall("/api/auth/logout", "POST").catch(() => null);
@@ -50,7 +55,16 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
         <Link href="/home" className="px-3" aria-label="Nazar home">
           <Wordmark />
         </Link>
-        <nav className="mt-8 space-y-1" aria-label="Main">
+        <div className="mt-6 flex gap-1.5 px-1">
+          <button onClick={() => setSearching(true)} className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[12px] border border-line bg-surface-1 px-3 text-[13px] text-subtle transition-colors hover:border-line-strong hover:text-text">
+            <Search className="h-4 w-4 shrink-0" /> <span className="truncate">Search</span>
+            <kbd className="ml-auto rounded border border-line px-1.5 text-[11px] font-sans">⌘K</kbd>
+          </button>
+          <Link href="/portfolio?tab=manage&add=1" aria-label="Add to a portfolio" title="Add to a portfolio" className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-accent text-accent-ink transition-opacity hover:opacity-90">
+            <Plus className="h-[18px] w-[18px]" />
+          </Link>
+        </div>
+        <nav className="mt-5 space-y-1" aria-label="Main">
           {NAV.map(({ href, label, hint, icon: Icon }) => {
             const on = active(href);
             return (
@@ -92,25 +106,41 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             <Wordmark size={26} />
           </Link>
           <span className="flex items-center gap-1">
-            <button onClick={signOut} disabled={leaving} aria-label="Sign out" className="grid h-9 w-9 place-items-center rounded-[10px] text-muted hover:bg-surface-2 hover:text-text">
-              <LogOut className="h-[18px] w-[18px]" />
+            <button onClick={() => setSearching(true)} aria-label="Search" className="grid h-9 w-9 place-items-center rounded-[10px] text-muted hover:bg-surface-2 hover:text-text">
+              <Search className="h-[18px] w-[18px]" />
             </button>
-            <Link href="/settings" aria-label="Your profile">
+            <Link href="/portfolio?tab=manage&add=1" aria-label="Add to a portfolio" className="grid h-9 w-9 place-items-center rounded-[10px] bg-accent text-accent-ink">
+              <Plus className="h-[18px] w-[18px]" />
+            </Link>
+            <Link href="/settings" aria-label="Your profile" className="ml-1">
               <Avatar name={user.name} size={32} />
             </Link>
           </span>
         </header>
         <main id="main" className="mx-auto w-full max-w-[1120px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
+          {user.isTestAccount && (
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-accent/25 bg-accent-soft px-4 py-3 text-sm text-text">
+              <span>
+                <span className="font-medium">You&apos;re exploring a demo.</span>{" "}
+                <span className="text-muted">{user.demoEndsAt ? "It's yours alone, and it is cleared after 24 hours." : "It's shared, and put back every night."} Create an account to keep a portfolio of your own.</span>
+              </span>
+              <button onClick={async () => { await apiCall("/api/auth/logout", "POST").catch(() => null); router.push("/signup"); router.refresh(); }} className="shrink-0 rounded-[10px] bg-accent px-3 py-1.5 text-[13px] font-semibold text-accent-ink hover:opacity-90">
+                Create my account
+              </button>
+            </div>
+          )}
           {children}
           <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.</footer>
         </main>
       </div>
 
+      <SearchPalette open={searching} onOpenChange={setSearching} />
+
       {/* Mobile bottom tabs */}
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         <ul className="mx-auto grid max-w-md grid-cols-5">
           {MOBILE.map(({ href, label, icon: Icon }) => {
-            const on = active(href);
+            const on = active(href, true);
             return (
               <li key={href}>
                 <Link href={href} aria-current={on ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium", on ? "text-accent" : "text-subtle")}>

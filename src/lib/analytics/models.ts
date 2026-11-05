@@ -145,7 +145,7 @@ export function piotroskiAltman(rows: Row[], opts: { marketCapReporting: number 
     test("Positive operating cash flow", "Profitability", cfo(c) == null ? null : cfo(c)! > 0, "cash from operations > 0"),
     test("ROA improved", "Profitability", roaC == null || roaP == null ? null : roaC > roaP, `${pctStr(roaP)} → ${pctStr(roaC)}`),
     test("Cash flow exceeds profit (earnings quality)", "Profitability", cfo(c) == null || ni(c) == null ? null : cfo(c)! > ni(c)!, "operating cash flow > net income"),
-    test("Long-term debt ratio fell", "Leverage & liquidity", ta(c) && ta(p) ? ltd(c) / ta(c)! <= ltd(p) / ta(p)! : null, `${pctStr(ta(p) ? ltd(p) / ta(p)! : null)} → ${pctStr(ta(c) ? ltd(c) / ta(c)! : null)} of assets`),
+    test("Long-term debt ratio did not rise", "Leverage & liquidity", ta(c) && ta(p) ? ltd(c) / ta(c)! <= ltd(p) / ta(p)! : null, `${pctStr(ta(p) ? ltd(p) / ta(p)! : null)} → ${pctStr(ta(c) ? ltd(c) / ta(c)! : null)} of assets`),
     test("Current ratio improved", "Leverage & liquidity", cr(c) == null || cr(p) == null ? null : cr(c)! > cr(p)!, `${cr(p)?.toFixed(2) ?? "n/a"} → ${cr(c)?.toFixed(2) ?? "n/a"}`),
     test("No new shares issued", "Leverage & liquidity", sh(c) == null || sh(p) == null ? null : sh(c)! <= sh(p)! * 1.005, "share count not up"),
     test("Gross margin improved", "Efficiency", gm(c) == null || gm(p) == null ? null : gm(c)! > gm(p)!, `${pctStr(gm(p))} → ${pctStr(gm(c))}`),

@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
+import { ArrowRight, CalendarClock, LayoutDashboard, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
@@ -10,7 +10,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Delta } from "@/components/ui/delta";
 import { InfoTip } from "@/components/ui/info-tip";
+import { eq } from "drizzle-orm";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
+import { getDb, schema } from "@/lib/db";
 import { absPct, inr, inrCompact, signedPct } from "@/lib/format";
 import { portfolioView, type FullPortfolioView, type Note } from "@/lib/views/portfolio";
 
@@ -22,11 +24,18 @@ const NOTE_ICON: Record<Note["kind"], typeof Layers> = { results: FileBarChart2,
 export default async function AnalysisPage() {
   const user = await requirePageUser();
   const view = await portfolioView(user, await selectedPortfolioId());
+  // Ticks "see your first analysis" on Home's start-up checklist.
+  if (!user.prefs?.seenAnalysis && !view.empty) await (await getDb()).update(schema.users).set({ prefs: { ...(user.prefs ?? {}), seenAnalysis: true } }).where(eq(schema.users.id, user.id));
   const switcher = <PortfolioTabs portfolios={view.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={view.active?.id ?? null} />;
   const head = (
-    <div>
-      <h1 className="t-title-1 text-text">Analysis</h1>
-      <p className="mt-1 text-sm text-muted">What your portfolio did, why, and what is worth knowing about it. Worked out from stored prices, never a forecast.</p>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 className="t-title-1 text-text">Analysis</h1>
+        <p className="mt-1 text-sm text-muted">What your portfolio did, why, and what is worth knowing about it. Worked out from stored prices, never a forecast.</p>
+      </div>
+      <ButtonLink href="/dashboards" variant="secondary" size="sm">
+        <LayoutDashboard className="h-4 w-4" /> Dashboards
+      </ButtonLink>
     </div>
   );
   if (view.empty)
@@ -90,7 +99,30 @@ export default async function AnalysisPage() {
             </>
           )}
         </p>
-        <div className="mt-4 grid gap-5 sm:grid-cols-2">
+        {(v.returns.sales > 0 || v.returns.income > 0) && (
+          <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Still in the portfolio", v.returns.unrealised, null],
+              ["Realised in sales", v.returns.realised, `${inr(Math.round(v.returns.realisedThisYear))} in ${v.returns.fy}`],
+              ["Paid out as income", v.returns.income, `${inr(Math.round(v.returns.incomeThisYear))} in ${v.returns.fy}`],
+              ["Total return", v.returns.total, null],
+            ].map(([label, amount, sub]) => (
+              <div key={label as string} className="rounded-[12px] bg-surface-2 px-3 py-2.5">
+                <dt className="text-[12px] text-subtle">{label}</dt>
+                <dd className="mt-0.5">
+                  <Delta amount={amount as number} size="sm" showArrow={false} />
+                  {sub && <span className="num block text-[11px] text-subtle">{sub}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {v.returns.sales > 0 && (
+          <Link href="/analysis/taxes" className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
+            Capital gains by financial year <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
+        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <ReturnList title="Gained the most" rows={winners} empty="Nothing is in profit yet." />
           <ReturnList title="Lost the most" rows={losers} empty="Nothing is at a loss." />
         </div>
@@ -147,7 +179,7 @@ type CardRow = FullPortfolioView["cards"][number];
 function ReturnList({ title, rows, empty }: { title: string; rows: CardRow[]; empty: string }) {
   const max = Math.max(1, ...rows.map((r) => Math.abs(r.pnl)));
   return (
-    <div>
+    <div className="min-w-0">
       <div className="text-[12px] font-medium text-subtle">{title}</div>
       {rows.length === 0 ? (
         <p className="mt-2 text-sm text-muted">{empty}</p>

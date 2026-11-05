@@ -51,7 +51,7 @@ export async function listSips(userId: string, portfolioId: string): Promise<Sip
  * India. A new plan with a start date in the past is caught up at once: every instalment since
  * then is added before this returns, so the holding the user sees next already has them.
  */
-export async function setSip(userId: string, holdingId: string, input: SipInput, today: string, provider: MarketDataProvider = resilientProvider): Promise<{ sip: Sip; added: number }> {
+export async function setSip(userId: string, holdingId: string, input: SipInput, today: string, provider: MarketDataProvider = resilientProvider): Promise<{ sip: Sip; added: number; skipped?: number }> {
   check(input, today);
   const h = await requireHolding(userId, holdingId);
   if (isManualSymbol(h.symbol)) throw badRequest("A SIP needs something with a daily price: a fund, a stock or an ETF.");
@@ -87,9 +87,9 @@ export async function setSip(userId: string, holdingId: string, input: SipInput,
     await db.delete(schema.sips).where(eq(schema.sips.id, created.id));
     throw badRequest("Nazar couldn't get past prices for this holding just now, so it can't add the earlier instalments. Try again in a minute, or leave the start date empty.");
   }
-  const { added } = await applyPlan(db, created, h, closes, today);
+  const { added, skipped } = await applyPlan(db, created, h, closes, today);
   const [sip] = await db.select().from(schema.sips).where(eq(schema.sips.id, created.id)).limit(1);
-  return { sip, added };
+  return { sip, added, skipped };
 }
 
 /**
@@ -129,7 +129,7 @@ export async function removeSip(userId: string, holdingId: string, opts: { undo?
  * run found it. A second run, or two overlapping ones, find the date already moved and add
  * nothing: instalments can be missed by a crash between the writes, never added twice.
  */
-async function applyPlan(db: DB, sip: Sip, holding: Holding, closes: Map<string, number>, today: string): Promise<{ added: number; ended: boolean }> {
+async function applyPlan(db: DB, sip: Sip, holding: Holding, closes: Map<string, number>, today: string): Promise<{ added: number; ended: boolean; skipped: number }> {
   const plan = instalmentsDue(sip, closes, today);
   if (plan.nextDue !== sip.nextDue) {
     const amount = plan.instalments.reduce((a, i) => a + i.amount, 0);
@@ -138,19 +138,19 @@ async function applyPlan(db: DB, sip: Sip, holding: Holding, closes: Map<string,
       .set({ nextDue: plan.nextDue, instalments: sql`${schema.sips.instalments} + ${plan.instalments.length}`, invested: sql`${schema.sips.invested} + ${amount}`, ...(plan.ended ? { active: false } : {}), updatedAt: new Date() })
       .where(and(eq(schema.sips.id, sip.id), eq(schema.sips.nextDue, sip.nextDue)))
       .returning({ id: schema.sips.id });
-    if (!claimed.length) return { added: 0, ended: false };
+    if (!claimed.length) return { added: 0, ended: false, skipped: 0 };
   } else if (plan.ended) await db.update(schema.sips).set({ active: false, updatedAt: new Date() }).where(eq(schema.sips.id, sip.id));
-  if (!plan.instalments.length) return { added: 0, ended: plan.ended };
+  if (!plan.instalments.length) return { added: 0, ended: plan.ended, skipped: plan.skipped.length };
   await db.insert(schema.holdingLots).values(plan.instalments.map((i) => ({ id: randomUUID(), holdingId: holding.id, portfolioId: holding.portfolioId, quantity: i.quantity, price: i.price, date: i.tradeDate, remaining: i.quantity, sipId: sip.id })));
   // The holding as it stands now, plus what was just bought: units add up, the average is weighted by units.
   const [h] = await db.select().from(schema.holdings).where(eq(schema.holdings.id, holding.id)).limit(1);
-  if (!h) return { added: 0, ended: plan.ended };
+  if (!h) return { added: 0, ended: plan.ended, skipped: plan.skipped.length };
   const units = plan.instalments.reduce((a, i) => a + i.quantity, 0);
   const cost = plan.instalments.reduce((a, i) => a + i.amount, 0);
   const quantity = h.quantity + units;
   const first = [h.buyDate, plan.instalments[0].tradeDate].filter((d): d is string => !!d).sort()[0] ?? null;
   await db.update(schema.holdings).set({ quantity, avgPrice: (h.quantity * h.avgPrice + cost) / quantity, buyDate: first, updatedAt: new Date() }).where(eq(schema.holdings.id, h.id));
-  return { added: plan.instalments.length, ended: plan.ended };
+  return { added: plan.instalments.length, ended: plan.ended, skipped: plan.skipped.length };
 }
 
 /**

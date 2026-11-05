@@ -37,6 +37,9 @@ export const users = pgTable("users", {
 export type UserPrefs = {
   /** Income-tax slab in percent, for gains taxed at the slab rate. Unset: those gains are shown without a rupee figure. */
   taxSlabPct?: number | null;
+  /** The start-up checklist on Home: put away, and whether Analysis has been opened yet. */
+  checklistDismissed?: boolean;
+  seenAnalysis?: boolean;
 };
 
 /* ------------------------------------------------------------------ */
@@ -196,6 +199,27 @@ export const holdingSales = pgTable(
 );
 
 /**
+ * Money a holding paid out: a dividend, interest, or anything else the user records. Entered by the
+ * user, never guessed; it outlives the holding, like a sale.
+ */
+export const holdingIncome = pgTable(
+  "holding_income",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    holdingId: text("holding_id").references(() => holdings.id, { onDelete: "set null" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    kind: text("kind").$type<"dividend" | "interest" | "other">().notNull(),
+    amount: doublePrecision("amount").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("income_portfolio_idx").on(t.portfolioId, t.date), index("income_user_idx").on(t.userId, t.date)],
+);
+
+/**
  * Splits and bonus issues seen on held symbols. A row is written once per (symbol, ex-date), and
  * holdings are adjusted in the same step, so an action is never applied twice.
  */
@@ -211,6 +235,25 @@ export const corporateActions = pgTable(
     appliedAt: ts("applied_at").defaultNow().notNull(),
   },
   (t) => [primaryKey({ columns: [t.symbol, t.exDate] })],
+);
+
+/**
+ * A dashboard: a named set of comparisons the user builds, each one something they own (a whole
+ * portfolio, a kind of asset, one holding) against an index over a period.
+ */
+export type DashboardWidget = { id: string; portfolio: string; part: string; benchmark: string; period: "1M" | "3M" | "6M" | "1Y" };
+export const dashboards = pgTable(
+  "dashboards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    widgets: jsonb("widgets").$type<DashboardWidget[]>().notNull().default([]),
+    createdAt: created(),
+    updatedAt: ts("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("dashboards_user_idx").on(t.userId, t.sortOrder)],
 );
 
 /** Stocks the user watches without owning them. */
@@ -423,6 +466,8 @@ export const usage = pgTable(
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: doublePrecision("cost_usd").notNull().default(0),
+    /** On a shared test account, the visitor (account and network) the spend belongs to. */
+    visitor: text("visitor"),
     createdAt: created(),
   },
   (t) => [index("usage_user_idx").on(t.userId), index("usage_created_idx").on(t.createdAt)],

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const u = await requirePageUser();
   return (
-    <AppShell user={{ name: u.name, email: u.email, isTestAccount: u.isTestAccount }}>
+    <AppShell user={{ name: u.name, email: u.email, isTestAccount: u.isTestAccount, demoEndsAt: u.isDemo ? (u.demoExpiresAt?.toISOString() ?? null) : null }}>
       <AutoRefresh />
       {children}
     </AppShell>

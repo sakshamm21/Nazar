@@ -21,7 +21,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
   const stocks = view.empty ? [] : view.cards.filter((c) => c.assetClass === "stock").map((c) => c.name);
   return (
     <Suspense>
-      <AskWorkspace context={{ stock: stocks[0] ?? null, second: stocks[1] ?? null, hasPortfolio: !view.empty, today: view.empty ? [] : startersFor({ dayChange: view.valuation.dayChange, dayChangePct: view.valuation.dayChangePct, notes: view.notes }) }} remaining={await remainingToday(user.id, user.isTestAccount, ipHashOf(await headers()))} start={start} />
+      <AskWorkspace context={{ stock: stocks[0] ?? null, second: stocks[1] ?? null, hasPortfolio: !view.empty, monthPct: view.empty ? null : (view.performance.periods["1M"]?.changePct ?? null), today: view.empty ? [] : startersFor({ dayChange: view.valuation.dayChange, dayChangePct: view.valuation.dayChangePct, notes: view.notes }) }} remaining={await remainingToday(user.id, user.isTestAccount, ipHashOf(await headers()))} start={start} />
     </Suspense>
   );
 }
