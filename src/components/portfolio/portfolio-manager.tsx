@@ -15,7 +15,7 @@ import { apiCall } from "@/lib/api-client";
 import { absPct, inr } from "@/lib/format";
 import { ASSET_META, GROUP_COLOR, GROUP_ORDER, groupOf, isManualClass, shortCode, type AssetGroup } from "@/lib/instruments/asset-classes";
 import { AssetIcon } from "./asset-ui";
-import { AssetBuilder } from "./asset-builder";
+import { AssetBuilder, type Hit } from "./asset-builder";
 import { PortfolioList, type PortfolioSummary } from "./portfolio-list";
 import { HoldingSheet, type HoldingRow } from "./holding-sheet";
 
@@ -37,7 +37,17 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, watching,
   const router = useRouter();
   const params = useSearchParams();
   const [builder, setBuilder] = useState<null | "all" | "manual">(params.get("add") === "1" ? "all" : null);
-  const [editing, setEditing] = useState<Row | null>(null);
+  // Opened from a stock's page or from search: that instrument, already picked.
+  const symbol = params.get("symbol"), pickedName = params.get("name"), pickedClass = params.get("class");
+  const initialHit = useMemo<Hit | null>(() => (symbol && pickedName && pickedClass ? { symbol, name: pickedName, assetClass: pickedClass as Hit["assetClass"], isin: null, sub: null } : null), [symbol, pickedName, pickedClass]);
+  // "+ Add" pressed again while already here (the URL changes, the screen does not remount).
+  const [seenParams, setSeenParams] = useState(params.toString());
+  if (params.toString() !== seenParams) {
+    setSeenParams(params.toString());
+    if (params.get("add") === "1") setBuilder("all");
+  }
+  // "Change" on a stock's page opens that holding here.
+  const [editing, setEditing] = useState<Row | null>(() => rows.find((r) => r.id === params.get("edit")) ?? null);
   const [sort, setSort] = useState<SortKey>("value");
   const [filter, setFilter] = useState("");
   const active = portfolios.find((p) => p.id === activeId) ?? null;
@@ -88,7 +98,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, watching,
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="t-title-2 text-text">What {active.name} holds</h2>
+              <h2 className="t-title-2 text-text">What&apos;s in {active.name}</h2>
               <p className="mt-0.5 text-sm text-muted">
                 <span className="num">{rows.length}</span> holdings worth <span className="num text-text">{inr(totals.value)}</span>. Tap the pencil to change one.
               </p>
@@ -105,7 +115,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, watching,
 
           <div className="flex flex-wrap items-center gap-2">
             {rows.length > 6 && (
-              <div className="relative min-w-0 flex-1 sm:max-w-xs">
+              <div className="relative w-full min-w-0 sm:w-auto sm:max-w-xs sm:flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" aria-hidden />
                 <Input aria-label="Find a holding" placeholder="Find a holding" className="h-10 pl-9 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)} />
               </div>
@@ -148,7 +158,7 @@ export function PortfolioManager({ portfolios, activeId, rows, totals, watching,
 
       <WatchingCard watching={watching} />
 
-      <AssetBuilder open={!!builder} initialTab={builder ?? "all"} onClose={() => setBuilder(null)} portfolioId={activeId} held={rows.map((r) => ({ symbol: r.symbol, quantity: r.quantity, avgPrice: r.avgPrice }))} />
+      <AssetBuilder open={!!builder} initialTab={builder ?? "all"} initialHit={initialHit} onClose={() => setBuilder(null)} portfolioId={activeId} held={rows.map((r) => ({ symbol: r.symbol, quantity: r.quantity, avgPrice: r.avgPrice }))} />
       <HoldingSheet row={editing} portfolioId={activeId} onClose={() => setEditing(null)} onRemove={remove} />
     </div>
   );
@@ -271,7 +281,7 @@ function WatchingCard({ watching }: { watching: Watch[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   return (
-    <Card className="p-5 sm:p-6">
+    <Card id="watching" className="scroll-mt-24 p-5 sm:p-6">
       <CardHeader
         overline="Watching"
         title="Not yours (yet), but on your radar"

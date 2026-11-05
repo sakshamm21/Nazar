@@ -56,13 +56,16 @@ function resolved(l: Line): { quantity: number; avgPrice: number } | null {
  * The portfolio builder: search every asset class in one place, pick several, fill in what you
  * hold and add them together. Deposits, provident funds, property and cash have their own tab.
  */
-export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "all" }: { open: boolean; onClose: () => void; portfolioId: string | null; held: Held[]; initialTab?: (typeof TABS)[number]["id"] }) {
+/** A fresh line for something picked: by amount for funds, by units for the rest; its price not in yet. */
+const lineFor = (hit: Hit): Line => ({ hit, mode: BY_AMOUNT.has(hit.assetClass) ? "amount" : "units", qty: "", price: "", invested: "", current: "", date: "", live: undefined });
+
+export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "all", initialHit = null }: { open: boolean; onClose: () => void; portfolioId: string | null; held: Held[]; initialTab?: (typeof TABS)[number]["id"]; /** Opened from a stock's page or search: already picked. */ initialHit?: Hit | null }) {
   const router = useRouter();
   const [tab, setTab] = useState(initialTab);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [searching, setSearching] = useState(false);
-  const [lines, setLines] = useState<Line[]>([]);
+  const [lines, setLines] = useState<Line[]>(() => (open && initialHit ? [lineFor(initialHit)] : []));
   const [manual, setManual] = useState<ManualDraft | null>(null);
   const [manuals, setManuals] = useState<ManualDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +84,7 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
       setManual(null);
       setManuals([]);
       setError(null);
+      setLines(initialHit ? [lineFor(initialHit)] : []);
     }
   }
 
@@ -101,16 +105,27 @@ export function AssetBuilder({ open, onClose, portfolioId, held, initialTab = "a
   const patch = (symbol: string, p: Partial<Line>) => setLines((ls) => ls.map((l) => (l.hit.symbol === symbol ? { ...l, ...p } : l)));
   const pick = (hit: Hit) => {
     if (lines.some((l) => l.hit.symbol === hit.symbol)) return setLines((ls) => ls.filter((l) => l.hit.symbol !== hit.symbol));
-    setLines((ls) => [...ls, { hit, mode: BY_AMOUNT.has(hit.assetClass) ? "amount" : "units", qty: "", price: "", invested: "", current: "", date: "", live: undefined }]);
+    asked.current.delete(hit.symbol);
+    setLines((ls) => [...ls, lineFor(hit)]);
     setError(null);
     // Close the results so the form for what was just picked is the next thing on screen.
     setQ("");
     setHits([]);
-    // The latest price pre-fills the form and turns a rupee amount into units.
-    apiCall<{ price: number | null }>(`/api/price?symbol=${encodeURIComponent(hit.symbol)}`)
-      .then((j) => patch(hit.symbol, { live: j.price }))
-      .catch(() => patch(hit.symbol, { live: null }));
+    // The latest price (fetched below) pre-fills the form and turns a rupee amount into units.
   };
+
+  // A line the opener put in (a stock's page, search) gets its latest price like a picked one.
+  const asked = useRef(new Set<string>());
+  useEffect(() => {
+    for (const l of lines) {
+      if (l.live !== undefined || asked.current.has(l.hit.symbol)) continue;
+      asked.current.add(l.hit.symbol);
+      apiCall<{ price: number | null }>(`/api/price?symbol=${encodeURIComponent(l.hit.symbol)}`)
+        .then((j) => patch(l.hit.symbol, { live: j.price }))
+        .catch(() => patch(l.hit.symbol, { live: null }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines]);
 
   const ready = lines.map((l) => ({ l, r: resolved(l) }));
   const count = lines.length + manuals.length + (manual ? 1 : 0);

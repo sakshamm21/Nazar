@@ -100,7 +100,8 @@ export default async function PortfolioPage() {
       <PortfolioScreen
         startOnManage={!overview}
         switcher={<PortfolioTabs portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={active?.id ?? null} />}
-        manageSwitcher={<PortfolioTabs portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={managed?.id ?? null} withAll={false} />}
+        // On Manage the portfolio cards are the switcher, with each one's value and an Open button.
+        manageSwitcher={null}
         overview={overview ? <Overview d={overview} /> : null}
         manage={
           <PortfolioManager

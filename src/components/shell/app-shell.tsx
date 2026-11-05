@@ -1,5 +1,5 @@
 "use client";
-import { Home, LayoutDashboard, LineChart, LogOut, MessageCircle, UserRound, Wallet } from "lucide-react";
+import { Home, LayoutDashboard, LineChart, LogOut, MessageCircle, Plus, Search, UserRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { apiCall } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { trackClient } from "@/lib/events-client";
+import { SearchPalette } from "./search-palette";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
@@ -30,6 +31,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
   const path = usePathname();
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
+  const [searching, setSearching] = useState(false);
   // One "view" per screen opened: what /insights counts as using the product.
   const area = AREAS.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`))?.[1] ?? null;
   useEffect(() => {
@@ -53,7 +55,16 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
         <Link href="/home" className="px-3" aria-label="Nazar home">
           <Wordmark />
         </Link>
-        <nav className="mt-8 space-y-1" aria-label="Main">
+        <div className="mt-6 flex gap-1.5 px-1">
+          <button onClick={() => setSearching(true)} className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[12px] border border-line bg-surface-1 px-3 text-[13px] text-subtle transition-colors hover:border-line-strong hover:text-text">
+            <Search className="h-4 w-4 shrink-0" /> <span className="truncate">Search</span>
+            <kbd className="ml-auto rounded border border-line px-1.5 text-[11px] font-sans">⌘K</kbd>
+          </button>
+          <Link href="/portfolio?tab=manage&add=1" aria-label="Add to a portfolio" title="Add to a portfolio" className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-accent text-accent-ink transition-opacity hover:opacity-90">
+            <Plus className="h-[18px] w-[18px]" />
+          </Link>
+        </div>
+        <nav className="mt-5 space-y-1" aria-label="Main">
           {NAV.map(({ href, label, hint, icon: Icon }) => {
             const on = active(href);
             return (
@@ -95,10 +106,13 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             <Wordmark size={26} />
           </Link>
           <span className="flex items-center gap-1">
-            <button onClick={signOut} disabled={leaving} aria-label="Sign out" className="grid h-9 w-9 place-items-center rounded-[10px] text-muted hover:bg-surface-2 hover:text-text">
-              <LogOut className="h-[18px] w-[18px]" />
+            <button onClick={() => setSearching(true)} aria-label="Search" className="grid h-9 w-9 place-items-center rounded-[10px] text-muted hover:bg-surface-2 hover:text-text">
+              <Search className="h-[18px] w-[18px]" />
             </button>
-            <Link href="/settings" aria-label="Your profile">
+            <Link href="/portfolio?tab=manage&add=1" aria-label="Add to a portfolio" className="grid h-9 w-9 place-items-center rounded-[10px] bg-accent text-accent-ink">
+              <Plus className="h-[18px] w-[18px]" />
+            </Link>
+            <Link href="/settings" aria-label="Your profile" className="ml-1">
               <Avatar name={user.name} size={32} />
             </Link>
           </span>
@@ -108,6 +122,8 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
           <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.</footer>
         </main>
       </div>
+
+      <SearchPalette open={searching} onOpenChange={setSearching} />
 
       {/* Mobile bottom tabs */}
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">

@@ -118,7 +118,7 @@ export default async function AnalysisPage() {
             Capital gains by financial year <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         )}
-        <div className="mt-4 grid gap-5 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <ReturnList title="Gained the most" rows={winners} empty="Nothing is in profit yet." />
           <ReturnList title="Lost the most" rows={losers} empty="Nothing is at a loss." />
         </div>
@@ -175,7 +175,7 @@ type CardRow = FullPortfolioView["cards"][number];
 function ReturnList({ title, rows, empty }: { title: string; rows: CardRow[]; empty: string }) {
   const max = Math.max(1, ...rows.map((r) => Math.abs(r.pnl)));
   return (
-    <div>
+    <div className="min-w-0">
       <div className="text-[12px] font-medium text-subtle">{title}</div>
       {rows.length === 0 ? (
         <p className="mt-2 text-sm text-muted">{empty}</p>

@@ -145,7 +145,7 @@ export function DashboardBoard({ dashboards, active, cards, options }: { dashboa
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {editing
           ? draft.map((w) => <WidgetEditor key={w.id} w={w} options={options} onChange={(p) => change(w.id, p)} onRemove={() => setDraft((d) => d.filter((x) => x.id !== w.id))} />)
           : cards.map((c) => <CompareCard key={c.widget.id} c={c} />)}
@@ -171,7 +171,7 @@ function CompareCard({ c }: { c: BoardCard }) {
   const r = c.result;
   const gap = r && r.minePct != null && r.indexPct != null ? r.minePct - r.indexPct : null;
   return (
-    <Card className="p-5">
+    <Card className="min-w-0 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="t-overline truncate">{c.scope} · {c.period}</div>
@@ -237,7 +237,7 @@ function WidgetEditor({ w, options, onChange, onRemove }: { w: DashboardWidget; 
     </Field>
   );
   return (
-    <Card className="space-y-3 p-5">
+    <Card className="min-w-0 space-y-3 p-5">
       <div className="flex items-center justify-between">
         <span className="t-overline">Comparison</span>
         <button onClick={onRemove} aria-label="Remove this comparison" className="rounded-full p-1.5 text-subtle hover:bg-loss-soft hover:text-loss">
