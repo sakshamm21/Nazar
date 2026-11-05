@@ -4,6 +4,7 @@ import { GoalsCard } from "@/components/goals/goals-card";
 import { Preferences } from "@/components/settings/preferences";
 import { ProfileCard } from "@/components/settings/profile-card";
 import { TaxCard } from "@/components/settings/tax-card";
+import { DataCard } from "@/components/settings/data-card";
 import { requirePageUser } from "@/lib/current-user";
 import { istDate } from "@/lib/data/provider";
 import { getDb, schema } from "@/lib/db";
@@ -46,6 +47,7 @@ export default async function SettingsPage() {
       <GoalsCard view={goals} />
       <TaxCard slabPct={user.prefs?.taxSlabPct ?? null} />
       <Preferences />
+      <DataCard portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} opensOn={user.prefs?.defaultPortfolio ?? "all"} />
       <p className="t-caption px-1">Nazar only emails you to confirm your address or reset your password. It explains; you decide. It is not a SEBI-registered investment adviser.</p>
     </div>
   );

@@ -67,6 +67,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   // Queries that do not depend on each other are sent together. Each is a network round trip to
   // the database, and one after another they were most of what a portfolio answer waited for.
   const [portfolios, tradeDate, watching] = await Promise.all([listPortfolios(user.id), latestTradeDate(db, sources), listWatching(user.id)]);
+  // Nothing picked on this device: the portfolio the person chose to open on.
+  portfolioId ??= user.prefs?.defaultPortfolio ?? null;
   // With two or more portfolios, "All" is a choice of its own, and the one shown when none was picked.
   const combined = portfolios.length >= 2 && (portfolioId === ALL || !portfolios.some((p) => p.id === portfolioId));
   const active: ActivePortfolio | null = combined

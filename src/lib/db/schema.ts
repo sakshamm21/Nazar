@@ -40,6 +40,15 @@ export type UserPrefs = {
   /** The start-up checklist on Home: put away, and whether Analysis has been opened yet. */
   checklistDismissed?: boolean;
   seenAnalysis?: boolean;
+  /** Ask's model ("auto" or a model id) and the theme, so they follow the person to any device. */
+  model?: string;
+  theme?: "dark" | "light";
+  /** Which portfolio the app opens on: "all" or a portfolio id. */
+  defaultPortfolio?: string;
+  /** The weekly email, off unless switched on. */
+  weeklyEmail?: boolean;
+  /** When Home was last opened, for "since you last looked". */
+  lastHomeAt?: string;
 };
 
 /* ------------------------------------------------------------------ */
