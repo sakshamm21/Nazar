@@ -1,0 +1,1 @@
+ALTER TABLE "usage" ADD COLUMN "visitor" text;

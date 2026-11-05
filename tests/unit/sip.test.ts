@@ -35,7 +35,7 @@ describe("instalments that have fallen due", () => {
   });
 
   it("waits while the due date's price is not in yet, and adds nothing before the due date", () => {
-    expect(instalmentsDue(plan, closes({ "2026-10-02": 99 }), "2026-10-05")).toEqual({ instalments: [], nextDue: "2026-10-05", ended: false });
+    expect(instalmentsDue(plan, closes({ "2026-10-02": 99 }), "2026-10-05")).toEqual({ instalments: [], nextDue: "2026-10-05", ended: false, skipped: [] });
     expect(instalmentsDue(plan, closes({ "2026-10-02": 99 }), "2026-10-04").instalments).toEqual([]);
   });
 
@@ -52,6 +52,7 @@ describe("instalments that have fallen due", () => {
   it("a month whose price only turns up weeks later is skipped, not invented", () => {
     const r = instalmentsDue(plan, closes({ "2026-10-30": 100, "2026-11-05": 125 }), "2026-11-10");
     expect(r.instalments.map((i) => i.due)).toEqual(["2026-11-05"]);
+    expect(r.skipped).toEqual(["2026-10-05"]);
     expect(r.nextDue).toBe("2026-12-05");
   });
 

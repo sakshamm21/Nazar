@@ -24,9 +24,9 @@ export const PUT = api(async (req, ctx: Ctx) => {
   const u = await requireUser(req);
   const { id } = await ctx.params;
   const body = await parseBody(req, Body);
-  const { sip, added } = await setSip(u.id, id, body, istDate(new Date()));
+  const { sip, added, skipped = 0 } = await setSip(u.id, id, body, istDate(new Date()));
   track(u.id, "sip_set", { amount: Math.round(body.amount), dayOfMonth: body.dayOfMonth, active: sip.active, backfilled: added });
-  return json({ sip, added });
+  return json({ sip, added, skipped });
 });
 
 /** Stops the plan. Instalments already added stay in the holding, unless `?undo=1` asks for them to be taken back out. */

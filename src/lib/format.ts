@@ -98,8 +98,9 @@ export function inrApprox(n: number) {
 /** −7.2% / +1.4% from a fraction (0.072 = 7.2%). Uses a real minus sign. */
 export function signedPct(fraction: number | null | undefined, decimals = 1) {
   if (fraction == null || !Number.isFinite(fraction)) return "—";
-  const x = fraction * 100;
-  const s = Math.abs(x).toFixed(decimals);
+  const s = Math.abs(fraction * 100).toFixed(decimals);
+  // The sign follows what is shown: a move that rounds to 0.0% carries none.
+  const x = Number(s) === 0 ? 0 : fraction;
   return `${x < 0 ? "−" : x > 0 ? "+" : ""}${s}%`;
 }
 

@@ -207,12 +207,17 @@ export function explain(a: Analysis): { headline: string; what: string; why: str
   if (downs.length) why.push(`${list(downs.map((c) => `${c.name} (−${rupees(c.amount)})`))} took the most away.`);
   if (a.niftyPct != null && !flat) {
     const share = a.change ? a.marketPart / a.change : 0;
+    const nifty = signedPct(a.niftyPct), market = inr(Math.round(a.marketPart), { sign: true, decimals: 0 }), own = inr(Math.round(a.ownPart), { sign: true, decimals: 0 });
     why.push(
-      share >= 0.75
-        ? `Almost all of it is the market: the Nifty moved ${signedPct(a.niftyPct)}, and holdings that follow it as yours do would have moved about ${inr(Math.round(a.marketPart), { sign: true, decimals: 0 })}.`
-        : share <= 0.25
-          ? `Little of it is the market: the Nifty moved ${signedPct(a.niftyPct)}, which explains only about ${inr(Math.round(a.marketPart), { sign: true, decimals: 0 })}. The rest, ${inr(Math.round(a.ownPart), { sign: true, decimals: 0 })}, is specific to what you own.`
-          : `The market explains part of it: the Nifty moved ${signedPct(a.niftyPct)}, worth about ${inr(Math.round(a.marketPart), { sign: true, decimals: 0 })} for holdings like yours. The other ${inr(Math.round(a.ownPart), { sign: true, decimals: 0 })} is specific to what you own.`,
+      share < 0
+        ? `It went against the market: the Nifty moved ${nifty}, which alone would have meant about ${market} for holdings like yours. What you own did ${own}.`
+        : share > 1.1
+          ? `The market alone would have moved it more: the Nifty moved ${nifty}, worth about ${market} for holdings like yours. What you own ${dir === "up" ? "held it back" : "cushioned it"} by ${inr(Math.abs(Math.round(a.ownPart)), { decimals: 0 })}.`
+          : share >= 0.75
+            ? `Almost all of it is the market: the Nifty moved ${nifty}, and holdings that follow it as yours do would have moved about ${market}.`
+            : share <= 0.25
+              ? `Little of it is the market: the Nifty moved ${nifty}, which explains only about ${market}. The rest, ${own}, is specific to what you own.`
+              : `The market explains part of it: the Nifty moved ${nifty}, worth about ${market} for holdings like yours. The other ${own} is specific to what you own.`,
     );
   }
 

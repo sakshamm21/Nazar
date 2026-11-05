@@ -277,7 +277,7 @@ test.describe("Ask and You", () => {
     await page.goto("/ask");
     await expect(page.getByRole("heading", { name: /Ask anything about\s*your money/ })).toBeVisible();
     // The history list can hold conversations with this title; the suggestion is the last such button.
-    await expect(page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Why is my portfolio (up|down) this month\?|What did my portfolio do this month\?)$/ }).last()).toBeVisible();
     await page.getByRole("tab", { name: "One company" }).click();
     await expect(page.getByRole("button", { name: /^Explain .+'s latest results in simple words$/ })).toBeVisible();
     await expect(page.getByLabel("Your question")).toBeVisible();
@@ -413,7 +413,7 @@ test.describe("Ask @openai", () => {
     await page.goto("/ask");
     // Earlier runs leave conversations with this title in the history list, which comes first in
     // the page; the suggestion on the start screen is the last button with the name.
-    await page.getByRole("button", { name: "Why is my portfolio down this month?", exact: true }).last().click();
+    await page.getByRole("button", { name: /^(Why is my portfolio (up|down) this month\?|What did my portfolio do this month\?)$/ }).last().click();
     await expect(page.getByText(/Reading your portfolio|read-only from Nazar's checkup/).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/the decision is yours/i)).toBeVisible({ timeout: 90_000 });
   });

@@ -47,9 +47,11 @@ export type Instalment = { due: string; tradeDate: string; price: number; quanti
  * after its due date. It waits (and so does every later one) while that price is not in yet, which
  * is the ordinary case on the due date itself, before the night's checkup has run.
  */
-export function instalmentsDue(plan: SipPlan, closes: Map<string, number>, today: string): { instalments: Instalment[]; nextDue: string; ended: boolean } {
+export function instalmentsDue(plan: SipPlan, closes: Map<string, number>, today: string): { instalments: Instalment[]; nextDue: string; ended: boolean; skipped: string[] } {
   const dates = [...closes.keys()].sort();
   const instalments: Instalment[] = [];
+  /** Due dates passed over because no price turned up in time: reported, never invented. */
+  const skipped: string[] = [];
   let due = plan.nextDue;
   let ended = false;
   while (instalments.length < MAX_CATCH_UP && due <= today) {
@@ -63,11 +65,12 @@ export function instalmentsDue(plan: SipPlan, closes: Map<string, number>, today
     if (tradeDate <= addDays(due, PRICE_WINDOW_DAYS)) {
       const price = closes.get(tradeDate)!;
       if (price > 0) instalments.push({ due, tradeDate, price, quantity: plan.amount / price, amount: plan.amount });
-    }
+      else skipped.push(due);
+    } else skipped.push(due);
     due = dueAfter(plan.dayOfMonth, due);
   }
   if (plan.endDate && due > plan.endDate) ended = true;
-  return { instalments, nextDue: due, ended };
+  return { instalments, nextDue: due, ended, skipped };
 }
 
 /** "5th", "22nd": the day as people say it. */

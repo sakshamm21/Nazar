@@ -6,7 +6,7 @@ import { getDb, schema } from "@/lib/db";
 import { marketOf, track } from "@/lib/events";
 import { today as istToday } from "@/lib/goals/draft";
 import { getMaster } from "@/lib/instruments/master";
-import { LIMITS, checkAndRecord } from "@/lib/limits";
+import { LIMITS, checkAndRecord, visitorKey } from "@/lib/limits";
 import { answerLang, traceNumbers } from "./checks";
 import { compactHistory, detectLang, modelViewOf } from "./context";
 import { AUTO_MODEL, estimateCost, getModel, routeModel } from "./models";
@@ -160,7 +160,7 @@ export async function runAsk(input: AskInput): Promise<Response> {
   };
   const logUsage = async (model: string, inputTokens: number, outputTokens: number, cachedInputTokens = 0) => {
     try {
-      await db.insert(schema.usage).values({ id: randomUUID(), userId, chatId: id, model, inputTokens, outputTokens, costUsd: estimateCost(model, inputTokens, outputTokens, cachedInputTokens) });
+      await db.insert(schema.usage).values({ id: randomUUID(), userId, chatId: id, model, inputTokens, outputTokens, costUsd: estimateCost(model, inputTokens, outputTokens, cachedInputTokens), visitor: user.isDemo || user.isTestAccount ? visitorKey(userId, input.ip) : null });
     } catch (e) {
       console.error("usage log failed", e);
     }

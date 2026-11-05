@@ -63,7 +63,10 @@ export default async function HomePage() {
   }
 
   const a = v.attribution;
-  const lastCheck = v.asOf ? istTime(new Date(new Date(v.asOf).getTime() + 47 * 60_000)) : null;
+  // A check on an earlier day says which day, so yesterday's 4:18 PM never reads as today's.
+  const checked = v.checkedAt ? new Date(v.checkedAt) : null;
+  const sameDay = checked && checked.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }) === new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
+  const lastCheck = checked ? `${sameDay ? "" : `${checked.toLocaleDateString("en-IN", { weekday: "short", timeZone: "Asia/Kolkata" })} `}${istTime(checked)}` : null;
   const month = v.performance.values.slice(-22);
   return (
     <div className="nz-stagger space-y-5 lg:space-y-6">
@@ -71,7 +74,7 @@ export default async function HomePage() {
         <h1 className="t-title-1 text-text">
           {greeting()}, {first}
         </h1>
-        <WatchingStatus className="mt-1.5" stocks={v.cards.length + (v.watchingCount ?? 0)} lastCheck={lastCheck} stale={v.staleCount > 0} />
+        <WatchingStatus className="mt-1.5" stocks={v.cards.length} watching={v.watchingCount ?? 0} lastCheck={lastCheck} stale={v.staleCount > 0} />
       </div>
       {switcher}
 

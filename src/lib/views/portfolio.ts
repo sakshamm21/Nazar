@@ -184,6 +184,8 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     ...base,
     empty: false as const,
     asOf: day.asOf,
+    /** When Nazar last fetched a price for anything in this portfolio. */
+    checkedAt: day.holdings.reduce<Date | null>((a, h) => (h.snapshot?.fetchedAt && (!a || h.snapshot.fetchedAt > a) ? h.snapshot.fetchedAt : a), null),
     niftyPct: day.niftyPct,
     gains,
     sales,

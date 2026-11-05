@@ -27,6 +27,8 @@ export type HoldingRow = {
   sip?: SipRow | null;
   /** Purchases still held, each with its own date and price. */
   lots?: number;
+  /** Where the holding came from: "manual", or the broker file or statement it was imported from. */
+  source?: string;
 };
 
 export type SipRow = { amount: number; dayOfMonth: number; startDate: string | null; endDate: string | null; active: boolean; nextDue: string; instalments: number; invested: number };
@@ -109,8 +111,9 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         if (!(amount >= SIP_MIN_AMOUNT)) return setError(`Enter the monthly amount, at least ${inr(SIP_MIN_AMOUNT)}.`);
         if (!Number.isInteger(day) || day < SIP_MIN_DAY || day > SIP_MAX_DAY) return setError(`Enter the day of the month it is debited, from ${SIP_MIN_DAY} to ${SIP_MAX_DAY}.`);
         setBusy(true);
-        const j = await apiCall<{ added: number }>(`/api/holdings/${r.id}/sip`, "PUT", { amount, dayOfMonth: day, startDate: r.sip ? undefined : sipStart || null, endDate: sipEnd || null, active: true });
-        toast(j.added > 0 ? `${inr(amount)} a month into ${r.name}. ${j.added} instalment${j.added === 1 ? "" : "s"} since ${dayLabel(sipStart, "en")} added.` : `${inr(amount)} a month into ${r.name}, on the ${ordinal(day)}`);
+        const j = await apiCall<{ added: number; skipped?: number }>(`/api/holdings/${r.id}/sip`, "PUT", { amount, dayOfMonth: day, startDate: r.sip ? undefined : sipStart || null, endDate: sipEnd || null, active: true });
+        const gaps = j.skipped ? ` ${j.skipped} month${j.skipped === 1 ? " had" : "s had"} no price and ${j.skipped === 1 ? "was" : "were"} left out.` : "";
+        toast(j.added > 0 ? `${inr(amount)} a month into ${r.name}. ${j.added} instalment${j.added === 1 ? "" : "s"} since ${dayLabel(sipStart, "en")} added.${gaps}` : `${inr(amount)} a month into ${r.name}, on the ${ordinal(day)}.${gaps}`);
         onClose();
         router.refresh();
         return;
@@ -266,6 +269,7 @@ function SipFields({ r, amount, day, end, start, onAmount, onDay, onEnd, onStart
       {past > 0 ? (
         <p className="num rounded-[12px] bg-accent-soft px-3.5 py-2.5 text-sm text-text">
           Nazar will add {past} instalment{past === 1 ? "" : "s"} since {dayLabel(start, "en")}{a > 0 ? `, ${inr(a * past)} in all` : ""}, each at the price of its own day. They are added on top of the {units(r.quantity)} {ASSET_META[r.assetClass].unit || "units"} this holding has now, so enter only what you held before the SIP.
+          {r.source && r.source !== "manual" ? " This holding came from a broker file or statement, which already counts the units these instalments bought: adding them here would count them twice." : ""}
         </p>
       ) : (
         first && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">First instalment Nazar will add: {dayLabel(first, "en")}.{!sip && " With no start date, the units you have today are taken to include every instalment so far."}</p>

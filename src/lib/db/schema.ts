@@ -423,6 +423,8 @@ export const usage = pgTable(
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: doublePrecision("cost_usd").notNull().default(0),
+    /** On a shared test account, the visitor (account and network) the spend belongs to. */
+    visitor: text("visitor"),
     createdAt: created(),
   },
   (t) => [index("usage_user_idx").on(t.userId), index("usage_created_idx").on(t.createdAt)],

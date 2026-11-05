@@ -92,6 +92,13 @@
       "when": 1793895537351,
       "tag": "0012_corporate_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793896428698,
+      "tag": "0013_usage_visitor",
+      "breakpoints": true
     }
   ]
 }

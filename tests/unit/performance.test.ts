@@ -70,6 +70,15 @@ describe("what moved, why and how", () => {
     expect(p.periods["1D"]!.marketPart).toBe(0);
     expect(p.periods["1D"]!.ownPart).toBe(0);
   });
+  it("says plainly when the market alone would have moved it more, or the other way", () => {
+    const m = perf.periods["1M"]!;
+    // The Nifty fell while the portfolio rose.
+    expect(explain(m).why.join(" ")).toMatch(/went against the market/);
+    const lagging = explain({ ...m, change: 100, marketPart: 300, ownPart: -200 }).why.join(" ");
+    expect(lagging).toMatch(/The market alone would have moved it more/);
+    expect(lagging).toMatch(/held it back by ₹200/);
+    expect(lagging).not.toMatch(/Almost all/);
+  });
   it("says when the history is shorter than the period", () => {
     const y = perf.periods["1Y"]!;
     expect(y.full).toBe(false);

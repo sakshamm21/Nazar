@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
-/** "Nazar is watching · 14 holdings · last check 4:47 PM", with a slowly breathing ring. */
-export function WatchingStatus({ stocks, lastCheck, stale, className }: { stocks: number; lastCheck: string | null; stale?: boolean; className?: string }) {
+/** "Nazar is watching · 14 holdings · 5 watched · last check 4:47 PM", with a slowly breathing ring. */
+export function WatchingStatus({ stocks, watching = 0, lastCheck, stale, className }: { stocks: number; watching?: number; lastCheck: string | null; stale?: boolean; className?: string }) {
   return (
     <div className={cn("inline-flex items-center gap-2 text-[13px] text-muted", className)} data-tour="watching">
       <span className="relative inline-grid h-4 w-4 place-items-center">
@@ -10,6 +10,11 @@ export function WatchingStatus({ stocks, lastCheck, stale, className }: { stocks
       </span>
       <span>
         Nazar is watching · <span className="num">{stocks}</span> {stocks === 1 ? "holding" : "holdings"}
+        {watching > 0 && (
+          <>
+            {" "}· <span className="num">{watching}</span> watched
+          </>
+        )}
         {lastCheck && (
           <>
             {" "}· last check <span className="num">{lastCheck}</span>
