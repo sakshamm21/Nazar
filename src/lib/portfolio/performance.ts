@@ -33,6 +33,8 @@ export type PerfHolding = {
   closes: [date: string, close: number][] | null;
   /** For assets with no price feed: their value on a date (entered value plus interest). */
   valueOn?: (date: string) => number;
+  /** Today's NAV is not out yet: no move today, and no share of the market's. */
+  pending?: boolean;
 };
 
 const shift = (iso: string, days: number) => {
@@ -132,7 +134,8 @@ function analyse(period: PeriodId, holdings: PerfHolding[], series: number[][], 
       return { symbol: h.symbol, name: h.name, group: h.group, amount: e - s, pct: s ? e / s - 1 : null, weight: endValue ? e / endValue : 0 };
     })
     .sort((a, b) => b.amount - a.amount);
-  const marketPart = niftyPct == null ? 0 : holdings.reduce((a, h, k) => a + startOf(k) * h.beta * niftyPct, 0);
+  // A fund still waiting for today's NAV has not moved yet, so the market's move today is not credited to it.
+  const marketPart = niftyPct == null ? 0 : holdings.reduce((a, h, k) => a + (days === 0 && h.pending ? 0 : startOf(k) * h.beta * niftyPct), 0);
 
   const byGroup = new Map<AssetGroup, { amount: number; start: number; end: number }>();
   holdings.forEach((h, k) => {
@@ -142,8 +145,11 @@ function analyse(period: PeriodId, holdings: PerfHolding[], series: number[][], 
   const groups = [...byGroup.entries()].map(([group, g]) => ({ group, amount: g.amount, pct: g.start ? g.end / g.start - 1 : null, weight: endValue ? g.end / endValue : 0 })).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
 
   let bestDay: Analysis["bestDay"] = null, worstDay: Analysis["worstDay"] = null, upDays = 0, downDays = 0, peak = values[start], drawdown = 0;
+  // The last session's move is measured from the previous close, exactly as "today" is, so a day
+  // reads the same in every period.
+  const lastStart = holdings.reduce((a, h, k) => a + (h.prevClose != null && h.price != null && !h.valueOn ? h.quantity * h.prevClose : series[k][end - 1]), 0);
   for (let i = start + 1; i <= end; i++) {
-    const prev = i === start + 1 ? startValue : values[i - 1];
+    const prev = i === start + 1 ? startValue : i === end ? lastStart : values[i - 1];
     const amount = values[i] - prev;
     const pct = prev ? amount / prev : 0;
     if (pct > 0.00005) upDays++;

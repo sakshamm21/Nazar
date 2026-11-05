@@ -54,6 +54,22 @@ describe("what moved, why and how", () => {
     expect(d.change).toBe(0);
     expect(d.contributors.find((c) => c.symbol === "UP")!.amount).toBe(10);
   });
+  it("the last day reads the same in every period as it does on its own", () => {
+    // Stored closes say UP closed at 103 yesterday, but the latest quote's previous close says 110:
+    // today is measured from the quote everywhere.
+    const p = buildPerformance([h({ symbol: "UP", closes: closes([100, 100, 101, 102, 103, 120]), price: 120, prevClose: 110 })], dates, nifty);
+    const today = p.periods["1D"]!;
+    for (const id of ["1W", "1M"] as const) {
+      const best = p.periods[id]!.bestDay!;
+      expect(best.date).toBe("2026-10-01");
+      expect(best.pct).toBeCloseTo(today.changePct!, 9);
+    }
+  });
+  it("a fund waiting for today's NAV gets no share of today's market move", () => {
+    const p = buildPerformance([h({ symbol: "F", group: "Mutual funds", closes: closes([100, 100, 100, 100, 100, 100]), price: 100, prevClose: 100, pending: true })], dates, nifty);
+    expect(p.periods["1D"]!.marketPart).toBe(0);
+    expect(p.periods["1D"]!.ownPart).toBe(0);
+  });
   it("says when the history is shorter than the period", () => {
     const y = perf.periods["1Y"]!;
     expect(y.full).toBe(false);

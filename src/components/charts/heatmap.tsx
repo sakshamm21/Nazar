@@ -4,7 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/cn";
 import { inr, inrCompact, signedPct } from "@/lib/format";
 
-export type HeatTile = { symbol: string; name: string; value: number; today: number | null; total: number | null; href: string | null };
+export type HeatTile = { symbol: string; name: string; value: number; today: number | null; total: number | null; href: string | null; pending?: boolean };
 type Rect = { x: number; y: number; w: number; h: number };
 
 /** Squarified treemap: lays `values` (largest first) into a w × h box, keeping tiles close to square. */
@@ -124,7 +124,7 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
             <span className="min-w-0 truncate font-medium text-text">{active.name}</span>
             <span className="num flex flex-wrap gap-x-3 text-muted">
               <span>{inr(Math.round(active.value))} · {sum ? Math.round((active.value / sum) * 100) : 0}% of this portfolio</span>
-              {active.today != null && <span className={active.today > 0 ? "text-gain" : active.today < 0 ? "text-loss" : ""}>{signedPct(active.today)} today</span>}
+              {active.today != null ? <span className={active.today > 0 ? "text-gain" : active.today < 0 ? "text-loss" : ""}>{signedPct(active.today)} today</span> : active.pending ? <span>NAV pending</span> : null}
               {active.total != null && <span className={active.total > 0 ? "text-gain" : active.total < 0 ? "text-loss" : ""}>{signedPct(active.total)} overall</span>}
             </span>
           </>

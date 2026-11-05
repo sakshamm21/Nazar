@@ -20,6 +20,8 @@ export type HoldingState = {
   isFinancial?: boolean;
   /** Unset = a stock. */
   assetClass?: AssetClass;
+  /** A fund whose NAV for this day is not out yet: it has no move today, and the market's move is not credited to it. */
+  pending?: boolean;
 };
 
 const valueOf = (h: HoldingState) => h.quantity * (h.price ?? h.prevClose ?? h.avgPrice);
@@ -78,7 +80,7 @@ export function attribution(holdings: HoldingState[], niftyPct: number | null, f
       const amount = h.price != null && h.prevClose != null ? h.quantity * (h.price - h.prevClose) : 0;
       const prevVal = prevValueOf(h);
       const b = betaOf(h);
-      const marketPart = niftyPct != null ? prevVal * b * niftyPct : 0;
+      const marketPart = niftyPct != null && !h.pending ? prevVal * b * niftyPct : 0;
       return { symbol: h.symbol, name: h.name, amount, pct: h.prevClose && h.price != null ? h.price / h.prevClose - 1 : null, marketPart, specificPart: amount - marketPart, weight: w.get(h.symbol) ?? 0 };
     })
     .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));

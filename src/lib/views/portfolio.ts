@@ -122,6 +122,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
         trend: trendLabel(closes),
         valuation: valuationVsPeers(h.snapshot?.metrics?.trailingPE, peers),
         stale: h.stale,
+        pending: h.pending,
         nextResultsDate: h.nextResultsDate,
         results: h.results,
         sparkline,
@@ -146,6 +147,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
         price: h.price,
         prevClose: h.prevClose,
         beta: betaOf(h),
+        pending: h.pending,
         closes: manual ? null : [...(hist.get(h.symbol)?.entries() ?? [])],
         valueOn: manual ? (d: string) => manualValue(row.assetClass, row.details, row.avgPrice, d) : undefined,
       };
@@ -249,6 +251,9 @@ function notesFor(tradeDate: string, day: Awaited<ReturnType<typeof loadPortfoli
     items.push({ id: `conc-${f.label}`, kind: "concentration", title: `${f.label} is ${Math.round(f.weight * 100)}% of this portfolio`, body: "One company or sector's news now moves a large part of your money.", href: "/risk" });
   const soon = day.holdings.filter((h) => h.nextResultsDate && h.nextResultsDate > tradeDate && h.nextResultsDate <= shiftDate(tradeDate, 14)).sort((a, b) => a.nextResultsDate!.localeCompare(b.nextResultsDate!));
   if (soon.length) items.push({ id: "upcoming", kind: "upcoming", title: `${soon.length === 1 ? `${soon[0].name} reports` : `${soon.length} of your companies report`} results soon`, body: soon.map((h) => `${h.name} (${new Date(`${h.nextResultsDate}T12:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })})`).join(", "), href: `/stock/${encodeURIComponent(soon[0].symbol)}` });
+  const pending = day.holdings.filter((h) => h.pending);
+  if (pending.length)
+    items.push({ id: "pending", kind: "stale", title: `${pending.length === 1 ? "1 fund has" : `${pending.length} funds have`} not published today's NAV yet`, body: `${pending.map((h) => h.name).slice(0, 3).join(", ")}${pending.length > 3 ? ` and ${pending.length - 3} more` : ""} ${pending.length === 1 ? "shows" : "show"} the previous NAV and no move for today until the evening's NAV is out.`, href: "/portfolio" });
   const stale = day.holdings.filter((h) => h.stale);
   if (stale.length) items.push({ id: "stale", kind: "stale", title: `${stale.length} ${stale.length === 1 ? "price is" : "prices are"} from an earlier day`, body: `Nazar couldn't refresh ${stale.map((h) => h.name).slice(0, 3).join(", ")} in the last check. Values use the last known price.`, href: "/portfolio?tab=manage" });
   return items;
