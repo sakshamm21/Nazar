@@ -265,6 +265,19 @@ export const dashboards = pgTable(
   (t) => [index("dashboards_user_idx").on(t.userId, t.sortOrder)],
 );
 
+/** A browser that asked for notifications: where to send them, and the keys to encrypt them with. */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    endpoint: text("endpoint").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("push_user_idx").on(t.userId)],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

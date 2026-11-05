@@ -89,6 +89,8 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
           stats.splits = await applySplits(db, provider, universe.filter((x) => x !== NIFTY && !SECTOR_INDICES.includes(x)), runDate, deadline).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
           // The day's prices are in: add the SIP instalments that fell due, at those prices.
           stats.sips = await applyDueSips(db, runDate).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
+          // Then the notifications people asked for: results days and SIP instalments.
+          stats.push = await (await import("@/lib/push")).sendDailyPushes(db, runDate).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
           await save(run, { stage: "done", status: "done", cursor: 0, stats, errors, finishedAt: new Date() });
           break;
         }
@@ -117,7 +119,10 @@ export async function runMaintenance(provider: MarketDataProvider = resilientPro
   const sips = await applyDueSips(db, istDate(new Date())).catch(() => null);
   const { ensureTestAccounts } = await import("@/lib/demo/seed");
   const accounts = await ensureTestAccounts(db);
-  return { expiredDemoUsers: expired.length, resultsBackfilled: backfilled, testAccounts: accounts, sips };
+  // Saturdays only: the opt-in weekly summary, once per person per week.
+  const { sendWeeklySummaries } = await import("@/lib/weekly");
+  const weekly = await sendWeeklySummaries(db).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
+  return { expiredDemoUsers: expired.length, resultsBackfilled: backfilled, testAccounts: accounts, sips, weekly };
 }
 
 /**

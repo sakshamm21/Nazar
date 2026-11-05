@@ -137,10 +137,10 @@ Signing in is required. See [the test accounts](#test-accounts) below.
 | **Analysis** | Pick a period (today to a year): what the portfolio did, which holdings did it, how much was simply the market, and how the ride went against the Nifty. Below that: what stands out right now, gains and losses since you invested, what your unsold gains would count as under the rules for each kind of asset (short-term or long-term from each purchase's own date, the exemption, and the tax with cess, at your slab if you give it), a stress test, concentration, hidden clusters of holdings that move together, and the health of what you own. |
 | **Stock page** | Price history, risk and return, key metrics, and the latest quarter explained: what improved and what got worse. Downloads as an Excel model. |
 | **Ask** | An AI research assistant with 30 tools over live market data and read-only access to your portfolio, SIPs and goals. It answers in English, Hindi or Hinglish, in Simple or Pro mode, and shows how each answer was built and where its data came from. Conversations are saved, export to one Excel workbook (the DCF, comps and risk models keep their formulas), and can be shared by a link that leaves your own holdings out. Every tool is listed with an example at `/ask/research`. |
-| **You** | Your profile and what you track at a glance; savings goals (up to eight), each showing what it needs every month from here and whether today's pace reaches it; the default model for Ask, chosen from what each one scored, costs and takes; theme, password change, sign out and account deletion. |
+| **You** | Your profile and what you track at a glance; savings goals (up to eight), each showing what it needs every month from here and whether today's pace reaches it; your income-tax slab (optional); Ask as Quick or Thorough, with every model's scores, cost and speed one link away; theme (both saved to your account); a weekly email and notifications on this device, both off until switched on; which portfolio the app opens on; a download of everything you entered; password change, sign out and account deletion. |
 | **Insights** (admin only, `/insights`) | Product numbers for the owner: people who track a portfolio and came back this week, the path from sign-up to reading the analysis, which screens are used, what people track, Ask's quality (what the checks on each answer found, which tools failed, how one prompt version compares with another) and cost, and whether the market data is current. |
 
-Nazar sends email for two things only: the code that confirms your address, and a password reset link.
+Nazar sends email for the code that confirms your address and a password reset link, and, only if you switch it on, a weekly summary every Saturday with a one-click unsubscribe. Home also says what changed since you last looked. The [privacy](https://nazar-watch.vercel.app/privacy) and [terms](https://nazar-watch.vercel.app/terms) pages say what is stored and who else sees it.
 
 ## How it works
 
@@ -171,7 +171,8 @@ flowchart LR
 
 - **Functions run next to the database.** The free Neon database is in AWS us-east-1, so Vercel functions run in `iad1` too. A page pays the long hop to India once per request instead of once per query.
 - **One rupee view.** Everything is held and shown in rupees. A US stock or a coin is converted at the day's dollar rate, so its value here moves with both its price and the rupee.
-- **Deliberately not built.** Alerts, email digests and family reports (an earlier version had them; they were removed in favour of the Analysis screen), analyst ratings and target prices (they are recommendations), and live intraday prices (a daily tracker, not a trading screen).
+- **Updates only on request.** The weekly email and device notifications (results from companies you hold, SIP instalments added) are off until switched on, built from the same tested sentences, and checked by the advice guard before they go. Notifications need a VAPID key pair (see `.env.example`).
+- **Deliberately not built.** Price alerts and family reports (an earlier version had them; they were removed in favour of the Analysis screen), analyst ratings and target prices (they are recommendations), and live intraday prices (a daily tracker, not a trading screen).
 
 ### How Ask answers
 
