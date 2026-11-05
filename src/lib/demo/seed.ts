@@ -249,12 +249,20 @@ export async function cloneTemplate(db: DB, T: string, userId: string) {
   await db.execute(sql`insert into holdings (id, portfolio_id, symbol, asset_class, quantity, avg_price, buy_date, isin, raw_name, details, source, created_at, updated_at)
     select ${nid("h.id")}, ${nid("h.portfolio_id")}, case when h.symbol like 'MANUAL:%' then 'MANUAL:' || upper(${nid("h.id")}) else h.symbol end, h.asset_class, h.quantity, h.avg_price, h.buy_date, h.isin, h.raw_name, h.details, h.source, h.created_at, h.updated_at
     from holdings h join portfolios p on p.id = h.portfolio_id where p.user_id = ${T}`);
+  // Each holding is one purchase on its buy date, so sales, history and the yearly return work on a
+  // copy exactly as on an account built by hand. Dated as recorded when the holding was, so a later
+  // split adjusts it like any other purchase.
+  await db.execute(sql`insert into holding_lots (id, holding_id, portfolio_id, quantity, price, date, remaining, created_at)
+    select ${nid("'lot:' || h.id")}, ${nid("h.id")}, ${nid("h.portfolio_id")}, h.quantity, h.avg_price, coalesce(h.buy_date, current_date), h.quantity, h.created_at
+    from holdings h join portfolios p on p.id = h.portfolio_id where p.user_id = ${T}`);
   await db.execute(sql`insert into watching (user_id, symbol, added_at) select ${U}, symbol, added_at from watching where user_id = ${T}`);
 }
 
 /** Wipes a user's own data (keeps the account). */
 async function wipeUserData(db: DB, userId: string) {
   await db.delete(schema.watching).where(eq(schema.watching.userId, userId));
+  await db.delete(schema.goals).where(eq(schema.goals.userId, userId));
+  await db.delete(schema.dashboards).where(eq(schema.dashboards.userId, userId));
   await db.delete(schema.portfolios).where(eq(schema.portfolios.userId, userId));
   await db.delete(schema.chats).where(eq(schema.chats.userId, userId));
 }

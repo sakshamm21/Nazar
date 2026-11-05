@@ -9,6 +9,7 @@ import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { catalogItem } from "@/lib/instruments/catalog";
 import { displayName } from "@/lib/market/portfolio-day";
 import { planSale, summarise } from "@/lib/portfolio/lots";
+import { resyncLots } from "@/lib/repo/lots";
 import { requireHolding } from "@/lib/repo/portfolios";
 
 /**
@@ -31,7 +32,12 @@ export async function recordSale(userId: string, holdingId: string, input: { uni
   if (input.units > h.quantity * (1 + 1e-9)) throw badRequest(`This holding has ${h.quantity} units, fewer than ${input.units}.`);
 
   const db = await getDb();
-  const lotRows = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, h.id)).orderBy(asc(schema.holdingLots.date));
+  let lotRows = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, h.id)).orderBy(asc(schema.holdingLots.date));
+  // A holding with no purchase records (written before they existed) is one purchase at its average price.
+  if (!lotRows.length) {
+    await resyncLots(h.id, h.portfolioId, { quantity: h.quantity, avgPrice: h.avgPrice, buyDate: h.buyDate });
+    lotRows = await db.select().from(schema.holdingLots).where(eq(schema.holdingLots.holdingId, h.id)).orderBy(asc(schema.holdingLots.date));
+  }
   const lots = lotRows.map((r) => ({ quantity: r.quantity, price: r.price, date: r.date, remaining: r.remaining }));
   const first = lots.filter((l) => l.remaining > 0).map((l) => l.date).sort()[0];
   if (first && input.date < first) throw badRequest(`A sale can't come before the first purchase still held (${first}).`);

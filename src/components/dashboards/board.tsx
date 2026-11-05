@@ -18,6 +18,7 @@ export type BoardCard = { widget: DashboardWidget; title: string; scope: string;
 type Option = { id: string; name: string };
 type Options = { portfolios: Option[]; parts: Option[]; benchmarks: Option[]; periods: Option[] };
 
+const withYear = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Math.random()).slice(2));
 
 /**
@@ -205,7 +206,7 @@ function CompareCard({ c }: { c: BoardCard }) {
             </ResponsiveContainer>
           </div>
           <p className="mt-1 text-[12px] text-subtle">
-            {dayLabel(r.from, "en")} to {dayLabel(r.to, "en")} · {r.holdings} {r.holdings === 1 ? "holding" : "holdings"}
+            {withYear(r.from)} to {withYear(r.to)} · {r.holdings} {r.holdings === 1 ? "holding" : "holdings"}
           </p>
         </>
       )}
@@ -243,7 +244,7 @@ function WidgetEditor({ w, options, onChange, onRemove }: { w: DashboardWidget; 
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 xl:grid-cols-2">
         {pick("What", "part", options.parts)}
         {options.portfolios.length > 1 && pick("From", "portfolio", options.portfolios)}
         {pick("Against", "benchmark", options.benchmarks)}

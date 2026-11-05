@@ -109,4 +109,14 @@ describe("copies of a persona are isolated from each other", () => {
     expect(manual.length).toBeGreaterThan(0);
     expect(hb.some((h) => manual.includes(h.symbol))).toBe(false);
   });
+
+  it("each holding in a copy has a purchase behind it, so it can be sold like any other", async () => {
+    const hs = await holdingsOf(a);
+    const lots = await db.select().from(schema.holdingLots).where(inArray(schema.holdingLots.holdingId, hs.map((h) => h.id)));
+    for (const h of hs) {
+      const mine = lots.filter((l) => l.holdingId === h.id);
+      expect(mine).toHaveLength(1);
+      expect(mine[0].remaining).toBeCloseTo(h.quantity, 9);
+    }
+  });
 });
