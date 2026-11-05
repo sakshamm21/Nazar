@@ -13,6 +13,7 @@ const Prefs = z
       .number()
       .refine((x) => (SLABS as readonly number[]).includes(x), "Pick one of the income-tax slabs.")
       .nullable(),
+    checklistDismissed: z.boolean(),
   })
   .partial();
 const Patch = z.object({ name: z.string().trim().min(1).max(80).optional(), prefs: Prefs.optional() });

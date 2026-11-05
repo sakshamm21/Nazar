@@ -9,7 +9,6 @@ import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { buttonClass } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { currentUser } from "@/lib/current-user";
-import { TEST_ACCOUNTS, TEST_PASSWORD } from "@/lib/demo/config";
 
 const showDemo = process.env.NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS !== "false";
 
@@ -42,7 +41,6 @@ const tileBg = (p: number) => `color-mix(in srgb, ${p >= 0 ? "var(--gain)" : "va
 
 export default async function Landing() {
   if (await currentUser()) redirect("/home");
-  const demo = { email: TEST_ACCOUNTS[0].email, password: TEST_PASSWORD };
   return (
     <div className="min-h-dvh overflow-x-hidden">
       <header className="mx-auto flex max-w-[1120px] items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
@@ -72,7 +70,7 @@ export default async function Landing() {
             </h1>
             <p className="mt-5 max-w-lg text-[17px] leading-7 text-muted">Nazar tracks everything you own, from stocks and funds to gold, crypto and FDs, and explains every move in plain words.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              {showDemo && <DemoButton email={demo.email} password={demo.password} />}
+              {showDemo && <DemoButton />}
               <Link href="/signup" className={buttonClass(showDemo ? "secondary" : "primary", "lg")}>
                 Create an account
               </Link>
@@ -188,7 +186,7 @@ export default async function Landing() {
                 <p className="mt-2 max-w-lg text-muted">The demo is a full portfolio on live prices: stocks, funds, gold, US shares, Bitcoin and deposits.</p>
               </div>
               {showDemo ? (
-                <DemoButton email={demo.email} password={demo.password} label="Open the demo" />
+                <DemoButton label="Open the demo" />
               ) : (
                 <Link href="/signup" className={buttonClass("primary", "lg")}>
                   Create an account <ArrowRight className="h-4 w-4" />

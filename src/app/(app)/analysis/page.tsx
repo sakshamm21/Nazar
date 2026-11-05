@@ -10,7 +10,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Delta } from "@/components/ui/delta";
 import { InfoTip } from "@/components/ui/info-tip";
+import { eq } from "drizzle-orm";
 import { requirePageUser, selectedPortfolioId } from "@/lib/current-user";
+import { getDb, schema } from "@/lib/db";
 import { absPct, inr, inrCompact, signedPct } from "@/lib/format";
 import { portfolioView, type FullPortfolioView, type Note } from "@/lib/views/portfolio";
 
@@ -22,6 +24,8 @@ const NOTE_ICON: Record<Note["kind"], typeof Layers> = { results: FileBarChart2,
 export default async function AnalysisPage() {
   const user = await requirePageUser();
   const view = await portfolioView(user, await selectedPortfolioId());
+  // Ticks "see your first analysis" on Home's start-up checklist.
+  if (!user.prefs?.seenAnalysis && !view.empty) await (await getDb()).update(schema.users).set({ prefs: { ...(user.prefs ?? {}), seenAnalysis: true } }).where(eq(schema.users.id, user.id));
   const switcher = <PortfolioTabs portfolios={view.portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={view.active?.id ?? null} />;
   const head = (
     <div className="flex flex-wrap items-end justify-between gap-3">

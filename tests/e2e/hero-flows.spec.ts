@@ -185,7 +185,7 @@ test.describe("Portfolio", () => {
     const { portfolios } = await (await page.request.get("/api/portfolios")).json();
     for (const p of portfolios ?? []) await page.request.delete(`/api/portfolios/${p.id}`);
     await page.goto("/home");
-    await page.getByRole("link", { name: "Add what you own" }).click();
+    await page.getByRole("link", { name: "Add by hand" }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toHaveCount(1);
     await dialog.getByRole("tab", { name: "Stocks", exact: true }).click();

@@ -24,7 +24,7 @@ const MOBILE = [...NAV.filter((n) => n.href !== "/dashboards"), { href: "/settin
 
 const AREAS: [prefix: string, area: string][] = [["/home", "home"], ["/portfolio", "portfolio"], ["/analysis", "analysis"], ["/dashboards", "dashboards"], ["/ask", "ask"], ["/settings", "you"], ["/stock", "stock"], ["/risk", "risk"]];
 
-export type ShellUser = { name: string; email: string; isTestAccount: boolean };
+export type ShellUser = { name: string; email: string; isTestAccount: boolean; /** A visitor's private demo, and when it ends. */ demoEndsAt?: string | null };
 
 /** Mobile: bottom tab bar. Desktop: sidebar with the account, theme and sign-out always in view. */
 export function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) {
@@ -118,6 +118,17 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
           </span>
         </header>
         <main id="main" className="mx-auto w-full max-w-[1120px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
+          {user.isTestAccount && (
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-accent/25 bg-accent-soft px-4 py-3 text-sm text-text">
+              <span>
+                <span className="font-medium">You&apos;re exploring a demo.</span>{" "}
+                <span className="text-muted">{user.demoEndsAt ? "It's yours alone, and it is cleared after 24 hours." : "It's shared, and put back every night."} Create an account to keep a portfolio of your own.</span>
+              </span>
+              <button onClick={async () => { await apiCall("/api/auth/logout", "POST").catch(() => null); router.push("/signup"); router.refresh(); }} className="shrink-0 rounded-[10px] bg-accent px-3 py-1.5 text-[13px] font-semibold text-accent-ink hover:opacity-90">
+                Create my account
+              </button>
+            </div>
+          )}
           {children}
           <footer className="mt-12 border-t border-line pt-5 text-[12px] leading-5 text-subtle">Nazar explains; you decide. It is not a SEBI-registered investment adviser, and prices can be delayed.</footer>
         </main>

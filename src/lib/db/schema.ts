@@ -37,6 +37,9 @@ export const users = pgTable("users", {
 export type UserPrefs = {
   /** Income-tax slab in percent, for gains taxed at the slab rate. Unset: those gains are shown without a rupee figure. */
   taxSlabPct?: number | null;
+  /** The start-up checklist on Home: put away, and whether Analysis has been opened yet. */
+  checklistDismissed?: boolean;
+  seenAnalysis?: boolean;
 };
 
 /* ------------------------------------------------------------------ */
