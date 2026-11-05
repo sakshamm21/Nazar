@@ -68,6 +68,23 @@ describe("XIRR vs Nifty (public-market equivalent)", () => {
     expect(r.niftyXirr!).toBeCloseTo(0.05, 2);
     expect(r.coverage).toBe(1);
   });
+  it("with the lots, each purchase is placed on its own day", () => {
+    const hs = [h({ symbol: "A", quantity: 20, avgPrice: 150, price: 200, buyDate: "2023-01-01" })];
+    const lumped = xirrVsNifty(hs, new Date("2025-01-01"), () => 20000, 21000);
+    const lots = new Map([["A", [{ quantity: 10, price: 100, date: "2023-01-01" }, { quantity: 10, price: 200, date: "2024-07-01" }]]]);
+    const r = xirrVsNifty(hs, new Date("2025-01-01"), () => 20000, 21000, { lots, sales: [] });
+    // Half the money went in only six months ago, so the same gain was earned in less time.
+    expect(lumped.xirr!).toBeCloseTo(0.155, 2);
+    expect(r.xirr!).toBeGreaterThan(lumped.xirr! + 0.1);
+  });
+  it("a sale is money taken out, and the Nifty comparison takes out the same rupees", () => {
+    const hs = [h({ symbol: "A", quantity: 10, avgPrice: 100, price: 110, buyDate: "2024-01-01" })];
+    const lots = new Map([["A", [{ quantity: 20, price: 100, date: "2024-01-01", remaining: 10 }]]]);
+    const r = xirrVsNifty(hs, new Date("2025-01-01"), (d) => (d < "2024-07-01" ? 100 : 110), 110, { lots, sales: [{ date: "2024-07-01", amount: 1100, parts: [{ date: "2024-01-01", units: 10, price: 100 }] }] });
+    // Units bought at 100 and sold or valued at 110, while the Nifty went from 100 to 110 on the same days.
+    expect(r.xirr!).toBeGreaterThan(0.1);
+    expect(r.niftyXirr!).toBeCloseTo(r.xirr!, 2);
+  });
   it("holdings without buy dates are excluded and reported", () => {
     const r = xirrVsNifty([h({ symbol: "A" })], new Date(), () => 1, 1);
     expect(r).toMatchObject({ xirr: null, dated: 0, coverage: 0 });

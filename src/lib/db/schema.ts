@@ -158,6 +158,36 @@ export const goals = pgTable(
   (t) => [index("goals_user_idx").on(t.userId, t.sortOrder)],
 );
 
+/**
+ * Units that left a holding: one row per sale, with the price, the day, and the purchase lots the
+ * units came out of (oldest first). It outlives the holding, so a position sold in full still
+ * counts in realised gains, the year's capital gains and the money-weighted return.
+ */
+export type SalePart = { date: string; units: number; price: number };
+export const holdingSales = pgTable(
+  "holding_sales",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    /** The holding it came from; null once that holding is gone. */
+    holdingId: text("holding_id").references(() => holdings.id, { onDelete: "set null" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    assetClass: text("asset_class").$type<AssetClass>().notNull(),
+    /** Fund category at the time of sale (decides the tax rules for a fund). */
+    category: text("category"),
+    units: doublePrecision("units").notNull(),
+    price: doublePrecision("price").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    /** What the sold units cost, from the lots they came out of. */
+    cost: doublePrecision("cost").notNull(),
+    parts: jsonb("parts").$type<SalePart[]>().notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("sales_portfolio_idx").on(t.portfolioId, t.date), index("sales_user_idx").on(t.userId, t.date)],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

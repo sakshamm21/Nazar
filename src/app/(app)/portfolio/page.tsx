@@ -14,6 +14,8 @@ import { displayName, loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
 import { valuation } from "@/lib/portfolio/math";
 import { MAX_PORTFOLIOS, listPortfolios, listWatching } from "@/lib/repo/portfolios";
+import type { Lot } from "@/lib/portfolio/lots";
+import { lotsForPortfolio } from "@/lib/repo/lots";
 import { sipsForPortfolio, type Sip } from "@/lib/repo/sips";
 import { portfolioView } from "@/lib/views/portfolio";
 
@@ -41,7 +43,7 @@ export default async function PortfolioPage() {
   const day = active ? days.get(active.id)! : null;
   const total = day ? valuation(day.holdings).value : 0;
   const byId = new Map(holdings.map((h) => [h.symbol, h]));
-  const sips = active ? await sipsForPortfolio(active.id) : new Map<string, Sip>();
+  const [sips, lots] = active ? await Promise.all([sipsForPortfolio(active.id), lotsForPortfolio(active.id)]) : [new Map<string, Sip>(), new Map<string, Lot[]>()];
   const rows = (day?.holdings ?? []).map((h) => {
     const row = byId.get(h.symbol)!;
     const manual = isManualSymbol(h.symbol);
@@ -58,6 +60,7 @@ export default async function PortfolioPage() {
       buyDate: row.buyDate,
       details: row.details,
       sip: sipOf(sips.get(row.id)),
+      lots: (lots.get(row.id) ?? []).filter((l) => (l.remaining ?? l.quantity) > 0).length,
       price: h.price,
       changePct: manual ? null : h.changePct,
       value,

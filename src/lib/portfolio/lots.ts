@@ -27,14 +27,15 @@ export const sortLots = (lots: Lot[]) => [...lots].sort((a, b) => (a.date < b.da
 
 /**
  * The position a set of lots describes: total units, what they cost, and the earliest purchase
- * date. Mirrors how a holding row is summarised, so a summary and its lots always agree.
+ * date among the units still held. Mirrors how a holding row is summarised, so a summary and its lots always agree.
  */
 export function summarise(lots: Lot[]) {
   const live = lots.filter((l) => lotRemaining(l) > 0);
   const quantity = live.reduce((a, l) => a + lotRemaining(l), 0);
   // A partly-sold lot's cost is the cost of what is still held.
   const cost = live.reduce((a, l) => a + lotRemaining(l) * l.price, 0);
-  const dates = lots.map((l) => l.date).filter(Boolean).sort();
+  // The position's age is the age of what is still held: a lot sold in full no longer dates it.
+  const dates = live.map((l) => l.date).filter(Boolean).sort();
   return { quantity, cost, avgPrice: quantity ? cost / quantity : 0, buyDate: dates[0] ?? null, lots: lots.length };
 }
 
@@ -47,8 +48,13 @@ export function summarise(lots: Lot[]) {
  * `skipped` reports how many so the caller can tell the user the figure is incomplete.
  */
 export type Flow = { date: string; amount: number };
+/**
+ * Money taken out. `parts` are the purchases the sold units came out of: they are no longer in any
+ * lot's `remaining`, so their outflows are placed here, on the day each was bought.
+ */
+export type SaleFlow = { date: string; amount: number; parts?: { date: string; units: number; price: number }[] };
 
-export function cashFlows(lots: Lot[], sales: { date: string; amount: number }[], valuation: { date: string; amount: number } | null): { flows: Flow[]; skipped: number } {
+export function cashFlows(lots: Lot[], sales: SaleFlow[], valuation: { date: string; amount: number } | null): { flows: Flow[]; skipped: number } {
   const flows: Flow[] = [];
   let skipped = 0;
   for (const l of lots) {
@@ -60,7 +66,10 @@ export function cashFlows(lots: Lot[], sales: { date: string; amount: number }[]
     }
     flows.push({ date: l.date, amount: -(units * l.price) });
   }
-  for (const s of sales) if (s.date && s.amount) flows.push({ date: s.date, amount: s.amount });
+  for (const s of sales) {
+    if (s.date && s.amount) flows.push({ date: s.date, amount: s.amount });
+    for (const p of s.parts ?? []) if (p.date) flows.push({ date: p.date, amount: -(p.units * p.price) });
+  }
   if (valuation?.date) flows.push({ date: valuation.date, amount: valuation.amount });
   // Same-day flows cancel out best when combined, which keeps XIRR's solver well behaved.
   const byDate = new Map<string, number>();
@@ -85,4 +94,16 @@ export function consume(lots: Lot[], units: number): Consumption {
     left -= take;
   }
   return used;
+}
+/**
+ * What selling `units` out of these lots means: the purchases they come out of (oldest first), what
+ * those units cost, and each lot's remaining units afterwards, in the order given.
+ */
+export function planSale(lots: Lot[], units: number) {
+  const used = consume(lots, units);
+  const parts = used.map(({ lot, units: u }) => ({ date: lot.date, units: u, price: lot.price }));
+  const cost = parts.reduce((a, p) => a + p.units * p.price, 0);
+  const sold = parts.reduce((a, p) => a + p.units, 0);
+  const remaining = lots.map((l) => lotRemaining(l) - (used.find((x) => x.lot === l)?.units ?? 0));
+  return { parts, cost, units: sold, remaining };
 }

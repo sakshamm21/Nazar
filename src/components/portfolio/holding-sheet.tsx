@@ -25,6 +25,8 @@ export type HoldingRow = {
   details: ManualDetails | null;
   /** The monthly SIP on this holding, if one is set. */
   sip?: SipRow | null;
+  /** Purchases still held, each with its own date and price. */
+  lots?: number;
 };
 
 export type SipRow = { amount: number; dayOfMonth: number; startDate: string | null; endDate: string | null; active: boolean; nextDue: string; instalments: number; invested: number };
@@ -77,8 +79,8 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     setAction(a);
     setError(null);
     setQty(a === "edit" ? String(r.quantity) : "");
-    setPrice(a === "edit" ? String(r.avgPrice) : "");
-    setDate(a === "edit" ? (r.buyDate ?? "") : "");
+    setPrice(a === "edit" ? String(r.avgPrice) : a === "less" && r.price != null ? r.price.toFixed(2) : "");
+    setDate(a === "edit" ? (r.buyDate ?? "") : a === "less" ? today() : "");
   };
 
   const q = num(qty), p = num(price);
@@ -86,10 +88,13 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     action === "more" && q > 0 && p > 0
       ? `After this: ${units(r.quantity + q)} ${unit} at an average of ${inr((r.quantity * r.avgPrice + q * p) / (r.quantity + q), { decimals: 2 })}.`
       : action === "less" && q > 0 && q < r.quantity
-        ? `After this: ${units(r.quantity - q)} ${unit}, still at an average of ${inr(r.avgPrice, { decimals: 2 })}.`
-        : action === "less" && q >= r.quantity
-          ? `That is all of it, so ${r.name} will be removed.`
-          : null;
+        ? `After this: ${units(r.quantity - q)} ${unit} left.${p > 0 ? ` The sale brings in ${inr(q * p)}.` : ""} The oldest purchases are sold first.`
+        : action === "less" && q > r.quantity
+          ? `You hold ${units(r.quantity)} ${unit}.`
+          : action === "less" && q === r.quantity
+            ? `That is all of it, so ${r.name} leaves this portfolio. The sale is kept in your gains.`
+            : null;
+  const restates = action === "edit" && ((r.lots ?? 1) > 1 || (r.sip?.instalments ?? 0) > 0);
 
   const save = async () => {
     setError(null);
@@ -115,12 +120,15 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", { mode: "add", holdings: [{ symbol: r.symbol, quantity: q, avgPrice: p, buyDate: date || null, source: "manual" }] });
       } else if (action === "less") {
         if (!(q > 0)) return setError(`Enter the ${unit} you sold.`);
-        if (q >= r.quantity) {
-          onClose();
-          return onRemove(r);
-        }
+        if (q > r.quantity) return setError(`You hold ${units(r.quantity)} ${unit}.`);
+        if (!(p > 0)) return setError("Enter the price you sold at.");
+        if (!date) return setError("Enter the day of the sale.");
         setBusy(true);
-        await apiCall(`/api/holdings/${r.id}`, "PATCH", { quantity: r.quantity - q });
+        const j = await apiCall<{ removed: boolean }>(`/api/holdings/${r.id}/sales`, "POST", { units: q, price: p, date });
+        toast(j.removed ? `Sale of ${r.name} recorded. It has left this portfolio.` : `Sale of ${units(q)} ${unit} of ${r.name} recorded`);
+        onClose();
+        router.refresh();
+        return;
       } else {
         if (!(q > 0) || !(p > 0)) return setError("Quantity and average price must be more than 0.");
         setBusy(true);
@@ -164,12 +172,20 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
             <Field label={action === "more" ? `${unit[0].toUpperCase()}${unit.slice(1)} bought` : action === "less" ? `${unit[0].toUpperCase()}${unit.slice(1)} sold` : `${unit[0].toUpperCase()}${unit.slice(1)} held`} htmlFor="hq">
               <Input id="hq" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder={action === "less" ? String(r.quantity) : "10"} />
             </Field>
-            {action !== "less" && (
-              <Field label={action === "more" ? "Price paid (₹)" : `${meta.priceLabel} (₹)`} htmlFor="hp">
-                <Input id="hp" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={r.price ? r.price.toFixed(2) : ""} />
-              </Field>
-            )}
+            <Field label={action === "more" ? "Price paid (₹)" : action === "less" ? "Price sold at (₹)" : `${meta.priceLabel} (₹)`} htmlFor="hp">
+              <Input id="hp" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={r.price ? r.price.toFixed(2) : ""} />
+            </Field>
           </div>
+          {action === "less" && (
+            <Field label="Sold on" htmlFor="hsd">
+              <Input id="hsd" type="date" max={today()} min={r.buyDate ?? undefined} value={date} onChange={(e) => setDate(e.target.value)} />
+            </Field>
+          )}
+          {action === "less" && r.quantity > 0 && qty.trim() === "" && (
+            <button onClick={() => setQty(String(r.quantity))} className="text-[13px] font-medium text-accent">
+              Sold all {units(r.quantity)} {unit}
+            </button>
+          )}
           {action === "more" && r.price != null && price.trim() === "" && (
             <button onClick={() => setPrice(r.price!.toFixed(2))} className="text-[13px] font-medium text-accent">
               Use the latest price, {inr(r.price, { decimals: 2 })}
@@ -180,7 +196,11 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
               <Input id="hd" type="date" max={today()} value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
           )}
-          {action === "less" && <p className="t-caption">Nazar keeps one position per holding, so a sale lowers the quantity and leaves the average price as it is.</p>}
+          {restates && (
+            <p className="rounded-[12px] bg-loss-soft px-3.5 py-2.5 text-sm text-text">
+              Correcting this replaces its {r.lots && r.lots > 1 ? `${r.lots} purchases` : "purchases"}{r.sip?.instalments ? `, including the SIP instalments,` : ""} with one. To record a sale, use Sold some.
+            </p>
+          )}
           {preview && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">{preview}</p>}
         </div>
       )}

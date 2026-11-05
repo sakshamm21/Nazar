@@ -3,6 +3,7 @@
  * concentration, and the health rollup. Pure functions over plain data, unit-tested.
  */
 import { round, xirr } from "@/lib/analytics/stats";
+import { lotRemaining, type Lot, type SaleFlow } from "@/lib/portfolio/lots";
 import { GROUP_LABELS, GROUP_ORDER, groupOf, isManualClass, type AssetClass, type AssetGroup } from "@/lib/instruments/asset-classes";
 
 export type HoldingState = {
@@ -108,25 +109,52 @@ export function attribution(holdings: HoldingState[], niftyPct: number | null, f
  * returned in the Nifty 50 bought on the same dates. Holdings without a buy date are excluded
  * (coverage is reported so the UI can say so).
  */
-export function xirrVsNifty(holdings: HoldingState[], today: Date, niftyOn: (date: string) => number | null, niftyNow: number | null) {
-  const dated = holdings.filter((h) => h.buyDate && h.price != null);
-  const coverage = holdings.length ? dated.length / holdings.length : 0;
-  if (!dated.length) return { xirr: null, niftyXirr: null, coverage, dated: 0 };
-  const flows = dated.map((h) => ({ date: new Date(h.buyDate!), amount: -h.quantity * h.avgPrice }));
-  const value = dated.reduce((a, h) => a + h.quantity * h.price!, 0);
+/**
+ * The yearly return (XIRR) of the money in, against the same rupees put into the Nifty on the same
+ * days. With a `ledger`, every purchase lot is its own dated outflow and every sale is money taken
+ * out (with the purchases it came from), so a SIP's instalments and a later sale are placed in time.
+ * Without one, each holding is one purchase on its buy date at its average price.
+ */
+export function xirrVsNifty(
+  holdings: HoldingState[],
+  today: Date,
+  niftyOn: (date: string) => number | null,
+  niftyNow: number | null,
+  ledger?: { lots: Map<string, Lot[]>; sales: SaleFlow[] },
+) {
+  const out: { date: string; amount: number }[] = [];
+  let value = 0;
+  let dated = 0;
+  for (const h of holdings) {
+    if (h.price == null) continue;
+    const fromLedger = ledger?.lots.get(h.symbol)?.filter((l) => l.date && lotRemaining(l) > 0);
+    const lots = fromLedger?.length ? fromLedger : h.buyDate ? [{ quantity: h.quantity, price: h.avgPrice, date: h.buyDate }] : [];
+    if (!lots.length) continue;
+    dated++;
+    for (const l of lots) out.push({ date: l.date, amount: -lotRemaining(l) * l.price });
+    value += h.quantity * h.price;
+  }
+  const coverage = holdings.length ? dated / holdings.length : 0;
+  if (!dated) return { xirr: null, niftyXirr: null, coverage, dated: 0 };
+  for (const s of ledger?.sales ?? []) {
+    for (const p of s.parts ?? []) if (p.date) out.push({ date: p.date, amount: -p.units * p.price });
+    if (s.date && s.amount) out.push({ date: s.date, amount: s.amount });
+  }
+  const flows = out.map((f) => ({ date: new Date(f.date), amount: f.amount }));
   const mine = xirr([...flows, { date: today, amount: value }]);
   let niftyXirr: number | null = null;
   if (niftyNow) {
+    // The same rupees, on the same days, in and out of the Nifty.
     let units = 0;
     let ok = true;
-    for (const h of dated) {
-      const p = niftyOn(h.buyDate!);
+    for (const f of out) {
+      const p = niftyOn(f.date);
       if (!p) { ok = false; break; }
-      units += (h.quantity * h.avgPrice) / p;
+      units -= f.amount / p;
     }
     if (ok) niftyXirr = xirr([...flows, { date: today, amount: units * niftyNow }]);
   }
-  return { xirr: round(mine), niftyXirr: round(niftyXirr), coverage, dated: dated.length };
+  return { xirr: round(mine), niftyXirr: round(niftyXirr), coverage, dated };
 }
 
 /* ------------------------------------------------------------------ */

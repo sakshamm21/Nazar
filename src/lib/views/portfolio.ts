@@ -12,6 +12,7 @@ import { buildPerformance } from "@/lib/portfolio/performance";
 import { gainClassOf, unrealisedGains } from "@/lib/portfolio/capital-gains";
 import { summarise } from "@/lib/portfolio/lots";
 import { lotsForPortfolio } from "@/lib/repo/lots";
+import { salesForPortfolio } from "@/lib/repo/sales";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
 import { logger } from "@/lib/logger";
@@ -39,7 +40,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
   if (!holdingsRows.length) return { ...base, empty: true as const };
 
   const symbols = holdingsRows.map((h) => h.symbol).filter((s) => !isManualSymbol(s));
-  const [day, hist, peerSnaps, lotsByHolding] = await Promise.all([
+  const [day, hist, peerSnaps, lotsByHolding, sales] = await Promise.all([
     loadPortfolioDay(db, holdingsRows, tradeDate, sources),
     priceHistory(db, [...symbols, NIFTY], sources, shiftDate(tradeDate, -400), tradeDate),
     // Valuation vs peers: P/E against other same-sector stocks Nazar tracks on this date.
@@ -49,6 +50,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
       .innerJoin(schema.instruments, eq(schema.instruments.symbol, schema.symbolSnapshots.symbol))
       .where(and(eq(schema.symbolSnapshots.tradeDate, tradeDate), inArray(schema.symbolSnapshots.source, dateSources(sources)))),
     lotsForPortfolio(active.id),
+    salesForPortfolio(active.id),
   ]);
   const states: HoldingState[] = day.holdings;
   const v = valuation(states);
@@ -63,7 +65,10 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     }
     return best ?? [...nifty.values()][0] ?? null;
   };
-  const xirr = xirrVsNifty(states, new Date(`${tradeDate}T10:00:00Z`), niftyOn, nifty.get(tradeDate) ?? [...nifty.values()].at(-1) ?? null);
+  // Each purchase and each sale placed on its own day, so a SIP or a later sale is counted when it happened.
+  const lotsBySymbol = new Map(holdingsRows.map((r) => [r.symbol, lotsByHolding.get(r.id) ?? []]));
+  const saleFlows = sales.map((s) => ({ date: s.date, amount: s.units * s.price, parts: s.parts }));
+  const xirr = xirrVsNifty(states, new Date(`${tradeDate}T10:00:00Z`), niftyOn, nifty.get(tradeDate) ?? [...nifty.values()].at(-1) ?? null, { lots: lotsBySymbol, sales: saleFlows });
   const health = healthRollup(states);
   const stress10 = stressTest(states, -0.1);
 
