@@ -195,6 +195,24 @@ export const holdingSales = pgTable(
   (t) => [index("sales_portfolio_idx").on(t.portfolioId, t.date), index("sales_user_idx").on(t.userId, t.date)],
 );
 
+/**
+ * Splits and bonus issues seen on held symbols. A row is written once per (symbol, ex-date), and
+ * holdings are adjusted in the same step, so an action is never applied twice.
+ */
+export const corporateActions = pgTable(
+  "corporate_actions",
+  {
+    symbol: text("symbol").notNull(),
+    exDate: date("ex_date", { mode: "string" }).notNull(),
+    /** Shares after for each share before: 2 for a 1:2 split or a 1:1 bonus. */
+    ratio: doublePrecision("ratio").notNull(),
+    /** Holdings adjusted, and when. */
+    holdingsAdjusted: integer("holdings_adjusted").notNull().default(0),
+    appliedAt: ts("applied_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.symbol, t.exDate] })],
+);
+
 /** Stocks the user watches without owning them. */
 export const watching = pgTable(
   "watching",

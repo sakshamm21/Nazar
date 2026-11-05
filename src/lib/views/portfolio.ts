@@ -13,6 +13,7 @@ import { unrealisedParts } from "@/lib/portfolio/capital-gains";
 import { amfiCategory } from "@/lib/instruments/catalog";
 import { lotRemaining } from "@/lib/portfolio/lots";
 import { lotsForPortfolio } from "@/lib/repo/lots";
+import { recentSplits } from "@/lib/pipeline/corporate-actions";
 import { salesForPortfolio } from "@/lib/repo/sales";
 import { assetAllocation, attribution, betaOf, concentration, diversification, diversificationScore, healthRollup, sectorAllocation, stressTest, valuation, weights, xirrVsNifty, type HoldingState } from "@/lib/portfolio/math";
 import { listPortfolios, listWatching } from "@/lib/repo/portfolios";
@@ -20,7 +21,7 @@ import { logger } from "@/lib/logger";
 
 type User = typeof schema.users.$inferSelect;
 
-export type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster"; title: string; body: string; href: string };
+export type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster" | "split"; title: string; body: string; href: string };
 
 /**
  * Everything the Home "Portfolio X-ray" shows, computed from stored snapshots (never from Yahoo):
@@ -198,7 +199,7 @@ export async function buildPortfolioView(user: User, portfolioId?: string | null
     cards,
     /** Each holding as the portfolio maths sees it, for a scenario worked out on request. */
     states,
-    notes: notesFor(tradeDate, day, conc, div),
+    notes: [...splitNotes(await recentSplits(db, symbols, shiftDate(tradeDate, -30)), day, holdingsRows), ...notesFor(tradeDate, day, conc, div)],
     staleCount: cards.filter((c) => c.stale).length,
     /** The closes already read for this portfolio, so a page can reuse them instead of re-querying. */
     history: hist,
@@ -216,6 +217,23 @@ export type FullPortfolioView = Extract<PortfolioView, { empty: false }>;
 export const portfolioView = cache(async (user: User, portfolioId?: string | null) => buildPortfolioView(user, portfolioId));
 
 /** Things worth knowing about the portfolio right now: results, hidden clusters, concentration, old prices. */
+/** A split or bonus issue in the last month on something held: what it did to the share count. */
+function splitNotes(splits: Awaited<ReturnType<typeof recentSplits>>, day: Awaited<ReturnType<typeof loadPortfolioDay>>, rows: (typeof schema.holdings.$inferSelect)[]): Note[] {
+  return splits.map((s) => {
+    const name = day.holdings.find((h) => h.symbol === s.symbol)?.name ?? displayName(s.symbol);
+    const units = rows.find((r) => r.symbol === s.symbol)?.quantity;
+    const ratio = s.ratio >= 1 ? `1:${+s.ratio.toFixed(2)}` : `${+(1 / s.ratio).toFixed(2)}:1`;
+    const when = new Date(`${s.exDate}T12:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
+    return {
+      id: `split-${s.symbol}-${s.exDate}`,
+      kind: "split" as const,
+      title: `${name} ${s.ratio >= 1 ? "split" : "consolidated"} its shares ${ratio}`,
+      body: `From ${when}, each share became ${+s.ratio.toFixed(4)}.${units != null && s.holdingsAdjusted ? ` Nazar adjusted your holding to ${units.toLocaleString("en-IN", { maximumFractionDigits: 3 })} shares at the new price; what you paid is unchanged.` : ""}`,
+      href: `/stock/${encodeURIComponent(s.symbol)}`,
+    };
+  });
+}
+
 function notesFor(tradeDate: string, day: Awaited<ReturnType<typeof loadPortfolioDay>>, conc: ReturnType<typeof concentration>, div: ReturnType<typeof diversification> | null): Note[] {
   const items: Note[] = [];
   for (const h of day.holdings) {

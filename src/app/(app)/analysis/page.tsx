@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, FileBarChart2, Layers, PieChart, TimerOff } from "lucide-react";
+import { ArrowRight, CalendarClock, FileBarChart2, Layers, PieChart, Split, TimerOff } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analyzer } from "@/components/analysis/analyzer";
@@ -16,7 +16,7 @@ import { portfolioView, type FullPortfolioView, type Note } from "@/lib/views/po
 
 export const metadata: Metadata = { title: "Analysis" };
 
-const NOTE_ICON: Record<Note["kind"], typeof Layers> = { results: FileBarChart2, cluster: Layers, concentration: PieChart, upcoming: CalendarClock, stale: TimerOff };
+const NOTE_ICON: Record<Note["kind"], typeof Layers> = { results: FileBarChart2, cluster: Layers, concentration: PieChart, upcoming: CalendarClock, stale: TimerOff, split: Split };
 
 /** The full reading of a portfolio: what it did over any period and why, then returns, risk and health. */
 export default async function AnalysisPage() {
