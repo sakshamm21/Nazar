@@ -11,7 +11,13 @@ export type PersonaHolding = { symbol: string; value: number; daysAgo: number };
 /** An asset with no price feed, as the persona would have typed it in. */
 export type PersonaManual = { assetClass: ManualClass; name: string; invested: number; value: number; valueDaysAgo: number; ratePct?: number; startDaysAgo: number; maturesInDays?: number };
 export type PersonaPortfolio = { name: string; holdings: PersonaHolding[]; manual: PersonaManual[] };
-export type Persona = { id: "investor" | "saver"; portfolios: PersonaPortfolio[]; watching: string[] };
+/**
+ * What makes a persona look lived-in: savings goals (the persona's own figures), a monthly SIP on a
+ * fund it holds, and one sale of part of a holding, priced at that day's stored close.
+ */
+export type PersonaGoal = { name: string; target: number; yearsAhead: number; saved: number; monthly: number };
+export type PersonaExtras = { goals: PersonaGoal[]; sip: { symbol: string; amount: number; day: number }; sale: { symbol: string; fraction: number; daysAgo: number } };
+export type Persona = { id: "investor" | "saver"; portfolios: PersonaPortfolio[]; watching: string[]; extras?: PersonaExtras };
 
 const FUND = { flexi: "MF:122639", nifty: "MF:120716", small: "MF:125497", balanced: "MF:118968", liquid: "MF:119091", large: "MF:118825" };
 
@@ -19,6 +25,14 @@ const FUND = { flexi: "MF:122639", nifty: "MF:120716", small: "MF:125497", balan
 const INVESTOR: Persona = {
   id: "investor",
   watching: ["TITAN.NS", "ASIANPAINT.NS", "ETERNAL.NS", "JUNIORBEES.NS", "US:NVDA"],
+  extras: {
+    goals: [
+      { name: "House down payment", target: 2_500_000, yearsAhead: 4, saved: 800_000, monthly: 30_000 },
+      { name: "Emergency fund", target: 600_000, yearsAhead: 1, saved: 520_000, monthly: 10_000 },
+    ],
+    sip: { symbol: FUND.flexi, amount: 10_000, day: 5 },
+    sale: { symbol: "TCS.NS", fraction: 0.25, daysAgo: 40 },
+  },
   portfolios: [
     {
       name: "My portfolio",
@@ -78,6 +92,14 @@ const INVESTOR: Persona = {
 const SAVER: Persona = {
   id: "saver",
   watching: ["RELIANCE.NS", "SILVERBEES.NS", FUND.large],
+  extras: {
+    goals: [
+      { name: "Child's education", target: 3_000_000, yearsAhead: 12, saved: 450_000, monthly: 12_000 },
+      { name: "Car", target: 900_000, yearsAhead: 2, saved: 300_000, monthly: 15_000 },
+    ],
+    sip: { symbol: FUND.nifty, amount: 15_000, day: 10 },
+    sale: { symbol: "ITC.NS", fraction: 0.3, daysAgo: 35 },
+  },
   portfolios: [
     {
       name: "Long-term money",
