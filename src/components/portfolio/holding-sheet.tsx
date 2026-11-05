@@ -1,7 +1,7 @@
 "use client";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
@@ -25,11 +25,16 @@ export type HoldingRow = {
   details: ManualDetails | null;
   /** The monthly SIP on this holding, if one is set. */
   sip?: SipRow | null;
+  /** Purchases still held, each with its own date and price. */
+  lots?: number;
+  /** Where the holding came from: "manual", or the broker file or statement it was imported from. */
+  source?: string;
 };
 
 export type SipRow = { amount: number; dayOfMonth: number; startDate: string | null; endDate: string | null; active: boolean; nextDue: string; instalments: number; invested: number };
 
-type Action = "more" | "less" | "edit" | "sip";
+type Action = "more" | "less" | "edit" | "sip" | "income" | "history";
+type IncomeKind = "dividend" | "interest" | "other";
 const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/,/g, "")));
 const units = (x: number) => x.toLocaleString("en-IN", { maximumFractionDigits: x < 1 ? 6 : 3 });
 
@@ -45,6 +50,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
   const [sipDay, setSipDay] = useState("");
   const [sipEnd, setSipEnd] = useState("");
   const [sipStart, setSipStart] = useState("");
+  const [incomeKind, setIncomeKind] = useState<IncomeKind>("dividend");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -77,8 +83,8 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     setAction(a);
     setError(null);
     setQty(a === "edit" ? String(r.quantity) : "");
-    setPrice(a === "edit" ? String(r.avgPrice) : "");
-    setDate(a === "edit" ? (r.buyDate ?? "") : "");
+    setPrice(a === "edit" ? String(r.avgPrice) : a === "less" && r.price != null ? r.price.toFixed(2) : "");
+    setDate(a === "edit" ? (r.buyDate ?? "") : a === "less" || a === "income" ? today() : "");
   };
 
   const q = num(qty), p = num(price);
@@ -86,10 +92,13 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
     action === "more" && q > 0 && p > 0
       ? `After this: ${units(r.quantity + q)} ${unit} at an average of ${inr((r.quantity * r.avgPrice + q * p) / (r.quantity + q), { decimals: 2 })}.`
       : action === "less" && q > 0 && q < r.quantity
-        ? `After this: ${units(r.quantity - q)} ${unit}, still at an average of ${inr(r.avgPrice, { decimals: 2 })}.`
-        : action === "less" && q >= r.quantity
-          ? `That is all of it, so ${r.name} will be removed.`
-          : null;
+        ? `After this: ${units(r.quantity - q)} ${unit} left.${p > 0 ? ` The sale brings in ${inr(q * p)}.` : ""} The oldest purchases are sold first.`
+        : action === "less" && q > r.quantity
+          ? `This holding has ${units(r.quantity)} ${unit}.`
+          : action === "less" && q === r.quantity
+            ? `That is all of it, so ${r.name} leaves this portfolio. The sale is kept in your gains.`
+            : null;
+  const restates = action === "edit" && ((r.lots ?? 1) > 1 || (r.sip?.instalments ?? 0) > 0);
 
   const save = async () => {
     setError(null);
@@ -104,8 +113,9 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         if (!(amount >= SIP_MIN_AMOUNT)) return setError(`Enter the monthly amount, at least ${inr(SIP_MIN_AMOUNT)}.`);
         if (!Number.isInteger(day) || day < SIP_MIN_DAY || day > SIP_MAX_DAY) return setError(`Enter the day of the month it is debited, from ${SIP_MIN_DAY} to ${SIP_MAX_DAY}.`);
         setBusy(true);
-        const j = await apiCall<{ added: number }>(`/api/holdings/${r.id}/sip`, "PUT", { amount, dayOfMonth: day, startDate: r.sip ? undefined : sipStart || null, endDate: sipEnd || null, active: true });
-        toast(j.added > 0 ? `${inr(amount)} a month into ${r.name}. ${j.added} instalment${j.added === 1 ? "" : "s"} since ${dayLabel(sipStart, "en")} added.` : `${inr(amount)} a month into ${r.name}, on the ${ordinal(day)}`);
+        const j = await apiCall<{ added: number; skipped?: number }>(`/api/holdings/${r.id}/sip`, "PUT", { amount, dayOfMonth: day, startDate: r.sip ? undefined : sipStart || null, endDate: sipEnd || null, active: true });
+        const gaps = j.skipped ? ` ${j.skipped} month${j.skipped === 1 ? " had" : "s had"} no price and ${j.skipped === 1 ? "was" : "were"} left out.` : "";
+        toast(j.added > 0 ? `${inr(amount)} a month into ${r.name}. ${j.added} instalment${j.added === 1 ? "" : "s"} since ${dayLabel(sipStart, "en")} added.${gaps}` : `${inr(amount)} a month into ${r.name}, on the ${ordinal(day)}.${gaps}`);
         onClose();
         router.refresh();
         return;
@@ -113,14 +123,29 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         if (!(q > 0) || !(p > 0)) return setError(`Enter the ${unit} you bought and the price.`);
         setBusy(true);
         await apiCall(`/api/portfolios/${portfolioId}/holdings`, "POST", { mode: "add", holdings: [{ symbol: r.symbol, quantity: q, avgPrice: p, buyDate: date || null, source: "manual" }] });
+      } else if (action === "history") {
+        onClose();
+        return;
+      } else if (action === "income") {
+        if (!(q > 0)) return setError("Enter the amount received.");
+        if (!date) return setError("Enter the day it was paid.");
+        setBusy(true);
+        await apiCall(`/api/holdings/${r.id}/income`, "POST", { amount: q, date, kind: incomeKind });
+        toast(`${inr(q)} ${incomeKind === "dividend" ? "dividend" : incomeKind === "interest" ? "interest" : "income"} from ${r.name} recorded`);
+        onClose();
+        router.refresh();
+        return;
       } else if (action === "less") {
         if (!(q > 0)) return setError(`Enter the ${unit} you sold.`);
-        if (q >= r.quantity) {
-          onClose();
-          return onRemove(r);
-        }
+        if (q > r.quantity) return setError(`This holding has ${units(r.quantity)} ${unit}.`);
+        if (!(p > 0)) return setError("Enter the price you sold at.");
+        if (!date) return setError("Enter the day of the sale.");
         setBusy(true);
-        await apiCall(`/api/holdings/${r.id}`, "PATCH", { quantity: r.quantity - q });
+        const j = await apiCall<{ removed: boolean }>(`/api/holdings/${r.id}/sales`, "POST", { units: q, price: p, date });
+        toast(j.removed ? `Sale of ${r.name} recorded. It has left this portfolio.` : `Sale of ${units(q)} ${unit} of ${r.name} recorded`);
+        onClose();
+        router.refresh();
+        return;
       } else {
         if (!(q > 0) || !(p > 0)) return setError("Quantity and average price must be more than 0.");
         setBusy(true);
@@ -149,7 +174,7 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
             <Trash2 className="h-4 w-4" /> Remove
           </Button>
           <Button loading={busy} onClick={save}>
-            {manual ? "Save" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : action === "sip" ? (r.sip ? (r.sip.active ? "Save SIP" : "Resume SIP") : "Start SIP") : "Save"}
+            {manual ? "Save" : action === "history" ? "Done" : action === "income" ? "Record income" : action === "more" ? "Add purchase" : action === "less" ? "Record sale" : action === "sip" ? (r.sip ? (r.sip.active ? "Save SIP" : "Resume SIP") : "Start SIP") : "Save"}
           </Button>
         </div>
       }
@@ -158,18 +183,41 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
         <ManualFields draft={draft} onChange={setDraft} idPrefix="edit" />
       ) : (
         <div className="space-y-4">
-          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }, { value: "sip", label: r.sip ? "Monthly SIP ✓" : "Monthly SIP" }]} />
+          <Segmented<Action> label="What changed" value={action} onChange={pick} options={[{ value: "more", label: "Bought more" }, { value: "less", label: "Sold some" }, { value: "edit", label: "Correct it" }, { value: "sip", label: r.sip ? "Monthly SIP ✓" : "Monthly SIP" }, { value: "income", label: "Income" }, { value: "history", label: "History" }]} />
+          {action === "history" && <HistoryPanel id={r.id} unit={unit} onChanged={() => router.refresh()} />}
+          {action === "income" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Amount received (₹)" htmlFor="ia">
+                  <Input id="ia" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="2500" />
+                </Field>
+                <Field label="Paid on" htmlFor="id">
+                  <Input id="id" type="date" max={today()} value={date} onChange={(e) => setDate(e.target.value)} />
+                </Field>
+              </div>
+              <Segmented<IncomeKind> label="Kind of income" size="sm" value={incomeKind} onChange={setIncomeKind} options={[{ value: "dividend", label: "Dividend" }, { value: "interest", label: "Interest" }, { value: "other", label: "Other" }]} />
+              <p className="t-caption">What landed in your bank. It counts in this holding&apos;s total return, and stays in your records after the holding is sold.</p>
+            </div>
+          )}
           {action === "sip" && <SipFields r={r} amount={sipAmount} day={sipDay} end={sipEnd} start={sipStart} onAmount={setSipAmount} onDay={setSipDay} onEnd={setSipEnd} onStart={setSipStart} busy={busy} setBusy={setBusy} onError={setError} onDone={() => { onClose(); router.refresh(); }} />}
-          <div className={action === "sip" ? "hidden" : "grid grid-cols-2 gap-3"}>
+          <div className={action === "sip" || action === "income" || action === "history" ? "hidden" : "grid grid-cols-2 gap-3"}>
             <Field label={action === "more" ? `${unit[0].toUpperCase()}${unit.slice(1)} bought` : action === "less" ? `${unit[0].toUpperCase()}${unit.slice(1)} sold` : `${unit[0].toUpperCase()}${unit.slice(1)} held`} htmlFor="hq">
               <Input id="hq" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder={action === "less" ? String(r.quantity) : "10"} />
             </Field>
-            {action !== "less" && (
-              <Field label={action === "more" ? "Price paid (₹)" : `${meta.priceLabel} (₹)`} htmlFor="hp">
-                <Input id="hp" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={r.price ? r.price.toFixed(2) : ""} />
-              </Field>
-            )}
+            <Field label={action === "more" ? "Price paid (₹)" : action === "less" ? "Price sold at (₹)" : `${meta.priceLabel} (₹)`} htmlFor="hp">
+              <Input id="hp" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={r.price ? r.price.toFixed(2) : ""} />
+            </Field>
           </div>
+          {action === "less" && (
+            <Field label="Sold on" htmlFor="hsd">
+              <Input id="hsd" type="date" max={today()} min={r.buyDate ?? undefined} value={date} onChange={(e) => setDate(e.target.value)} />
+            </Field>
+          )}
+          {action === "less" && r.quantity > 0 && qty.trim() === "" && (
+            <button onClick={() => setQty(String(r.quantity))} className="text-[13px] font-medium text-accent">
+              Sold all {units(r.quantity)} {unit}
+            </button>
+          )}
           {action === "more" && r.price != null && price.trim() === "" && (
             <button onClick={() => setPrice(r.price!.toFixed(2))} className="text-[13px] font-medium text-accent">
               Use the latest price, {inr(r.price, { decimals: 2 })}
@@ -180,7 +228,11 @@ export function HoldingSheet({ row, portfolioId, onClose, onRemove }: { row: Hol
               <Input id="hd" type="date" max={today()} value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
           )}
-          {action === "less" && <p className="t-caption">Nazar keeps one position per holding, so a sale lowers the quantity and leaves the average price as it is.</p>}
+          {restates && (
+            <p className="rounded-[12px] bg-loss-soft px-3.5 py-2.5 text-sm text-text">
+              Correcting this replaces its {r.lots && r.lots > 1 ? `${r.lots} purchases` : "purchases"}{r.sip?.instalments ? `, including the SIP instalments,` : ""} with one. To record a sale, use Sold some.
+            </p>
+          )}
           {preview && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">{preview}</p>}
         </div>
       )}
@@ -246,6 +298,7 @@ function SipFields({ r, amount, day, end, start, onAmount, onDay, onEnd, onStart
       {past > 0 ? (
         <p className="num rounded-[12px] bg-accent-soft px-3.5 py-2.5 text-sm text-text">
           Nazar will add {past} instalment{past === 1 ? "" : "s"} since {dayLabel(start, "en")}{a > 0 ? `, ${inr(a * past)} in all` : ""}, each at the price of its own day. They are added on top of the {units(r.quantity)} {ASSET_META[r.assetClass].unit || "units"} this holding has now, so enter only what you held before the SIP.
+          {r.source && r.source !== "manual" ? " This holding came from a broker file or statement, which already counts the units these instalments bought: adding them here would count them twice." : ""}
         </p>
       ) : (
         first && <p className="num rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-sm text-text">First instalment Nazar will add: {dayLabel(first, "en")}.{!sip && " With no start date, the units you have today are taken to include every instalment so far."}</p>
@@ -269,5 +322,66 @@ function SipFields({ r, amount, day, end, start, onAmount, onDay, onEnd, onStart
         </button>
       )}
     </div>
+  );
+}
+
+type History = { lots: { id: string; date: string; quantity: number; remaining: number; price: number; sip: boolean }[]; sales: { id: string; date: string; units: number; price: number; cost: number }[]; income: { id: string; date: string; kind: string; amount: number }[] };
+
+/** Every purchase (and how much of it is still held), every sale and every payout, newest first. */
+function HistoryPanel({ id, unit, onChanged }: { id: string; unit: string; onChanged: () => void }) {
+  const [h, setH] = useState<History | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => {
+    apiCall<History>(`/api/holdings/${id}/history`, "GET").then(setH).catch((e) => setError((e as Error).message));
+  }, [id]);
+  useEffect(load, [load]);
+  const remove = async (url: string, what: string) => {
+    try {
+      await apiCall(url, "DELETE");
+      toast(`${what} removed`);
+      load();
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+  if (error) return <FormAlert message={error} />;
+  if (!h) return <p className="text-sm text-muted">Loading…</p>;
+  const live = h.lots.filter((l) => l.remaining > 0).length;
+  type Entry = { key: string; date: string; text: string; amount: number; sub: string; onDelete?: () => void };
+  const entries: Entry[] = [
+    ...h.lots.map((l) => ({
+      key: `l${l.id}`,
+      date: l.date,
+      text: `${l.sip ? "SIP instalment" : "Bought"} ${units(l.quantity)} ${unit} at ${inr(l.price, { decimals: 2 })}`,
+      amount: -l.quantity * l.price,
+      sub: l.remaining <= 0 ? "all sold since" : l.remaining < l.quantity ? `${units(l.remaining)} still held` : "still held",
+      onDelete: l.remaining > 0 && live > 1 ? () => remove(`/api/holdings/${id}/lots/${l.id}`, "Purchase") : undefined,
+    })),
+    ...h.sales.map((x) => ({ key: `s${x.id}`, date: x.date, text: `Sold ${units(x.units)} ${unit} at ${inr(x.price, { decimals: 2 })}`, amount: x.units * x.price, sub: `${x.units * x.price - x.cost >= 0 ? "gain" : "loss"} of ${inr(Math.abs(Math.round(x.units * x.price - x.cost)))}` })),
+    ...h.income.map((x) => ({ key: `i${x.id}`, date: x.date, text: x.kind === "dividend" ? "Dividend" : x.kind === "interest" ? "Interest" : "Income", amount: x.amount, sub: "paid out", onDelete: () => remove(`/api/income/${x.id}`, "Income") })),
+  ].sort((a, b) => (a.date < b.date ? 1 : -1));
+  if (!entries.length) return <p className="text-sm text-muted">Nothing recorded yet.</p>;
+  return (
+    <ul className="divide-y divide-line rounded-[12px] border border-line">
+      {entries.map((e) => (
+        <li key={e.key} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+          <span className="min-w-0">
+            <span className="block text-sm text-text">{e.text}</span>
+            <span className="block text-[12px] text-subtle">
+              {dayLabel(e.date, "en")} · {e.sub}
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1">
+            <span className={`num text-sm ${e.amount >= 0 ? "text-gain" : "text-muted"}`}>{e.amount >= 0 ? "+" : "−"}{inr(Math.abs(Math.round(e.amount)))}</span>
+            {e.onDelete && (
+              <button onClick={e.onDelete} aria-label={`Remove: ${e.text}`} className="rounded-full p-1.5 text-subtle hover:bg-loss-soft hover:text-loss">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

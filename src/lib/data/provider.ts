@@ -17,7 +17,12 @@ export interface MarketDataProvider {
   annualFundamentals(symbol: string): Promise<Record<string, unknown>[]>;
   /** FX rate from → to, null when unknown. */
   fx(from: string, to: string): Promise<number | null>;
+  /** Share splits and bonus issues since `from`, oldest first. Optional: sources without them return nothing. */
+  splits?(symbol: string, from: Date): Promise<Split[]>;
 }
+
+/** A split or bonus issue: from `date` (the ex-date), each old share became `ratio` shares. */
+export type Split = { date: string; ratio: number };
 
 export type SymbolSummary = {
   raw: any;
@@ -95,6 +100,19 @@ export const yahooProvider: MarketDataProvider = {
     return ts
       .map((t, i) => ({ date: istDate(new Date(t * 1000)), close: num(q.close?.[i]), volume: num(q.volume?.[i]) }))
       .filter((p): p is { date: string; close: number; volume: number | null } => p.close != null && p.close > 0);
+  },
+  async splits(symbol, from) {
+    const r: any = await yahooCall(() => yf.chart(clean(symbol), { period1: from, period2: new Date(), interval: "1d", events: "split", return: "object" }, NV));
+    const raw = r?.events?.splits;
+    const list: any[] = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : [];
+    return list
+      .map((x) => {
+        const t = x?.date instanceof Date ? x.date : new Date(typeof x?.date === "number" ? x.date * 1000 : x?.date);
+        const ratio = num(x?.numerator) && num(x?.denominator) ? num(x.numerator)! / num(x.denominator)! : null;
+        return Number.isFinite(t.getTime()) && ratio && ratio > 0 && ratio !== 1 ? { date: istDate(t), ratio } : null;
+      })
+      .filter((x): x is Split => x != null)
+      .sort((a, b) => a.date.localeCompare(b.date));
   },
   async summary(symbol) {
     const qs = await yahooCall(() => yf.quoteSummary(clean(symbol), { modules: SUMMARY_MODULES }, NV));

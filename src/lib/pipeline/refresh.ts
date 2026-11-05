@@ -26,11 +26,10 @@ export async function userSymbols(userId: string): Promise<string[]> {
 /**
  * Refresh on open: one batched quote call for the user's symbols and the market indices, stored
  * exactly as the nightly checkup stores them, so every page keeps reading from the database. It is
- * throttled per user, and demo accounts (which live on the frozen demo market) never trigger it.
+ * throttled per user, private demo copies included.
  * Alerts are still decided once a day by the nightly checkup; this only keeps values current.
  */
 export async function refreshFor(user: User, provider: MarketDataProvider = resilientProvider): Promise<{ updated: boolean; reason?: string }> {
-  if (user.isDemo) return { updated: false, reason: "demo" };
   const db = await getDb();
   const key = `refresh:u:${user.id}`;
   const [recent] = await db.select({ id: schema.rateEvents.id }).from(schema.rateEvents).where(and(eq(schema.rateEvents.key, key), gte(schema.rateEvents.createdAt, new Date(Date.now() - REFRESH_EVERY_MS)))).limit(1);

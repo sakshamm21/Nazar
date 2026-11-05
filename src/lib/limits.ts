@@ -77,9 +77,12 @@ export async function overBudget(userId: string): Promise<boolean> {
   return Boolean((LIMITS.userDailyUsd && mine >= LIMITS.userDailyUsd) || (LIMITS.globalDailyUsd && all >= LIMITS.globalDailyUsd));
 }
 
+/** Who a shared test account's question and spend belong to: the account on one network. */
+export const visitorKey = (userId: string, ip: string) => `${userId}:${ip}`;
+
 export async function checkAndRecord(userId: string, ip: string, isDemo: boolean): Promise<Verdict> {
-  // A shared test account is used by many people: its daily allowance is per network.
-  const who = isDemo ? `${userId}:${ip}` : userId;
+  // A shared test account is used by many people: its daily allowance, and its spend, are per network.
+  const who = isDemo ? visitorKey(userId, ip) : userId;
   const db = await getDb();
   const now = Date.now();
   const dayAgo = new Date(now - 24 * HOUR);
@@ -90,7 +93,7 @@ export async function checkAndRecord(userId: string, ip: string, isDemo: boolean
         await db
           .select({ c: sql<number>`coalesce(sum(${schema.usage.costUsd}), 0)` })
           .from(schema.usage)
-          .where(userOnly ? and(eq(schema.usage.userId, userId), gte(schema.usage.createdAt, dayAgo)) : gte(schema.usage.createdAt, dayAgo))
+          .where(userOnly ? and(isDemo ? eq(schema.usage.visitor, who) : eq(schema.usage.userId, userId), gte(schema.usage.createdAt, dayAgo)) : gte(schema.usage.createdAt, dayAgo))
       )[0]?.c ?? 0,
     );
   const perDay = isDemo ? LIMITS.perDayDemo : LIMITS.perDay;

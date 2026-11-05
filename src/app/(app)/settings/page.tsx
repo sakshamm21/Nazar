@@ -3,6 +3,7 @@ import { inArray } from "drizzle-orm";
 import { GoalsCard } from "@/components/goals/goals-card";
 import { Preferences } from "@/components/settings/preferences";
 import { ProfileCard } from "@/components/settings/profile-card";
+import { TaxCard } from "@/components/settings/tax-card";
 import { requirePageUser } from "@/lib/current-user";
 import { istDate } from "@/lib/data/provider";
 import { getDb, schema } from "@/lib/db";
@@ -37,11 +38,13 @@ export default async function SettingsPage() {
           email: user.email,
           emailVerified: !!user.emailVerifiedAt,
           isTestAccount: user.isTestAccount,
+          privateDemo: user.isDemo,
           memberSince: user.createdAt.toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" }),
           stats: { portfolios: portfolios.length, holdings: holdings.length, watching: watching.length, netWorth: holdings.length ? netWorth : null },
         }}
       />
       <GoalsCard view={goals} />
+      <TaxCard slabPct={user.prefs?.taxSlabPct ?? null} />
       <Preferences />
       <p className="t-caption px-1">Nazar only emails you to confirm your address or reset your password. It explains; you decide. It is not a SEBI-registered investment adviser.</p>
     </div>

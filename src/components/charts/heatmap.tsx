@@ -4,7 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/cn";
 import { inr, inrCompact, signedPct } from "@/lib/format";
 
-export type HeatTile = { symbol: string; name: string; value: number; today: number | null; total: number | null; href: string | null };
+export type HeatTile = { symbol: string; name: string; value: number; today: number | null; total: number | null; href: string | null; pending?: boolean; /** Has a daily price. Deposits and provident funds do not, so they sit out of the Today map. */ daily?: boolean };
 type Rect = { x: number; y: number; w: number; h: number };
 
 /** Squarified treemap: lays `values` (largest first) into a w × h box, keeping tiles close to square. */
@@ -62,7 +62,10 @@ const MODES = [
 export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
   const [mode, setMode] = useState<(typeof MODES)[number]["id"]>("today");
   const [sel, setSel] = useState<string | null>(null);
-  const sorted = useMemo(() => [...tiles].filter((t) => t.value > 0).sort((a, b) => b.value - a.value), [tiles]);
+  // Today's map is about what moved, so what cannot move day to day is left out of it and named below.
+  const sorted = useMemo(() => [...tiles].filter((t) => t.value > 0 && (mode !== "today" || t.daily !== false)).sort((a, b) => b.value - a.value), [tiles, mode]);
+  const still = useMemo(() => tiles.filter((t) => t.value > 0 && t.daily === false), [tiles]);
+  const stillSum = still.reduce((a, t) => a + t.value, 0);
   // Laid out in a box (wide on a desktop, squarer on a phone), then placed with percentages so it scales with the card.
   const wide = useSyncExternalStore(onWide, () => window.matchMedia(WIDE).matches, () => true);
   const W = 100, H = wide ? 42 : 78;
@@ -123,13 +126,20 @@ export function Heatmap({ tiles }: { tiles: HeatTile[] }) {
           <>
             <span className="min-w-0 truncate font-medium text-text">{active.name}</span>
             <span className="num flex flex-wrap gap-x-3 text-muted">
-              <span>{inr(Math.round(active.value))} · {sum ? Math.round((active.value / sum) * 100) : 0}% of this portfolio</span>
-              {active.today != null && <span className={active.today > 0 ? "text-gain" : active.today < 0 ? "text-loss" : ""}>{signedPct(active.today)} today</span>}
+              <span>{inr(Math.round(active.value))} · {sum + (mode === "today" ? stillSum : 0) ? Math.round((active.value / (sum + (mode === "today" ? stillSum : 0))) * 100) : 0}% of this portfolio</span>
+              {active.today != null ? <span className={active.today > 0 ? "text-gain" : active.today < 0 ? "text-loss" : ""}>{signedPct(active.today)} today</span> : active.pending ? <span>NAV pending</span> : null}
               {active.total != null && <span className={active.total > 0 ? "text-gain" : active.total < 0 ? "text-loss" : ""}>{signedPct(active.total)} overall</span>}
             </span>
           </>
         ) : (
-          <span className="text-muted">Bigger tile, more of your money. Tap one for its numbers.</span>
+          <span className="text-muted">
+            Bigger tile, more of your money. Tap one for its numbers.
+            {mode === "today" && still.length > 0 && (
+              <>
+                {" "}Not shown: <span className="num text-text">{inrCompact(stillSum)}</span> in {still.length === 1 ? still[0].name : `${still.length} deposits, provident funds and the like`}, which {still.length === 1 ? "does" : "do"} not move day to day.
+              </>
+            )}
+          </span>
         )}
       </div>
     </div>

@@ -58,9 +58,13 @@ function manualRow(h: HoldingRow, date: string, prevWeight: number | null) {
     prevWeight,
     snapshot: null,
     stale: false,
+    pending: false,
     instrument: null,
   };
 }
+
+/** The calendar day in India a timestamp falls on. */
+const navDate = (d: Date) => new Date(new Date(d).getTime() + 5.5 * 3600_000).toISOString().slice(0, 10);
 
 export function displayName(symbol: string, inst?: Instrument | null): string {
   return DISPLAY_NAMES[symbol] ?? inst?.shortName ?? (inst?.name ? shortName(inst.name) : (catalogItem(symbol)?.name ?? shortCode(symbol)));
@@ -68,7 +72,7 @@ export function displayName(symbol: string, inst?: Instrument | null): string {
 
 export type PortfolioDay = {
   tradeDate: string;
-  holdings: (DayHolding & { snapshot: Snapshot | null; stale: boolean; sectorLabel: string; category: string | null; assetClass: AssetClass; instrument: Instrument | null })[];
+  holdings: (DayHolding & { snapshot: Snapshot | null; stale: boolean; pending: boolean; sectorLabel: string; category: string | null; assetClass: AssetClass; instrument: Instrument | null })[];
   niftyPct: number | null;
   nifty: Snapshot | null;
   sectorPct: Record<string, number | null>;
@@ -107,6 +111,9 @@ export async function loadPortfolioDay(db: DB, holdings: HoldingRow[], date: str
     const sec = sectorOf(i?.sector, i?.industry);
     const fresh = snap?.tradeDate === date;
     const assetClass: AssetClass = h.assetClass ?? i?.assetClass ?? "stock";
+    // A fund's NAV for the day comes out late in the evening. Until then its snapshot carries the
+    // previous NAV: it has not moved yet, rather than moved by 0%.
+    const pending = assetClass === "mf" && fresh && !!snap?.asOf && navDate(snap.asOf) < date;
     // Sectors describe companies; a fund or gold sits under its asset group instead.
     const sectorLabel: string = assetClass === "stock" ? sec.label : groupOf(assetClass);
     const r = results.get(h.symbol);
@@ -126,7 +133,8 @@ export async function loadPortfolioDay(db: DB, holdings: HoldingRow[], date: str
       buyDate: h.buyDate,
       price: snap?.price ?? null,
       prevClose: fresh ? (snap?.prevClose ?? null) : (snap?.price ?? null),
-      changePct: fresh ? (snap?.changePct ?? null) : null,
+      changePct: fresh && !pending ? (snap?.changePct ?? null) : null,
+      pending,
       beta: snap?.beta ?? null,
       health: snap?.health?.score ?? null,
       healthPrev: p?.health?.score ?? null,

@@ -74,3 +74,14 @@ describe("the server secret", () => {
     expect(authSecret().length).toBeGreaterThanOrEqual(32);
   });
 });
+
+describe("where sign-in goes next", () => {
+  it("only to a path on this site", async () => {
+    const { safeNext } = await import("@/lib/safe-next");
+    expect(safeNext("/portfolio?tab=manage")).toBe("/portfolio?tab=manage");
+    expect(safeNext("https://evil.example")).toBe("/home");
+    expect(safeNext("//evil.example")).toBe("/home");
+    expect(safeNext("/\\evil.example")).toBe("/home");
+    expect(safeNext(null)).toBe("/home");
+  });
+});

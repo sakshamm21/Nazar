@@ -167,6 +167,8 @@ export const marketProvider: MarketDataProvider = {
   },
   annualFundamentals: (symbol) => (isSyntheticSymbol(symbol) ? Promise.resolve([]) : yahooProvider.annualFundamentals(symbol)),
   fx: (from, to) => yahooProvider.fx(from, to),
+  // Funds and gold have no splits; a US share's come from its own listing.
+  splits: (symbol, from) => (isForeignSymbol(symbol) ? yahooProvider.splits!(foreignYahoo(symbol), from) : isSyntheticSymbol(symbol) ? Promise.resolve([]) : yahooProvider.splits!(symbol, from)),
 };
 
 /**
@@ -216,4 +218,5 @@ export const resilientProvider: MarketDataProvider = {
   summary: (symbol) => marketProvider.summary(symbol),
   annualFundamentals: (symbol) => marketProvider.annualFundamentals(symbol),
   fx: (from, to) => marketProvider.fx(from, to),
+  splits: (symbol, from) => marketProvider.splits!(symbol, from).catch(() => []),
 };

@@ -15,7 +15,7 @@ import { WATCHING_MAX, addWatching, listWatching, removeWatching } from "../repo
 import { buildPortfolioView } from "../views/portfolio";
 import { goalsView } from "../views/goals";
 import { sipsView } from "../views/sips";
-import { LONG_TERM_DAYS, LTCG_EXEMPTION } from "../portfolio/capital-gains";
+import { LTCG_EXEMPTION, TAX_RULES, byHolding, summariseGains } from "../portfolio/capital-gains";
 import { PERIODS, explain } from "../portfolio/performance";
 import { stressTest } from "../portfolio/math";
 
@@ -449,7 +449,7 @@ function userTools(userId: string) {
     const names = pfs.map((p) => p.name);
     return v.empty ? { empty: { portfolios: names, empty: true as const, note: EMPTY_NOTE } } : { v, names };
   };
-  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for the default.");
+  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for all of them together.");
   const r0 = (n: number) => Math.round(n);
 
   return {
@@ -539,24 +539,24 @@ function userTools(userId: string) {
     }),
     getCapitalGains: tool({
       description:
-        "The gains still sitting in the user's portfolio, unsold, by holding: the gain in rupees and percent, how long each has been owned, and whether a sale today would count as long-term or short-term under Indian rules. Use it for questions about unrealised gains, long-term versus short-term, or holding periods. Nazar keeps no record of sales, so it cannot say what tax is due; state the rules as facts and leave what to do to the user.",
+        "The gains still sitting in the user's portfolio, unsold, by holding: the gain in rupees and percent, how long each has been owned, and whether a sale today would count as long-term or short-term under Indian rules. Each purchase is counted from its own date, and the tax a sale of everything today would bring is worked out from the statutory rates (with cess, before surcharge). Use it for questions about unrealised gains, long-term versus short-term, holding periods or tax on gains. State the rules as facts and leave what to do to the user.",
       inputSchema: z.object({ portfolio: whichPortfolio }),
       execute: async ({ portfolio }) =>
         safe(async () => {
           const r = await loadView(portfolio);
           if (r.empty) return r.empty;
           const g = r.v.gains;
-          const sum = (xs: typeof g) => r0(xs.reduce((a, x) => a + x.gain, 0));
-          const part = (cls: "equity" | "other", long: boolean) => g.filter((x) => x.class === cls && x.wouldBeLongTerm === long);
+          const s = summariseGains(g, r.v.taxSlabPct);
           return {
             portfolio: r.v.active!.name,
             asOf: r.v.tradeDate,
-            unrealisedGain: sum(g),
-            // Shares and equity funds follow the equity rules; everything else with a price follows the other set.
-            sharesAndEquityFunds: { longTerm: sum(part("equity", true)), shortTerm: sum(part("equity", false)) },
-            otherAssets: { longTerm: sum(part("other", true)), shortTerm: sum(part("other", false)) },
-            holdings: [...g].sort((a, b) => Math.abs(b.gain) - Math.abs(a.gain)).slice(0, 20).map((x) => ({ name: x.name, kind: x.class === "equity" ? "shares or equity fund" : "other asset", gain: r0(x.gain), gainPct: x.gainPct, daysOwned: x.daysHeld, wouldBeLongTermToday: x.wouldBeLongTerm })),
-            rules: { longTermAfterDays: LONG_TERM_DAYS, yearlyExemptionOnLongTermEquityGains: LTCG_EXEMPTION },
+            unrealisedGain: r0(s.totalGain),
+            buckets: s.buckets.map((b) => ({ rules: TAX_RULES[b.kind].label, term: TAX_RULES[b.kind].longAfterDays == null ? "no long term" : b.term === "long" ? "long-term" : "short-term", gain: r0(b.gain), rate: b.rate === "slab" ? "the person's income-tax slab" : b.rate, taxIfSoldToday: b.tax == null ? null : r0(b.tax) })),
+            taxIfAllSoldToday: r0(s.tax),
+            gainTaxedAtSlabWithoutAFigure: r0(s.untaxedSlabGain),
+            holdings: byHolding(g).slice(0, 20).map((x) => ({ name: x.name, rules: TAX_RULES[x.kind].label, gain: r0(x.gain), gainPct: x.gainPct, longTermPart: r0(x.long), shortTermPart: r0(x.short), oldestPurchaseDaysAgo: x.oldestDays })),
+            rules: Object.fromEntries(Object.entries(TAX_RULES).map(([k, v]) => [k, { label: v.label, longTermAfterDays: v.longAfterDays, shortRate: v.short, longRate: v.long }])),
+            yearlyExemptionOnLongTermEquityGains: LTCG_EXEMPTION,
             note: "These gains are unrealised: nothing is taxed until units are sold, and the bucket depends on the date of that sale. Deposits, provident funds, property and cash are not included.",
           };
         }),

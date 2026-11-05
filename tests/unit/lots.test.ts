@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { xirr } from "@/lib/analytics/stats";
-import { cashFlows, consume, lotCost, sortLots, summarise, type Lot } from "@/lib/portfolio/lots";
+import { cashFlows, consume, lotCost, planSale, sortLots, summarise, type Lot } from "@/lib/portfolio/lots";
 
 const lot = (o: Partial<Lot> & { quantity: number; price: number; date: string }): Lot => o;
 
@@ -26,11 +26,11 @@ describe("summarising lots", () => {
     expect(s.cost).toBe(400);
     expect(s.avgPrice).toBe(100);
   });
-  it("a fully-sold lot drops out but still anchors the earliest date", () => {
+  it("a fully-sold lot drops out, and so does its date: the position is as old as what is still held", () => {
     const s = summarise([lot({ quantity: 10, price: 100, date: "2023-01-01", remaining: 0 }), lot({ quantity: 5, price: 200, date: "2024-01-01" })]);
     expect(s.quantity).toBe(5);
     expect(s.cost).toBe(1000);
-    expect(s.buyDate).toBe("2023-01-01");
+    expect(s.buyDate).toBe("2024-01-01");
   });
   it("no lots is an empty position, not a division by zero", () => {
     expect(summarise([])).toMatchObject({ quantity: 0, cost: 0, avgPrice: 0, buyDate: null });
@@ -148,5 +148,27 @@ describe("helpers", () => {
   });
   it("lot cost is units times price", () => {
     expect(lotCost(lot({ quantity: 12, price: 55, date: "2024-01-01" }))).toBe(660);
+  });
+});
+describe("planning a sale", () => {
+  const lots = [lot({ quantity: 5, price: 200, date: "2024-06-01" }), lot({ quantity: 10, price: 100, date: "2023-01-01" })];
+  it("sells the oldest units first and says what they cost", () => {
+    const p = planSale(lots, 12);
+    expect(p.parts).toEqual([{ date: "2023-01-01", units: 10, price: 100 }, { date: "2024-06-01", units: 2, price: 200 }]);
+    expect(p.cost).toBe(1400);
+    expect(p.units).toBe(12);
+    // Remaining units, in the order the lots were given.
+    expect(p.remaining).toEqual([3, 0]);
+  });
+  it("a sale's purchases are outflows on their own days, so a sold lot still counts as money that went in", () => {
+    const p = planSale(lots, 10);
+    const left = lots.map((l, i) => ({ ...l, remaining: p.remaining[i] }));
+    const { flows } = cashFlows(left, [{ date: "2025-01-01", amount: 1500, parts: p.parts }], { date: "2025-06-01", amount: 1100 });
+    expect(flows).toEqual([
+      { date: "2023-01-01", amount: -1000 },
+      { date: "2024-06-01", amount: -1000 },
+      { date: "2025-01-01", amount: 1500 },
+      { date: "2025-06-01", amount: 1100 },
+    ]);
   });
 });

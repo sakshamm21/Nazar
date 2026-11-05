@@ -6,7 +6,10 @@ import { absPct, inr, inrCompact } from "@/lib/format";
  * `pct` is a fraction (−0.072 = −7.2%).
  */
 export function Delta({ amount, pct, compact, className, showArrow = true, size = "md" }: { amount?: number | null; pct?: number | null; compact?: boolean; className?: string; showArrow?: boolean; size?: "sm" | "md" }) {
-  const v = amount ?? pct ?? 0;
+  // Tone, arrow and sign follow the figure as displayed: −₹0.4 or −0.04% reads as no move.
+  const amt = amount != null && Math.round(Math.abs(amount)) === 0 ? 0 : amount;
+  const p = pct != null && Number(Math.abs(pct * 100).toFixed(1)) === 0 ? 0 : pct;
+  const v = amt ?? p ?? 0;
   const tone = v > 0 ? "text-gain" : v < 0 ? "text-loss" : "text-muted";
   const arrow = v > 0 ? "▲" : v < 0 ? "▼" : "•";
   const sign = (x: number) => (x > 0 ? "+" : x < 0 ? "−" : "");
@@ -19,14 +22,14 @@ export function Delta({ amount, pct, compact, className, showArrow = true, size 
       )}
       {amount != null && (
         <span>
-          {sign(amount)}
+          {sign(amt!)}
           {compact ? inrCompact(Math.abs(amount)) : inr(Math.abs(amount))}
         </span>
       )}
       {pct != null && (
         <span className={amount != null ? "opacity-85" : ""}>
           {amount != null ? "(" : ""}
-          {sign(pct)}
+          {sign(p!)}
           {absPct(pct)}
           {amount != null ? ")" : ""}
         </span>

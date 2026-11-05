@@ -14,6 +14,8 @@ import { displayName, loadPortfolioDay } from "@/lib/market/portfolio-day";
 import { instrumentsFor, latestTradeDate, snapshotsAsOf, sourcesFor } from "@/lib/market/store";
 import { valuation } from "@/lib/portfolio/math";
 import { MAX_PORTFOLIOS, listPortfolios, listWatching } from "@/lib/repo/portfolios";
+import type { Lot } from "@/lib/portfolio/lots";
+import { lotsForPortfolio } from "@/lib/repo/lots";
 import { sipsForPortfolio, type Sip } from "@/lib/repo/sips";
 import { portfolioView } from "@/lib/views/portfolio";
 
@@ -37,11 +39,13 @@ export default async function PortfolioPage() {
   const days = new Map(await Promise.all(portfolios.map(async (p) => [p.id, await loadPortfolioDay(db, all.filter((h) => h.portfolioId === p.id), date, sources)] as const)));
   const summaries = portfolios.map((p) => ({ id: p.id, name: p.name, value: valuation(days.get(p.id)!.holdings).value, count: days.get(p.id)!.holdings.length }));
 
-  const holdings = active ? all.filter((h) => h.portfolioId === active.id) : [];
-  const day = active ? days.get(active.id)! : null;
+  // Changing holdings needs one portfolio: with "All" chosen, Manage opens on the main one.
+  const managed = active?.combined ? (portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null) : active;
+  const holdings = managed ? all.filter((h) => h.portfolioId === managed.id) : [];
+  const day = managed ? days.get(managed.id)! : null;
   const total = day ? valuation(day.holdings).value : 0;
   const byId = new Map(holdings.map((h) => [h.symbol, h]));
-  const sips = active ? await sipsForPortfolio(active.id) : new Map<string, Sip>();
+  const [sips, lots] = managed ? await Promise.all([sipsForPortfolio(managed.id), lotsForPortfolio(managed.id)]) : [new Map<string, Sip>(), new Map<string, Lot[]>()];
   const rows = (day?.holdings ?? []).map((h) => {
     const row = byId.get(h.symbol)!;
     const manual = isManualSymbol(h.symbol);
@@ -58,6 +62,7 @@ export default async function PortfolioPage() {
       buyDate: row.buyDate,
       details: row.details,
       sip: sipOf(sips.get(row.id)),
+      lots: (lots.get(row.id) ?? []).filter((l) => (l.remaining ?? l.quantity) > 0).length,
       price: h.price,
       changePct: manual ? null : h.changePct,
       value,
@@ -87,7 +92,7 @@ export default async function PortfolioPage() {
         health: view.health,
         innerRing: view.innerRing,
         risk: { stressLoss: view.risk.stress10.loss, effectiveBets: view.risk.diversification?.effectiveBets ?? null, clusterCount: view.risk.diversification?.clusters[0]?.symbols.length ?? null, clusterWeight: view.risk.diversification?.clusters[0]?.weight ?? null },
-        cards: view.cards.map((c) => ({ symbol: c.symbol, name: c.name, assetClass: c.assetClass, href: c.href, value: c.value, weight: c.weight, pnl: c.pnl, pnlPct: c.pnlPct, changePct: c.href == null ? null : c.changePct, dayImpact: c.href == null ? null : c.dayImpact, health: c.health, sparkline: c.sparkline })),
+        cards: view.cards.map((c) => ({ symbol: c.symbol, name: c.name, assetClass: c.assetClass, href: c.href, value: c.value, weight: c.weight, pnl: c.pnl, pnlPct: c.pnlPct, changePct: c.href == null ? null : c.changePct, dayImpact: c.href == null ? null : c.dayImpact, health: c.health, sparkline: c.sparkline, pending: c.pending })),
       };
 
   return (
@@ -95,11 +100,13 @@ export default async function PortfolioPage() {
       <PortfolioScreen
         startOnManage={!overview}
         switcher={<PortfolioTabs portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={active?.id ?? null} />}
+        // On Manage the portfolio cards are the switcher, with each one's value and an Open button.
+        manageSwitcher={null}
         overview={overview ? <Overview d={overview} /> : null}
         manage={
           <PortfolioManager
             portfolios={summaries}
-            activeId={active?.id ?? null}
+            activeId={managed?.id ?? null}
             rows={rows}
             totals={{ value: total }}
             watching={watching.map((w) => ({ symbol: w.symbol, name: displayName(w.symbol, inst.get(w.symbol)), price: snaps.get(w.symbol)?.price ?? null, changePct: snaps.get(w.symbol)?.tradeDate === date ? (snaps.get(w.symbol)?.changePct ?? null) : null }))}

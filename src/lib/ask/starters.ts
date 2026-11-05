@@ -3,7 +3,7 @@ import { inrWhole } from "@/lib/format";
 /** A question Ask offers on its start screen because of something in this person's own portfolio today. */
 export type Starter = { id: string; label: string; question: string };
 
-type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster"; title: string };
+type Note = { id: string; kind: "results" | "concentration" | "upcoming" | "stale" | "cluster" | "split"; title: string };
 
 /**
  * Up to three things worth asking about right now, taken from what the engine has already noticed:

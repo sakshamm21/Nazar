@@ -13,7 +13,7 @@ const TABS = [
 ];
 
 /** Portfolio in two halves: Overview to read, Manage to change. The tab lives in the URL. */
-export function PortfolioScreen({ overview, manage, switcher, startOnManage }: { overview: ReactNode; manage: ReactNode; switcher: ReactNode; startOnManage: boolean }) {
+export function PortfolioScreen({ overview, manage, switcher, manageSwitcher, startOnManage }: { overview: ReactNode; manage: ReactNode; switcher: ReactNode; /** Manage changes one portfolio, so it has no "All". */ manageSwitcher?: ReactNode; startOnManage: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const reduce = useReducedMotion();
@@ -36,7 +36,7 @@ export function PortfolioScreen({ overview, manage, switcher, startOnManage }: {
           ))}
         </div>
       </div>
-      {switcher}
+      {tab === "manage" && manageSwitcher !== undefined ? manageSwitcher : switcher}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={tab} role="tabpanel" initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={reduce ? undefined : { opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
           {tab === "overview" ? overview : manage}

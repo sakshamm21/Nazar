@@ -71,6 +71,48 @@
       "when": 1791481395737,
       "tag": "0009_sip_start_date",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793894927709,
+      "tag": "0010_holding_sales",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793895256650,
+      "tag": "0011_user_prefs",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793895537351,
+      "tag": "0012_corporate_actions",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793896428698,
+      "tag": "0013_usage_visitor",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793897140039,
+      "tag": "0014_holding_income",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793897485933,
+      "tag": "0015_dashboards",
+      "breakpoints": true
     }
   ]
 }

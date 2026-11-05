@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
 import { linkClass } from "./auth-card";
 import { DemoButton } from "./demo-button";
+import { safeNext } from "@/lib/safe-next";
 import { ApiError, apiCall } from "@/lib/api-client";
 
 function PasswordInput({ id, value, onChange, autoComplete, placeholder, label }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; placeholder?: string; label?: string }) {
@@ -35,7 +36,7 @@ export function SignInForm({ demo }: { demo: { email: string; password: string }
     setBusy(true);
     try {
       await apiCall("/api/auth/login", "POST", { email, password });
-      router.push(params.get("next") ?? "/home");
+      router.push(safeNext(params.get("next")));
       router.refresh();
     } catch (err) {
       const code = err instanceof ApiError ? err.code : undefined;
@@ -52,7 +53,7 @@ export function SignInForm({ demo }: { demo: { email: string; password: string }
     <>
       {demo && (
         <>
-          <DemoButton email={demo.email} password={demo.password} className="w-full" />
+          <DemoButton className="w-full" />
           <p className="t-caption mt-2.5 text-center">One tap. A full portfolio on live prices, nothing to type.</p>
           <div className="my-6 flex items-center gap-3 text-[12px] text-subtle" aria-hidden>
             <span className="h-px flex-1 bg-line" /> or use your account <span className="h-px flex-1 bg-line" />

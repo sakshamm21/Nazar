@@ -5,7 +5,7 @@
  * every asset class, the nightly put-back, isolation between copies, and "Simulate a bad day".
  */
 import bcrypt from "bcryptjs";
-import { eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import { schema, type DB } from "@/lib/db";
 import { istDate } from "@/lib/data/provider";
@@ -108,5 +108,58 @@ describe("copies of a persona are isolated from each other", () => {
     const manual = ha.filter((h) => h.symbol.startsWith("MANUAL:")).map((h) => h.symbol);
     expect(manual.length).toBeGreaterThan(0);
     expect(hb.some((h) => manual.includes(h.symbol))).toBe(false);
+  });
+
+  it("a copy shows every feature: goals, a monthly SIP and a recorded sale", async () => {
+    const goals = await db.select().from(schema.goals).where(eq(schema.goals.userId, a));
+    expect(goals.length).toBeGreaterThanOrEqual(2);
+    const pfIds = (await db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, a))).map((p) => p.id);
+    expect(await db.select().from(schema.sips).where(inArray(schema.sips.portfolioId, pfIds))).toHaveLength(1);
+    const [sale] = await db.select().from(schema.holdingSales).where(eq(schema.holdingSales.userId, a));
+    expect(sale.units).toBeGreaterThan(0);
+    // Priced at a stored close, not made up.
+    const [bar] = await db.select().from(schema.priceDaily).where(and(eq(schema.priceDaily.symbol, sale.symbol), eq(schema.priceDaily.date, sale.date)));
+    expect(bar.close).toBe(sale.price);
+  });
+
+  it("each holding in a copy has a purchase behind it, so it can be sold like any other", async () => {
+    const hs = await holdingsOf(a);
+    const lots = await db.select().from(schema.holdingLots).where(inArray(schema.holdingLots.holdingId, hs.map((h) => h.id)));
+    for (const h of hs) {
+      const mine = lots.filter((l) => l.holdingId === h.id);
+      expect(mine).toHaveLength(1);
+      expect(mine[0].remaining).toBeCloseTo(h.quantity, 9);
+    }
+  });
+});
+
+describe("a visitor's private demo", () => {
+  const start = async () => {
+    const { POST } = await import("@/app/api/auth/demo/route");
+    const res = await POST(new Request("http://localhost/api/auth/demo", { method: "POST", headers: { "x-forwarded-for": "203.0.113.9" } }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toMatch(/nazar_session|session/i);
+    return ((await res.json()) as { user: { id: string }; private: boolean });
+  };
+
+  it("is a copy of the investor of its own, for 24 hours, and two visitors never share one", async () => {
+    const a = await start();
+    const b = await start();
+    expect(a.private).toBe(true);
+    expect(a.user.id).not.toBe(b.user.id);
+    const ua = (await db.select().from(schema.users).where(eq(schema.users.id, a.user.id)))[0];
+    expect(ua).toMatchObject({ isDemo: true, isTestAccount: true });
+    expect(ua.demoExpiresAt!.getTime() - Date.now()).toBeGreaterThan(23 * 3600_000);
+    expect(await holdingsOf(a.user.id)).toHaveLength(wanted("investor"));
+    // One visitor's change stays theirs.
+    const [first] = await holdingsOf(a.user.id);
+    await db.delete(schema.holdings).where(eq(schema.holdings.id, first.id));
+    expect(await holdingsOf(b.user.id)).toHaveLength(wanted("investor"));
+  });
+
+  it("survives the nightly put-back of the shared accounts", async () => {
+    const a = await start();
+    await ensureTestAccounts(db, { provider: m.provider, now: new Date(Date.now() + 2 * 86400000) });
+    expect(await holdingsOf(a.user.id)).toHaveLength(wanted("investor"));
   });
 });

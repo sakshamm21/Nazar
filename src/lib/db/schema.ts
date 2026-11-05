@@ -30,7 +30,17 @@ export const users = pgTable("users", {
   sessionVersion: integer("session_version").notNull().default(0),
   createdAt: created(),
   lastSeenAt: ts("last_seen_at").defaultNow().notNull(),
+  /** Choices that follow the person to any device. */
+  prefs: jsonb("prefs").$type<UserPrefs>().notNull().default({}),
 });
+
+export type UserPrefs = {
+  /** Income-tax slab in percent, for gains taxed at the slab rate. Unset: those gains are shown without a rupee figure. */
+  taxSlabPct?: number | null;
+  /** The start-up checklist on Home: put away, and whether Analysis has been opened yet. */
+  checklistDismissed?: boolean;
+  seenAnalysis?: boolean;
+};
 
 /* ------------------------------------------------------------------ */
 /* Portfolios                                                          */
@@ -156,6 +166,94 @@ export const goals = pgTable(
     updatedAt: ts("updated_at").defaultNow().notNull(),
   },
   (t) => [index("goals_user_idx").on(t.userId, t.sortOrder)],
+);
+
+/**
+ * Units that left a holding: one row per sale, with the price, the day, and the purchase lots the
+ * units came out of (oldest first). It outlives the holding, so a position sold in full still
+ * counts in realised gains, the year's capital gains and the money-weighted return.
+ */
+export type SalePart = { date: string; units: number; price: number };
+export const holdingSales = pgTable(
+  "holding_sales",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    /** The holding it came from; null once that holding is gone. */
+    holdingId: text("holding_id").references(() => holdings.id, { onDelete: "set null" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    assetClass: text("asset_class").$type<AssetClass>().notNull(),
+    /** Fund category at the time of sale (decides the tax rules for a fund). */
+    category: text("category"),
+    units: doublePrecision("units").notNull(),
+    price: doublePrecision("price").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    /** What the sold units cost, from the lots they came out of. */
+    cost: doublePrecision("cost").notNull(),
+    parts: jsonb("parts").$type<SalePart[]>().notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("sales_portfolio_idx").on(t.portfolioId, t.date), index("sales_user_idx").on(t.userId, t.date)],
+);
+
+/**
+ * Money a holding paid out: a dividend, interest, or anything else the user records. Entered by the
+ * user, never guessed; it outlives the holding, like a sale.
+ */
+export const holdingIncome = pgTable(
+  "holding_income",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    portfolioId: text("portfolio_id").notNull().references(() => portfolios.id, { onDelete: "cascade" }),
+    holdingId: text("holding_id").references(() => holdings.id, { onDelete: "set null" }),
+    symbol: text("symbol").notNull(),
+    name: text("name").notNull(),
+    kind: text("kind").$type<"dividend" | "interest" | "other">().notNull(),
+    amount: doublePrecision("amount").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("income_portfolio_idx").on(t.portfolioId, t.date), index("income_user_idx").on(t.userId, t.date)],
+);
+
+/**
+ * Splits and bonus issues seen on held symbols. A row is written once per (symbol, ex-date), and
+ * holdings are adjusted in the same step, so an action is never applied twice.
+ */
+export const corporateActions = pgTable(
+  "corporate_actions",
+  {
+    symbol: text("symbol").notNull(),
+    exDate: date("ex_date", { mode: "string" }).notNull(),
+    /** Shares after for each share before: 2 for a 1:2 split or a 1:1 bonus. */
+    ratio: doublePrecision("ratio").notNull(),
+    /** Holdings adjusted, and when. */
+    holdingsAdjusted: integer("holdings_adjusted").notNull().default(0),
+    appliedAt: ts("applied_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.symbol, t.exDate] })],
+);
+
+/**
+ * A dashboard: a named set of comparisons the user builds, each one something they own (a whole
+ * portfolio, a kind of asset, one holding) against an index over a period.
+ */
+export type DashboardWidget = { id: string; portfolio: string; part: string; benchmark: string; period: "1M" | "3M" | "6M" | "1Y" };
+export const dashboards = pgTable(
+  "dashboards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    widgets: jsonb("widgets").$type<DashboardWidget[]>().notNull().default([]),
+    createdAt: created(),
+    updatedAt: ts("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("dashboards_user_idx").on(t.userId, t.sortOrder)],
 );
 
 /** Stocks the user watches without owning them. */
@@ -368,6 +466,8 @@ export const usage = pgTable(
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: doublePrecision("cost_usd").notNull().default(0),
+    /** On a shared test account, the visitor (account and network) the spend belongs to. */
+    visitor: text("visitor"),
     createdAt: created(),
   },
   (t) => [index("usage_user_idx").on(t.userId), index("usage_created_idx").on(t.createdAt)],

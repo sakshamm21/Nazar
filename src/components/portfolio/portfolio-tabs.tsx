@@ -8,15 +8,19 @@ export const selectPortfolio = (id: string) => {
   document.cookie = `nazar_pf=${id}; Path=/; Max-Age=${60 * 60 * 24 * 180}; SameSite=Lax`;
 };
 
-/** Switch between your portfolios; the choice is remembered. Hidden when there is only one. */
-export function PortfolioTabs({ portfolios, activeId }: { portfolios: { id: string; name: string }[]; activeId: string | null }) {
+/**
+ * Switch between your portfolios, or see them all together; the choice is remembered. Hidden when
+ * there is only one. `withAll` is off where a single portfolio is needed (changing what it holds).
+ */
+export function PortfolioTabs({ portfolios, activeId, withAll = true }: { portfolios: { id: string; name: string }[]; activeId: string | null; withAll?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const group = useId();
   if (portfolios.length < 2) return null;
+  const tabs = withAll ? [{ id: "all", name: "All" }, ...portfolios] : portfolios;
   return (
     <div role="tablist" aria-label="Portfolios" className={cn("-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 transition-opacity", pending && "opacity-60")}>
-      {portfolios.map((p) => {
+      {tabs.map((p) => {
         const on = p.id === activeId;
         return (
           <button

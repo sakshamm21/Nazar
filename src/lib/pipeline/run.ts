@@ -7,6 +7,7 @@ import { istDate, type MarketDataProvider } from "@/lib/data/provider";
 import { NIFTY, SECTOR_INDICES } from "@/lib/instruments/sectors";
 import { isManualSymbol } from "@/lib/instruments/asset-classes";
 import { latestTradeDate } from "@/lib/market/store";
+import { applySplits } from "./corporate-actions";
 import { logger } from "@/lib/logger";
 import { applyDueSips } from "@/lib/repo/sips";
 import { collectBatch, collectQuotes, liveUniverse } from "./collect";
@@ -84,6 +85,8 @@ export async function runNightly(opts: { budgetMs?: number; provider?: MarketDat
         stats.stale = [...(stats.stale ?? []), ...r.stale].slice(0, 50);
         if (r.circuitOpen) errors.push(`circuit open at ${r.next}/${universe.length}`);
         if (r.done || r.circuitOpen) {
+          // Splits and bonus issues first, so holdings and stored prices are in the same shares.
+          stats.splits = await applySplits(db, provider, universe.filter((x) => x !== NIFTY && !SECTOR_INDICES.includes(x)), runDate, deadline).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
           // The day's prices are in: add the SIP instalments that fell due, at those prices.
           stats.sips = await applyDueSips(db, runDate).catch((e) => ({ error: String((e as Error)?.message ?? e).slice(0, 200) }));
           await save(run, { stage: "done", status: "done", cursor: 0, stats, errors, finishedAt: new Date() });
