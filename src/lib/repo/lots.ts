@@ -38,6 +38,19 @@ export async function lotsForPortfolio(portfolioId: string): Promise<Map<string,
   return out;
 }
 
+/** Every lot in these portfolios, keyed by holding id. */
+export async function lotsForPortfolios(portfolioIds: string[]): Promise<Map<string, Lot[]>> {
+  if (!portfolioIds.length) return new Map();
+  const db = await getDb();
+  const rows = await db
+    .select({ holdingId: schema.holdingLots.holdingId, quantity: schema.holdingLots.quantity, price: schema.holdingLots.price, date: schema.holdingLots.date, remaining: schema.holdingLots.remaining })
+    .from(schema.holdingLots)
+    .where(inArray(schema.holdingLots.portfolioId, portfolioIds));
+  const out = new Map<string, Lot[]>();
+  for (const r of rows) out.set(r.holdingId, [...(out.get(r.holdingId) ?? []), { quantity: r.quantity, price: r.price, date: r.date, remaining: r.remaining }]);
+  return out;
+}
+
 export async function lotsForHoldings(holdingIds: string[]): Promise<Map<string, Lot[]>> {
   if (!holdingIds.length) return new Map();
   const db = await getDb();

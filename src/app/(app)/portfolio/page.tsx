@@ -39,11 +39,13 @@ export default async function PortfolioPage() {
   const days = new Map(await Promise.all(portfolios.map(async (p) => [p.id, await loadPortfolioDay(db, all.filter((h) => h.portfolioId === p.id), date, sources)] as const)));
   const summaries = portfolios.map((p) => ({ id: p.id, name: p.name, value: valuation(days.get(p.id)!.holdings).value, count: days.get(p.id)!.holdings.length }));
 
-  const holdings = active ? all.filter((h) => h.portfolioId === active.id) : [];
-  const day = active ? days.get(active.id)! : null;
+  // Changing holdings needs one portfolio: with "All" chosen, Manage opens on the main one.
+  const managed = active?.combined ? (portfolios.find((p) => p.isDefault) ?? portfolios[0] ?? null) : active;
+  const holdings = managed ? all.filter((h) => h.portfolioId === managed.id) : [];
+  const day = managed ? days.get(managed.id)! : null;
   const total = day ? valuation(day.holdings).value : 0;
   const byId = new Map(holdings.map((h) => [h.symbol, h]));
-  const [sips, lots] = active ? await Promise.all([sipsForPortfolio(active.id), lotsForPortfolio(active.id)]) : [new Map<string, Sip>(), new Map<string, Lot[]>()];
+  const [sips, lots] = managed ? await Promise.all([sipsForPortfolio(managed.id), lotsForPortfolio(managed.id)]) : [new Map<string, Sip>(), new Map<string, Lot[]>()];
   const rows = (day?.holdings ?? []).map((h) => {
     const row = byId.get(h.symbol)!;
     const manual = isManualSymbol(h.symbol);
@@ -98,11 +100,12 @@ export default async function PortfolioPage() {
       <PortfolioScreen
         startOnManage={!overview}
         switcher={<PortfolioTabs portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={active?.id ?? null} />}
+        manageSwitcher={<PortfolioTabs portfolios={portfolios.map((p) => ({ id: p.id, name: p.name }))} activeId={managed?.id ?? null} withAll={false} />}
         overview={overview ? <Overview d={overview} /> : null}
         manage={
           <PortfolioManager
             portfolios={summaries}
-            activeId={active?.id ?? null}
+            activeId={managed?.id ?? null}
             rows={rows}
             totals={{ value: total }}
             watching={watching.map((w) => ({ symbol: w.symbol, name: displayName(w.symbol, inst.get(w.symbol)), price: snaps.get(w.symbol)?.price ?? null, changePct: snaps.get(w.symbol)?.tradeDate === date ? (snaps.get(w.symbol)?.changePct ?? null) : null }))}
