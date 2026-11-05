@@ -228,8 +228,12 @@ test.describe("Portfolio", () => {
 test.describe("Search, stock pages and Dashboards", () => {
   test("search finds a stock, its page adds it to a portfolio, and Watch toggles", async ({ page }) => {
     await startDemo(page, "tester2@nazar.dev");
-    await page.keyboard.press("ControlOrMeta+k");
     const search = page.getByRole("dialog", { name: "Search" });
+    // ⌘K / Ctrl+K once the page is live (a cold dev server can take a moment).
+    await expect(async () => {
+      await page.keyboard.press("ControlOrMeta+k");
+      await expect(search).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 60_000 });
     await search.getByLabel("Search for a stock, fund, ETF or gold").fill("tata power");
     await search.getByRole("option", { name: /Tata Power/ }).first().getByRole("button").first().click();
     await page.waitForURL(/\/stock\/TATAPOWER/);
@@ -332,7 +336,8 @@ test.describe("Ask and You", () => {
     await startDemo(page);
     await page.goto("/settings");
     await expect(page.getByRole("heading", { name: /Hey,\s*Aarav/ })).toBeVisible();
-    await expect(page.getByText("Shared demo account", { exact: true })).toBeVisible();
+    // "Try the demo" is a private copy now.
+    await expect(page.getByText("Your demo, for 24 hours", { exact: true })).toBeVisible();
     await expect(page.getByRole("main").getByRole("button", { name: "Sign out" })).toBeVisible();
     await expect(page.getByText(/sensitivity|Price alerts|email digest/i)).toHaveCount(0);
   });
