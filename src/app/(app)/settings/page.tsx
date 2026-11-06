@@ -26,7 +26,8 @@ export default async function SettingsPage() {
   const holdings = portfolios.length ? await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, portfolios.map((p) => p.id))) : [];
   const sources = sourcesFor(user);
   const date = (await latestTradeDate(db, sources)) ?? istDate(new Date());
-  // Each portfolio is valued on its own: the same stock can sit in two of them.
+  // Each portfolio is valued on its own: the same stock can sit in two of them. It still counts as one
+  // holding, as on Home and Portfolio, which merge it.
   let netWorth = 0;
   for (const p of portfolios) netWorth += valuation((await loadPortfolioDay(db, holdings.filter((h) => h.portfolioId === p.id), date, sources)).holdings).value;
   const watching = await listWatching(user.id);
@@ -43,7 +44,7 @@ export default async function SettingsPage() {
           isTestAccount: user.isTestAccount,
           privateDemo: user.isDemo,
           memberSince: user.createdAt.toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" }),
-          stats: { portfolios: portfolios.length, holdings: holdings.length, watching: watching.length, netWorth: holdings.length ? netWorth : null },
+          stats: { portfolios: portfolios.length, holdings: new Set(holdings.map((h) => h.symbol)).size, watching: watching.length, netWorth: holdings.length ? netWorth : null },
         }}
       />
       <GoalsCard view={goals} />

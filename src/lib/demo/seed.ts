@@ -253,6 +253,12 @@ async function buildTemplate(db: DB, persona: Persona, date: string, force: bool
     });
     if (market.length + manual.length) await db.insert(schema.holdings).values([...market, ...manual]);
     if (i === 0 && persona.extras) await addExtras(db, userId, portfolioId, market, persona.extras, hist, date);
+    const paid = (p.dividends ?? []).flatMap((d) => {
+      const h = market.find((m) => m.symbol === d.symbol);
+      const day = shiftDate(date, -d.daysAgo);
+      return h && h.buyDate < day ? [{ id: randomUUID(), userId, portfolioId, holdingId: h.id, symbol: h.symbol, name: displayName(h.symbol), kind: "dividend" as const, amount: Math.round(h.quantity * d.perUnit * 100) / 100, date: day }] : [];
+    });
+    if (paid.length) await db.insert(schema.holdingIncome).values(paid);
   }
   for (const [k, g] of (persona.extras?.goals ?? []).entries())
     await db.insert(schema.goals).values({ id: randomUUID(), userId, name: g.name, target: g.target, byDate: shiftDate(date, Math.round(g.yearsAhead * 365)), saved: g.saved, savedAsOf: date, monthly: g.monthly, sortOrder: k });
@@ -284,6 +290,8 @@ export async function cloneTemplate(db: DB, T: string, userId: string) {
   await db.execute(sql`insert into sips (id, portfolio_id, holding_id, amount, day_of_month, start_date, end_date, active, next_due, instalments, invested, created_at, updated_at)
     select ${nid("s.id")}, ${nid("s.portfolio_id")}, ${nid("s.holding_id")}, s.amount, s.day_of_month, s.start_date, s.end_date, s.active, s.next_due, s.instalments, s.invested, s.created_at, s.updated_at
     from sips s join portfolios p on p.id = s.portfolio_id where p.user_id = ${T}`);
+  await db.execute(sql`insert into holding_income (id, user_id, portfolio_id, holding_id, symbol, name, kind, amount, date, created_at)
+    select ${nid("id")}, ${U}, ${nid("portfolio_id")}, case when holding_id is null then null else ${nid("holding_id")} end, symbol, name, kind, amount, date, created_at from holding_income where user_id = ${T}`);
   await db.execute(sql`insert into holding_sales (id, user_id, portfolio_id, holding_id, symbol, name, asset_class, category, units, price, date, cost, parts, created_at)
     select ${nid("id")}, ${U}, ${nid("portfolio_id")}, case when holding_id is null then null else ${nid("holding_id")} end, symbol, name, asset_class, category, units, price, date, cost, parts, created_at from holding_sales where user_id = ${T}`);
 }

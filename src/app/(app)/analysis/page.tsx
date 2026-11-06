@@ -106,14 +106,14 @@ export default async function AnalysisPage() {
           <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               ["Still in the portfolio", v.returns.unrealised, null],
-              ["Realised in sales", v.returns.realised, `${inr(Math.round(v.returns.realisedThisYear))} in ${v.returns.fy}`],
-              ["Paid out as income", v.returns.income, `${inr(Math.round(v.returns.incomeThisYear))} in ${v.returns.fy}`],
+              ["Realised in sales", v.returns.realised, `${inr(Math.round(v.returns.realisedThisYear), { decimals: 0 })} in ${v.returns.fy}`],
+              ["Paid out as income", v.returns.income, v.returns.income ? `${inr(Math.round(v.returns.incomeThisYear), { decimals: 0 })} in ${v.returns.fy}` : null],
               ["Total return", v.returns.total, null],
             ].map(([label, amount, sub]) => (
               <div key={label as string} className="rounded-[12px] bg-surface-2 px-3 py-2.5">
                 <dt className="text-[12px] text-subtle">{label}</dt>
                 <dd className="mt-0.5">
-                  <Delta amount={amount as number} size="sm" showArrow={false} />
+                  {amount === 0 ? <span className="text-[14px] text-muted">None yet</span> : <Delta amount={amount as number} size="sm" showArrow={false} />}
                   {sub && <span className="num block text-[11px] text-subtle">{sub}</span>}
                 </dd>
               </div>

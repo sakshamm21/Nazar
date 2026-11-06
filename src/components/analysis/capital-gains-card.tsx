@@ -36,10 +36,20 @@ export function CapitalGainsCard({ parts, slabPct }: { parts: GainPart[]; slabPc
         </div>
         <div className="mt-0.5 flex items-baseline justify-between gap-2">
           <Delta amount={b.gain} size="sm" showArrow={false} />
-          <span className="num text-[13px] font-medium text-text">{b.tax == null ? "at your slab" : b.tax >= 0.5 ? inr(Math.round(b.tax), { decimals: 0 }) : "nil"}</span>
+          <span className="num text-[13px] font-medium text-text">{b.gain < 0 ? "nil" : b.tax == null ? "at your slab" : b.tax >= 0.5 ? inr(Math.round(b.tax), { decimals: 0 }) : "nil"}</span>
         </div>
         <div className="mt-0.5 text-[11px] text-subtle">
-          {b.kind === "crypto" ? "Losses here can't be set off" : b.exempt > 0 ? `${inrCompact(b.exempt)} within the yearly exemption` : b.tax == null ? "Set your slab to see a figure" : b.tax > 0 ? "tax, with cess" : "nothing taxable"}
+          {b.kind === "crypto"
+            ? "Losses here can't be set off"
+            : b.gain < 0
+              ? "A loss: set off against other gains"
+              : b.exempt > 0
+                ? `${inrCompact(b.exempt)} within the yearly exemption`
+                : b.tax == null
+                  ? "Set your slab to see a figure"
+                  : b.tax > 0
+                    ? "tax, with cess"
+                    : "nothing taxable"}
         </div>
       </div>
     );
