@@ -2,7 +2,7 @@
 
 import { ExternalLink, Search } from "lucide-react";
 import { useState } from "react";
-import { fmt, fmtLarge, money, pct, upDown } from "@/lib/format";
+import { fmt, fmtLarge, money, pct, rangeLabel, upDown } from "@/lib/format";
 import { Panel, Stat } from "./ui";
 import { marketLabel } from "./views";
 
@@ -220,7 +220,7 @@ export function PerformanceToolView({ data }: { data: any }) {
   return (
     <Panel
       title={<span>{data.summary?.headline ?? data.portfolio}</span>}
-      subtitle={`${data.portfolio} · ${data.from} to ${data.to}${data.coversWholePeriod ? "" : " · as far back as Nazar has prices"} · read-only from Nazar's checkup`}
+      subtitle={`${data.portfolio} · ${rangeLabel(data.from, data.to)}${data.coversWholePeriod ? "" : " · as far back as Nazar has prices"} · read-only from Nazar's checkup`}
       right={<div className={`text-sm font-semibold tabular-nums ${upDown(data.changePct)}`}>{pct(data.changePct)}</div>}
     >
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

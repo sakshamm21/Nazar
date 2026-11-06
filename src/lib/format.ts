@@ -113,6 +113,20 @@ export function dayLabel(iso: string, lang: "en" | "hi" = "en", withWeekday = tr
   return d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { timeZone: "UTC", day: "numeric", month: "short", ...(withWeekday ? { weekday: lang === "hi" ? "long" : "short" } : {}) });
 }
 
+/** "4 Nov 2030": a date with its year, for dates that can be years away (goals) or need no weekday. */
+export function dateLabel(iso: string, lang: "en" | "hi" = "en") {
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`);
+  return d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
+}
+
+/** "7 Oct to 6 Nov 2026": a period the way the rest of the app writes one. Non-date input passes through. */
+export function rangeLabel(from: string, to: string) {
+  const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}/.test(s);
+  if (!isDate(from) || !isDate(to)) return `${from} to ${to}`;
+  const start = from.slice(0, 4) === to.slice(0, 4) ? dayLabel(from.slice(0, 10), "en", false) : dateLabel(from);
+  return `${start} to ${dateLabel(to)}`;
+}
+
 /** "4:47 PM" in India time. */
 export function istTime(d: Date | string) {
   return new Date(d).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();

@@ -99,7 +99,9 @@ export function ProfileCard({ profile }: { profile: Profile }) {
             </div>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-muted">
-            <span className="truncate">{profile.name === first ? profile.email : `${profile.name} · ${profile.email}`}</span>
+            {/* A demo's address is made up and means nothing to the visitor, so it is not shown. */}
+            {!profile.isTestAccount && <span className="truncate">{profile.name === first ? profile.email : `${profile.name} · ${profile.email}`}</span>}
+            {profile.isTestAccount && profile.name !== first && <span className="truncate">{profile.name}</span>}
             {profile.isTestAccount ? (
               <Chip tone="warn">{profile.privateDemo ? "Your demo, for 24 hours" : "Shared demo account"}</Chip>
             ) : profile.emailVerified ? (

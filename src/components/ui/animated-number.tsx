@@ -1,6 +1,6 @@
 "use client";
 import { useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Odometer-style number: each digit rolls into place (~400ms) when the value changes, and rolls
@@ -8,18 +8,16 @@ import { useEffect, useRef, useState } from "react";
  */
 export function AnimatedNumber({ value, format, className }: { value: number; format: (n: number) => string; className?: string }) {
   const text = format(value);
-  const [shown, setShown] = useState(() => text.replace(/\d/g, "0"));
-  const first = useRef(true);
+  // Only the first paint shows zeros, so the digits can roll up. After that the digits are always
+  // drawn from the current value, never from a copy kept in state that could lag behind a refresh;
+  // the CSS transition on each digit does the rolling when the value changes.
+  const [rolledIn, setRolledIn] = useState(false);
   const reduce = useReducedMotion();
   useEffect(() => {
-    if (reduce) return;
-    const t = setTimeout(() => setShown(text), first.current ? 60 : 0);
-    first.current = false;
+    const t = setTimeout(() => setRolledIn(true), 60);
     return () => clearTimeout(t);
-  }, [text, reduce]);
-  // Reduced motion: show the value as is. Otherwise keep the digit slots aligned with the final
-  // text (lengths can differ between values).
-  const display = reduce || shown.length !== text.length ? text : shown;
+  }, []);
+  const display = reduce || rolledIn ? text : text.replace(/\d/g, "0");
   return (
     <span className={`num inline-flex ${className ?? ""}`}>
       <span className="sr-only">{text}</span>

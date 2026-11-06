@@ -18,6 +18,7 @@ import { sipsView } from "../views/sips";
 import { LTCG_EXEMPTION, TAX_RULES, byHolding, summariseGains } from "../portfolio/capital-gains";
 import { PERIODS, explain } from "../portfolio/performance";
 import { stressTest } from "../portfolio/math";
+import { matchPortfolio } from "./match-portfolio";
 
 /** Market-data tools: stateless, safe to share between users. */
 const marketTools = {
@@ -444,12 +445,18 @@ function userTools(userId: string) {
   const loadView = async (portfolio?: string) => {
     const db = await getDb();
     const [u, pfs] = await Promise.all([loadUser(), db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId))]);
-    const match = portfolio ? pfs.find((p) => p.name.toLowerCase().includes(portfolio.toLowerCase())) : null;
+    const match = matchPortfolio(pfs, portfolio);
     const v = await buildPortfolioView(u, match?.id ?? null);
     const names = pfs.map((p) => p.name);
     return v.empty ? { empty: { portfolios: names, empty: true as const, note: EMPTY_NOTE } } : { v, names };
   };
-  const whichPortfolio = z.string().max(60).optional().describe("Portfolio name, when the user has more than one. Omit for all of them together.");
+  const whichPortfolio = z
+    .string()
+    .max(60)
+    .optional()
+    .describe(
+      "A portfolio's name, only when the user picks out one of several by its name (\"my dividend basket\"). Omit it for 'my portfolio', 'my holdings' or 'my money': those mean all of them together.",
+    );
   const r0 = (n: number) => Math.round(n);
 
   return {

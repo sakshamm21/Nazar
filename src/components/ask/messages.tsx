@@ -115,7 +115,6 @@ function AnswerFooter({ message, meta, chatId, rating, onRate }: { message: UIMe
           {label}
           {meta.mode && ` · ${meta.mode === "pro" ? "Pro" : "Simple"}`}
           {secs && ` · ${secs}`}
-          {meta.costUsd != null && ` · $${meta.costUsd < 0.01 ? meta.costUsd.toFixed(4) : meta.costUsd.toFixed(3)}`}
         </span>
         {onRate && (
           <span className="ml-auto flex items-center gap-0.5">

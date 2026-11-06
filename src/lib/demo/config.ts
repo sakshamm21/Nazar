@@ -10,7 +10,9 @@ import type { ManualClass } from "@/lib/instruments/asset-classes";
 export type PersonaHolding = { symbol: string; value: number; daysAgo: number };
 /** An asset with no price feed, as the persona would have typed it in. */
 export type PersonaManual = { assetClass: ManualClass; name: string; invested: number; value: number; valueDaysAgo: number; ratePct?: number; startDaysAgo: number; maturesInDays?: number };
-export type PersonaPortfolio = { name: string; holdings: PersonaHolding[]; manual: PersonaManual[] };
+/** A dividend the persona received: `perUnit` rupees on each unit held, paid `daysAgo` days ago. */
+export type PersonaDividend = { symbol: string; perUnit: number; daysAgo: number };
+export type PersonaPortfolio = { name: string; holdings: PersonaHolding[]; manual: PersonaManual[]; dividends?: PersonaDividend[] };
 /**
  * What makes a persona look lived-in: savings goals (the persona's own figures), a monthly SIP on a
  * fund it holds, and one sale of part of a holding, priced at that day's stored close.
@@ -83,6 +85,15 @@ const INVESTOR: Persona = {
       manual: [
         { assetClass: "fd", name: "Post office deposit", invested: 500_000, value: 500_000, valueDaysAgo: 500, ratePct: 7.5, startDaysAgo: 500, maturesInDays: 1325 },
         { assetClass: "cash", name: "Savings account", invested: 180_000, value: 180_000, valueDaysAgo: 5, ratePct: 2.7, startDaysAgo: 5 },
+      ],
+      // Roughly the size of each company's recent payouts, so the basket shows the income it is for.
+      dividends: [
+        { symbol: "SBIN.NS", perUnit: 15.9, daysAgo: 160 },
+        { symbol: "ITC.NS", perUnit: 7.85, daysAgo: 150 },
+        { symbol: "HDFCBANK.NS", perUnit: 11, daysAgo: 140 },
+        { symbol: "RELIANCE.NS", perUnit: 5.5, daysAgo: 100 },
+        { symbol: "POWERGRID.NS", perUnit: 4.5, daysAgo: 60 },
+        { symbol: "COALINDIA.NS", perUnit: 5.5, daysAgo: 45 },
       ],
     },
   ],

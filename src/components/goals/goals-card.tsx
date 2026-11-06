@@ -10,7 +10,7 @@ import { Field, FormAlert, Input } from "@/components/ui/field";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Sheet } from "@/components/ui/sheet";
 import { apiCall } from "@/lib/api-client";
-import { dayLabel, inr } from "@/lib/format";
+import { dateLabel, inr } from "@/lib/format";
 import { emptyDraft, goalPayload, progressDraft, progressPayload, today, type GoalDraft } from "@/lib/goals/draft";
 import { MAX_GOALS } from "@/lib/goals/schema";
 import type { GoalRow, GoalsView } from "@/lib/views/goals";
@@ -98,7 +98,7 @@ export function GoalsCard({ view }: { view: GoalsView }) {
             >
               {confirm && (
                 <p className="text-sm leading-6 text-muted">
-                  {inr(confirm.goal.target)} by {dayLabel(confirm.goal.byDate, "en", false)}, with {inr(confirm.goal.saved)} saved. This cannot be undone.
+                  {inr(confirm.goal.target)} by {dateLabel(confirm.goal.byDate)}, with {inr(confirm.goal.saved)} saved. This cannot be undone.
                 </p>
               )}
             </Sheet>
@@ -118,7 +118,7 @@ function GoalRowItem({ row, onEdit, onProgress, onDelete }: { row: GoalRow; onEd
             <Chip tone={row.tone}>{row.status}</Chip>
           </div>
           <div className="mt-0.5 text-[12px] text-subtle">
-            {inr(goal.target)} by {dayLabel(goal.byDate, "en", false)}
+            {inr(goal.target)} by {dateLabel(goal.byDate)}
             {p.monthsLeft > 0 && !met && ` · ${MONTHS(p.monthsLeft)} away`}
           </div>
         </div>
@@ -170,7 +170,7 @@ function GoalRowItem({ row, onEdit, onProgress, onDelete }: { row: GoalRow; onEd
         ) : (
           <>
             {p.monthsLeft > 0 && <>At {inr(goal.monthly ?? 0)} a month this reaches {inr(p.projected)} by then. </>}
-            {p.status === "no-plan" ? "Add what you are setting aside each month to see where it lands." : p.onTrackFor && p.onTrackFor !== goal.byDate ? <>At this pace the amount is reached by {dayLabel(p.onTrackFor, "en", false)}.</> : null}
+            {p.status === "no-plan" ? "Add what you are setting aside each month to see where it lands." : p.onTrackFor && p.onTrackFor !== goal.byDate ? <>At this pace the amount is reached by {dateLabel(p.onTrackFor)}.</> : null}
           </>
         )}
       </p>
@@ -294,7 +294,7 @@ function ProgressSheet({ row, onClose }: { row: GoalRow | null; onClose: () => v
       open={!!row}
       onClose={onClose}
       title="Record what is saved"
-      description={row ? `${row.goal.name} needs ${inr(row.goal.target)} by ${dayLabel(row.goal.byDate, "en", false)}.` : undefined}
+      description={row ? `${row.goal.name} needs ${inr(row.goal.target)} by ${dateLabel(row.goal.byDate)}.` : undefined}
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose}>

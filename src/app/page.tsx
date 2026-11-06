@@ -99,7 +99,7 @@ export default async function Landing() {
         <section className="mx-auto max-w-[1120px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <Reveal className="max-w-2xl">
             <div className="t-overline">What you get</div>
-            <h2 className="mt-2 font-[family-name:var(--font-display)] text-[30px] font-semibold leading-[1.1] tracking-[-0.03em] text-text sm:text-[40px]">Four screens. Every answer about your money.</h2>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-[30px] font-semibold leading-[1.1] tracking-[-0.03em] text-text sm:text-[40px]">One place. Every answer about your money.</h2>
           </Reveal>
 
           <div className="mt-10 grid gap-4 lg:grid-cols-5">
@@ -208,11 +208,6 @@ export default async function Landing() {
             <Link href="/terms" className="hover:text-text">Terms</Link>
             <Link href="/contact" className="hover:text-text">Contact</Link>
           </nav>
-          {process.env.NEXT_PUBLIC_LEGACY_URL && (
-            <a href={process.env.NEXT_PUBLIC_LEGACY_URL} className="hover:text-text">
-              StockAI (legacy)
-            </a>
-          )}
         </div>
       </footer>
     </div>
